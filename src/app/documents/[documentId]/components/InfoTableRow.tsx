@@ -3,13 +3,13 @@ import { useState } from 'react';
 
 import { Box, IconButton, TableCell, TableRow, Tooltip, Typography } from '@mui/material';
 
-import { CheckIcon, CopyIcon, TrashIcon } from '@/../public/assets/icons';
+import { CheckIcon, CopyIcon, TrashIcon } from '@/icons';
 
 import ModalWrapper from '@/components/ModalWrapper';
 
 import { useModal, useToast } from '@/hooks';
-import { LinkDetail, Contact } from '@/utils/shared/models';
-import { formatDateTime } from '@/utils/shared/utils';
+import { LinkDetail, Contact } from '@/shared/models/models';
+import { formatDateTime } from '@/shared/utils/utils';
 
 interface InfoTableRowProps {
 	variant?: 'linkTable' | 'visitorTable';

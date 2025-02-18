@@ -3,7 +3,7 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 
-import { ChevronDownIcon, ChevronSelectorVerticalIcon } from '@/../public/assets/icons';
+import { ChevronDownIcon, ChevronSelectorVerticalIcon } from '@/icons';
 
 import {
 	Box,
@@ -25,7 +25,7 @@ import Paginator from '@/components/Paginator';
 import ContactsTableRow from './ContactsTableRow';
 
 import { useSort } from '@/hooks';
-import { Contact } from '@/utils/shared/models';
+import { Contact } from '@/shared/models/models';
 
 export default function ContactsTable() {
 	const [page, setPage] = useState(1);
