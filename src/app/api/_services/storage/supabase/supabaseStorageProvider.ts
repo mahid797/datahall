@@ -1,4 +1,4 @@
-import { StorageProvider, FileMetadata, UploadResult } from '@/services/storageService';
+import { StorageProvider, FileMetadata, UploadResult } from '@/app/api/_services/storageService';
 import { createClient } from '@supabase/supabase-js';
 
 export class SupabaseProvider implements StorageProvider {
@@ -58,7 +58,11 @@ export class SupabaseProvider implements StorageProvider {
 	 * @param expiresIn - The number of seconds until the signed URL expires (default: 3 days).
 	 * @returns - A promise resolving to the signed URL.
 	 */
-	async generateSignedUrl(bucket: string, filePath: string, expiresIn: number = 259200): Promise<string> {
+	async generateSignedUrl(
+		bucket: string,
+		filePath: string,
+		expiresIn: number = 259200,
+	): Promise<string> {
 		const { data, error } = await this.supabase.storage
 			.from(bucket)
 			.createSignedUrl(filePath, expiresIn);
