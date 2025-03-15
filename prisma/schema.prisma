@@ -77,8 +77,8 @@ model DocumentLink {
   id                        Int       @id @default(autoincrement())
   documentLinkId            String    @unique
   documentId                String
-  userId                    String
-  friendlyName              String?   @unique
+  createdByUserId           String
+  alias                     String?   @unique
   linkUrl                   String    @unique
   isPublic                  Boolean   @default(false)
   requiredUserDetailsOption Int? // Must be NULL if isPublic = true
@@ -86,6 +86,7 @@ model DocumentLink {
   password                  String? // Must be NULL if isPublic = true
   updatedAt                 DateTime  @updatedAt @db.Timestamptz(6)
   createdAt                 DateTime  @default(now()) @db.Timestamptz(6)
+  visitorFields             Json
 
   // Relations
   Document Document @relation(fields: [documentId], references: [document_id], onDelete: Cascade)
