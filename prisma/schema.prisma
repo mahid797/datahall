@@ -78,7 +78,7 @@ model DocumentLink {
   documentLinkId            String    @unique
   documentId                String
   createdByUserId           String
-  alias                     String?   @unique
+  alias                     String?
   linkUrl                   String    @unique
   isPublic                  Boolean   @default(false)
   requiredUserDetailsOption Int? // Must be NULL if isPublic = true
@@ -86,13 +86,15 @@ model DocumentLink {
   password                  String? // Must be NULL if isPublic = true
   updatedAt                 DateTime  @updatedAt @db.Timestamptz(6)
   createdAt                 DateTime  @default(now()) @db.Timestamptz(6)
-  visitorFields             Json
+  visitorFields             Json?
 
   // Relations
   Document Document @relation(fields: [documentId], references: [document_id], onDelete: Cascade)
-  User     User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  User     User     @relation(fields: [createdByUserId], references: [user_id], onDelete: Cascade)
 
   documentLinkVisitors DocumentLinkVisitor[]
+
+  @@unique([createdByUserId, alias]) // Unique constraint on both fields.
 }
 
 model DocumentLinkVisitor {
