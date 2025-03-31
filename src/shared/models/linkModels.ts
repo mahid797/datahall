@@ -27,7 +27,7 @@ export interface LinkDetail {
 
 export interface LinkData {
 	isPasswordProtected?: boolean;
-	requiredUserDetailsOption?: number;
+	visitorFields?: string[];
 	signedUrl?: string;
 	fileName?: string;
 	size?: number;

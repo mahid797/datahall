@@ -1,15 +1,19 @@
 export const visitorFieldsConfig = {
 	name: {
-		type: 'string',
-		label: 'Full Name',
+		label: 'Name',
+		placeholder: 'Your Name',
+		type: 'text',
 	},
 	email: {
-		type: 'string',
-		label: 'Email Address',
+		label: 'Email',
+		type: 'email',
+		placeholder: 'your_email@bluewave.com',
 	},
-	expirationTIme: {
-		type: 'date',
-		label: 'Expiration Date',
+	password: {
+		label: 'Password',
+		placeholder: '',
+		type: 'password',
+		helperText: 'Please enter the password shared with you',
 	},
 };
 

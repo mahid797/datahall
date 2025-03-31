@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ documentI
 			id: link.id,
 			documentId: link.documentId,
 			linkId: link.documentLinkId,
-			friendlyName: link.friendlyName,
+			alias: link.alias,
 			createdLink: link.linkUrl,
 			lastViewed: link.updatedAt,
 			linkViews: 0,

@@ -20,6 +20,7 @@ import { useFormSubmission, useValidatedFormData } from '@/hooks';
 
 import { EyeIcon, EyeOffIcon, FileDownloadIcon } from '@/icons';
 import { requiredFieldRule, splitName, validEmailRule } from '@/shared/utils';
+import { visitorFieldsConfig } from '@/shared/config/visitorFieldsConfig';
 
 const RowBox = styled(Box)({
 	display: 'flex',
@@ -39,7 +40,7 @@ const RowBox = styled(Box)({
 	},
 });
 
-function getFormConfig(passwordRequired: boolean, userDetailsOption: number) {
+function getFormConfig(passwordRequired: boolean, visitorFields: string[]) {
 	const formConfig: {
 		initialValues: Record<string, string>;
 		validationRules: Record<string, any[]>;
@@ -53,20 +54,16 @@ function getFormConfig(passwordRequired: boolean, userDetailsOption: number) {
 		formConfig.validationRules.password = [requiredFieldRule('*This field is required')];
 	}
 
-	if (userDetailsOption === 1) {
-		formConfig.initialValues.name = '';
-		formConfig.validationRules.name = [requiredFieldRule('*This field is required')];
-	}
+	visitorFields.forEach((field) => {
+		formConfig.initialValues[field] = '';
+		const rules = [requiredFieldRule('*This field is required')];
 
-	if (userDetailsOption === 2) {
-		formConfig.initialValues.name = '';
-		formConfig.initialValues.email = '';
-		formConfig.validationRules.name = [requiredFieldRule('*This field is required')];
-		formConfig.validationRules.email = [
-			requiredFieldRule('*This field is required'),
-			validEmailRule,
-		];
-	}
+		if (field === 'email') {
+			rules.push(validEmailRule);
+		}
+
+		formConfig.validationRules[field] = rules;
+	});
 
 	return formConfig;
 }
@@ -74,19 +71,18 @@ function getFormConfig(passwordRequired: boolean, userDetailsOption: number) {
 interface VisitorInfoModalProps {
 	linkId: string;
 	passwordRequired: boolean;
-	userDetailsOption: number;
+	visitorFields: string[];
 	onVisitorInfoModalSubmit: (data: Record<string, any>) => void;
 }
 
 export default function VisitorInfoModal({
 	linkId,
 	passwordRequired,
-	userDetailsOption,
+	visitorFields,
 	onVisitorInfoModalSubmit,
 }: VisitorInfoModalProps) {
 	const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
-
-	const formConfig = getFormConfig(passwordRequired, userDetailsOption);
+	const formConfig = getFormConfig(passwordRequired, visitorFields);
 
 	const { values, handleChange, handleBlur, getError, validateAll } = useValidatedFormData({
 		initialValues: formConfig.initialValues,
@@ -104,8 +100,8 @@ export default function VisitorInfoModal({
 
 			const payload = {
 				linkId,
-				first_name: splittedName.first_name,
-				last_name: splittedName.last_name,
+				firstName: splittedName.first_name,
+				lastName: splittedName.last_name,
 				email: values.email || '',
 				password: values.password || '',
 			};
@@ -158,65 +154,54 @@ export default function VisitorInfoModal({
 					flexDirection='column'
 					width='100%'
 					gap={10}>
-					{[1, 2].includes(userDetailsOption) && (
-						<RowBox>
-							<Typography variant='h3'>Name</Typography>
-							<FormInput
-								id='name'
-								value={values.name || ''}
-								onChange={handleChange}
-								onBlur={handleBlur}
-								errorMessage={getError('name')}
-								placeholder='Your Name'
-							/>
-							<Box />
-						</RowBox>
-					)}
+					{visitorFields.map((field) => {
+						const fieldConfig = visitorFieldsConfig[field];
 
-					{userDetailsOption === 2 && (
-						<RowBox>
-							<Typography variant='h3'>Email</Typography>
-							<FormInput
-								id='email'
-								type='email'
-								value={values.email || ''}
-								onChange={handleChange}
-								onBlur={handleBlur}
-								errorMessage={getError('email')}
-								placeholder='your_email@bluewave.com'
-							/>
-							<Box />
-						</RowBox>
-					)}
+						console.log('field config: ', fieldConfig);
 
-					{userDetailsOption === 2 && passwordRequired && <Divider />}
+						if (!fieldConfig) return null;
 
-					{passwordRequired && (
-						<RowBox>
-							<Typography
-								variant='h3'
-								mt={10}>
-								Password
-							</Typography>
-							<FormInput
-								placeholder=''
-								id='password'
-								label='Please enter the password shared with you'
-								value={values.password || ''}
-								onChange={handleChange}
-								errorMessage={getError('password')}
-								onBlur={handleBlur}
-								type={isPasswordVisible ? 'text' : 'password'}
-							/>
-							<Box mt={10}>
-								<IconButton
-									size='large'
-									onClick={() => setIsPasswordVisible(!isPasswordVisible)}>
-									{isPasswordVisible ? <EyeOffIcon /> : <EyeIcon />}
-								</IconButton>
-							</Box>
-						</RowBox>
-					)}
+						return (
+							<RowBox key={field}>
+								<Typography
+									variant='h3'
+									mt={field === 'password' ? 10 : 0}>
+									{fieldConfig.label}
+								</Typography>
+								{field === 'password' ? (
+									<Box sx={{ display: 'flex', alignItems: 'center' }}>
+										<FormInput
+											id='password'
+											type={isPasswordVisible ? 'text' : 'password'}
+											placeholder={fieldConfig.placeholder}
+											label={fieldConfig.helperText}
+											value={values.password || ''}
+											onChange={handleChange}
+											onBlur={handleBlur}
+											errorMessage={getError('password')}
+										/>
+										<Box mt={10}>
+											<IconButton
+												size='large'
+												onClick={() => setIsPasswordVisible(!isPasswordVisible)}>
+												{isPasswordVisible ? <EyeOffIcon /> : <EyeIcon />}
+											</IconButton>
+										</Box>
+									</Box>
+								) : (
+									<FormInput
+										id={field}
+										type={fieldConfig.type}
+										placeholder={fieldConfig.placeholder}
+										value={values[field] || ''}
+										onChange={handleChange}
+										onBlur={handleBlur}
+										errorMessage={getError(field)}
+									/>
+								)}
+							</RowBox>
+						);
+					})}
 				</Box>
 			</DialogContent>
 

@@ -74,27 +74,24 @@ enum UserRole {
 }
 
 model DocumentLink {
-  id                        Int       @id @default(autoincrement())
-  documentLinkId            String    @unique
-  documentId                String
-  createdByUserId           String
-  alias                     String?
-  linkUrl                   String    @unique
-  isPublic                  Boolean   @default(false)
-  requiredUserDetailsOption Int? // Must be NULL if isPublic = true
-  expirationTime            DateTime? // Must be NULL if isPublic = true
-  password                  String? // Must be NULL if isPublic = true
-  updatedAt                 DateTime  @updatedAt @db.Timestamptz(6)
-  createdAt                 DateTime  @default(now()) @db.Timestamptz(6)
-  visitorFields             Json?
+  id              Int       @id @default(autoincrement())
+  documentLinkId  String    @unique
+  documentId      String
+  createdByUserId String
+  alias           String?
+  linkUrl         String    @unique
+  isPublic        Boolean   @default(false)
+  expirationTime  DateTime? // Must be NULL if isPublic = true
+  password        String? // Must be NULL if isPublic = true
+  updatedAt       DateTime  @updatedAt @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @db.Timestamptz(6)
+  visitorFields   Json? // Required user information during file access. ["fullname", "firstname", "lastname"]
 
   // Relations
   Document Document @relation(fields: [documentId], references: [document_id], onDelete: Cascade)
   User     User     @relation(fields: [createdByUserId], references: [user_id], onDelete: Cascade)
 
   documentLinkVisitors DocumentLinkVisitor[]
-
-  @@unique([createdByUserId, alias]) // Unique constraint on both fields.
 }
 
 model DocumentLinkVisitor {
@@ -103,7 +100,7 @@ model DocumentLinkVisitor {
   firstName       String   @default("")
   lastName        String   @default("")
   email           String   @default("")
-  visitorMetaData Json?
+  visitorMetaData Json? // Any additional user details will be here.
   visitedAt       DateTime @default(now()) @db.Timestamptz(6)
   updatedAt       DateTime @updatedAt @db.Timestamptz(6)
 
