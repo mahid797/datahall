@@ -8,7 +8,7 @@ import { createErrorResponse, LinkService } from '@/app/api/_services';
 export async function POST(req: NextRequest, props: { params: Promise<{ linkId: string }> }) {
 	try {
 		const { linkId } = await props.params;
-		const { first_name, last_name, email, password } = await req.json();
+		const { firstName, lastName, email, password } = await req.json();
 
 		// 1) Retrieve link
 		const link = await LinkService.getPublicLink(linkId);
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ linkId: 
 		}
 
 		// 4) Log visitor.
-		await LinkService.logVisitor(linkId, first_name, last_name, email);
+		await LinkService.logVisitor(linkId, firstName, lastName, email);
 
 		// 5) Get a signed URL for the doc
 		try {
