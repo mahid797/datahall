@@ -241,7 +241,7 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 						}
 
 						toast.showToast({
-							message: 'Shareable link created successfully!',
+							message: 'New link created successfully!',
 							variant: 'success',
 						});
 					},
@@ -270,7 +270,7 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 			fullWidth
 			maxWidth='sm'>
 			<DialogTitle variant='h2'>
-				Create shareable link
+				Create new link
 				<Typography
 					my={4}
 					component='div'

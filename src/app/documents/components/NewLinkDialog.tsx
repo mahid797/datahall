@@ -4,12 +4,12 @@ import { Box, Chip, Dialog, DialogContent, DialogTitle, IconButton } from '@mui/
 
 import { CheckIcon, CopyIcon, LinkIcon } from '@/icons';
 
-interface ShareableLinkDialogProps {
+interface NewLinkDialogProps {
 	linkUrl: string;
 	onClose: () => void;
 }
 
-export default function ShareableLinkDialog({ linkUrl, onClose }: ShareableLinkDialogProps) {
+export default function NewLinkDialog({ linkUrl, onClose }: NewLinkDialogProps) {
 	const [isLinkCopied, setIsLinkCopied] = React.useState(false);
 
 	function handleLinkCopy() {
@@ -33,7 +33,7 @@ export default function ShareableLinkDialog({ linkUrl, onClose }: ShareableLinkD
 				justifyContent='space-between'
 				alignItems='center'
 				width='100%'>
-				<DialogTitle variant='h2'>Shareable link</DialogTitle>
+				<DialogTitle variant='h2'>New link</DialogTitle>
 			</Box>
 
 			<DialogContent
