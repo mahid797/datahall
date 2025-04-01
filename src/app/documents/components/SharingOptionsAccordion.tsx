@@ -1,10 +1,11 @@
 import React from 'react';
-import { Box, IconButton, MenuItem, Select, Typography, RadioGroup } from '@mui/material';
+import { Box, IconButton, Typography, RadioGroup } from '@mui/material';
 
 import { EyeIcon, EyeOffIcon } from '@/icons';
 
 import { CustomCheckbox, FormInput } from '@/components';
 import { LinkFormValues } from '@/shared/models';
+import { visitorFieldsConfig } from '@/shared/config/visitorFieldsConfig';
 
 interface SharingOptionsAccordionProps {
 	formValues: LinkFormValues;
@@ -15,6 +16,8 @@ interface SharingOptionsAccordionProps {
 	getError: (fieldName: keyof LinkFormValues) => string;
 	handleExpirationChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 	handleBlur: (event: React.FocusEvent<HTMLInputElement>) => void;
+	visitorFields: string[];
+	handleVisitorFieldChange: (field: string) => void;
 }
 
 export default function SharingOptionsAccordion(props: SharingOptionsAccordionProps) {
@@ -27,6 +30,8 @@ export default function SharingOptionsAccordion(props: SharingOptionsAccordionPr
 		getError,
 		handleExpirationChange,
 		handleBlur,
+		visitorFields,
+		handleVisitorFieldChange,
 	} = props;
 
 	const disabled = formValues.isPublic;
@@ -45,31 +50,29 @@ export default function SharingOptionsAccordion(props: SharingOptionsAccordionPr
 				disabled={disabled}
 			/>
 
-			<Box
-				display='flex'
-				alignItems='center'
-				justifyContent='space-between'
-				mt={2}
-				mb={4}
-				ml={13}>
-				<Select
-					size='small'
-					name='requiredUserDetailsOption'
-					sx={{ minWidth: 250 }}
-					disabled={!formValues.requireUserDetails}
-					value={formValues.requiredUserDetailsOption}
-					onChange={(event) => {
-						handleInputChange({
-							target: {
-								name: 'requiredUserDetailsOption',
-								value: event.target.value,
-							},
-						} as any);
-					}}>
-					<MenuItem value={1}>Name</MenuItem>
-					<MenuItem value={2}>Name and email</MenuItem>
-				</Select>
-			</Box>
+			{/* Render visitor fields checkboxes only if user details are required */}
+			{formValues.requireUserDetails && (
+				<Box
+					display='flex'
+					flexDirection='column'
+					mb={8}>
+					<Typography variant='body2'>Select required visitor details:</Typography>
+					<Box
+						ml={14}
+						mt={4}>
+						{visitorFieldsConfig.map(({ key, label }) => (
+							<Box key={key}>
+								<CustomCheckbox
+									checked={visitorFields.includes(key)}
+									onChange={() => handleVisitorFieldChange(key)}
+									name={key}
+									label={label}
+								/>
+							</Box>
+						))}
+					</Box>
+				</Box>
+			)}
 
 			<CustomCheckbox
 				checked={formValues.requirePassword}
@@ -84,8 +87,8 @@ export default function SharingOptionsAccordion(props: SharingOptionsAccordionPr
 				alignItems='center'
 				justifyContent='flex-start'
 				mt={2}
-				mb={4}
-				ml={13}>
+				mb={8}
+				ml={14}>
 				<FormInput
 					id='password'
 					minWidth={420}
@@ -159,7 +162,8 @@ export default function SharingOptionsAccordion(props: SharingOptionsAccordionPr
 					display='flex'
 					alignItems='center'
 					gap={2}
-					ml={7.5}>
+					ml={7.5}
+					mb={8}>
 					{/* <Radio value="date" /> */}
 					<Typography
 						variant='body1'

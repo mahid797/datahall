@@ -18,7 +18,7 @@ import { LoadingButton } from '@/components';
 
 import { useDocumentDetail, useFormSubmission, useValidatedFormData } from '@/hooks';
 
-import { LinkFormValues } from '@/shared/models';
+import { CreateDocumentLinkPayload, LinkFormValues } from '@/shared/models';
 import { computeExpirationDays, minLengthRule } from '@/shared/utils';
 
 interface CreateLinkProps {
@@ -31,6 +31,7 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 	const [expanded, setExpanded] = useState<string | false>('');
 	const [expirationType, setExpirationType] = useState('days');
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+	const [visitorFields, setVisitorFields] = useState<string[]>([]);
 
 	// Validation for password length
 	const validationRules = {
@@ -45,7 +46,7 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 		requirePassword: false,
 		expirationEnabled: false,
 		requireUserDetails: false,
-		requiredUserDetailsOption: 1,
+		visitorFields: [],
 	};
 
 	const { values, setValues, validateAll, getError, handleBlur } =
@@ -95,8 +96,8 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 						...prev,
 						isPublic: true,
 						requireUserDetails: false,
-						requiredUserDetailsOption: 1,
 						requirePassword: false,
+						expirationEnabled: false,
 					}));
 				} else {
 					setValues((prev) => ({
@@ -119,6 +120,15 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 		setExpanded(newExpanded ? panel : false);
 	};
 
+	const handleVisitorFieldChange = (field: string) => {
+		setVisitorFields(
+			(prevVisitorFields) =>
+				prevVisitorFields.includes(field)
+					? prevVisitorFields.filter((f) => f !== field) // Remove if already selected
+					: [...prevVisitorFields, field], // Add if not selected
+		);
+	};
+
 	React.useEffect(() => {
 		if (values.expirationTime) {
 			const diffDays = computeExpirationDays(values.expirationTime);
@@ -133,22 +143,19 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 		setExpirationType(e.target.value);
 	};
 
-	function buildRequestPayload(): Record<string, any> {
-		const payload: Record<string, any> = {
+	function buildRequestPayload(): CreateDocumentLinkPayload {
+		return {
 			documentId,
-			isPublic: values.isPublic,
 			friendlyName: values.friendlyName,
+			isPublic: values.isPublic,
+			expirationTime:
+				values.expirationEnabled && values.expirationTime ? values.expirationTime : undefined,
+			expirationEnabled: values.expirationEnabled,
+			requirePassword: values.requirePassword,
+			password: values.requirePassword ? values.password : undefined,
+			requireUserDetails: values.requireUserDetails,
+			visitorFields: visitorFields.length > 0 ? visitorFields : undefined,
 		};
-		if (values.requireUserDetails) {
-			payload.requiredUserDetailsOption = values.requiredUserDetailsOption;
-		}
-		if (values.requirePassword) {
-			payload.password = values.password;
-		}
-		if (values.expirationEnabled) {
-			payload.expirationTime = values.expirationTime;
-		}
-		return payload;
 	}
 
 	const { loading, handleSubmit, toast } = useFormSubmission({
@@ -194,7 +201,6 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 				Create shareable link
 				<Typography
 					my={4}
-					component='div'
 					variant='body2'>
 					Selected Document:{' '}
 					<Chip
@@ -210,7 +216,10 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 			</DialogTitle>
 
 			<DialogContent sx={{ overflowY: 'auto' }}>
-				<Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+				<Box
+					display='flex'
+					flexDirection='column'
+					gap={2}>
 					<LinkDetailsAccordion
 						formValues={values}
 						handleInputChange={handleInputChange}
@@ -229,6 +238,8 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 							setIsPasswordVisible={setIsPasswordVisible}
 							expirationType={expirationType}
 							handleExpirationChange={handleExpirationChange}
+							visitorFields={visitorFields}
+							handleVisitorFieldChange={handleVisitorFieldChange}
 						/>
 					</CustomAccordion>
 				</Box>

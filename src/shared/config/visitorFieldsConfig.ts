@@ -1,20 +1,13 @@
-export const visitorFieldsConfig = {
-	name: {
-		label: 'Name',
-		placeholder: 'Your Name',
-		type: 'text',
-	},
-	email: {
-		label: 'Email',
-		type: 'email',
-		placeholder: 'your_email@bluewave.com',
-	},
-	password: {
-		label: 'Password',
-		placeholder: '',
-		type: 'password',
-		helperText: 'Please enter the password shared with you',
-	},
-};
+const visitorFieldKeys = ['name', 'email'] as const;
 
-export const visitorFieldKeys = Object.keys(visitorFieldsConfig);
+type VisitorFieldKey = (typeof visitorFieldKeys)[number];
+
+export interface VisitorField {
+	key: VisitorFieldKey;
+	label: string;
+}
+
+export const visitorFieldsConfig: VisitorField[] = [
+	{ key: 'name', label: 'Name' },
+	{ key: 'email', label: 'Email' },
+];
