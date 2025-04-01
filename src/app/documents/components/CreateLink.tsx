@@ -18,7 +18,7 @@ import SendingAccordion from './SendingAccordion';
 
 import { LoadingButton } from '@/components';
 
-import { useDocumentDetail, useFormSubmission, useValidatedFormData } from '@/hooks';
+import { useCreateLink, useDocumentDetail, useFormSubmission, useValidatedFormData } from '@/hooks';
 
 import {
 	CreateDocumentLinkPayload,
@@ -43,6 +43,8 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 	const [expirationType, setExpirationType] = useState('days');
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 	const [visitorFields, setVisitorFields] = useState<string[]>([]);
+
+	const { mutate: createdLink } = useCreateLink();
 
 	// Validation for password length and emails
 	const validationRules = {
@@ -223,26 +225,35 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 			}
 
 			const payload = buildRequestPayload();
-			const response = await axios.post(`/api/documents/${documentId}/links`, payload);
 
-			if (!response.data?.link?.linkUrl) {
-				throw new Error(response.data?.error || 'No link returned by server.');
-			}
+			createdLink(
+				{ documentId, payload },
+				{
+					onSuccess: (data) => {
+						if (!data?.link?.linkUrl) {
+							throw new Error('No link returned by server.');
+						}
 
-			onClose('Form submitted', response.data.link.linkUrl);
+						onClose('Form submitted', data.link.linkUrl);
 
-			if (values.selectFromContact || values.sendToOthers) {
-				handleSendInvites(response.data.link.linkUrl);
-			}
-		},
-		onSuccess: () => {
-			toast.showToast({
-				message: 'Shareable link created successfully!',
-				variant: 'success',
-			});
-		},
-		onError: (errMsg) => {
-			console.error('Create link error:', errMsg);
+						if (values.selectFromContact || values.sendToOthers) {
+							handleSendInvites(data.link.linkUrl);
+						}
+
+						toast.showToast({
+							message: 'Shareable link created successfully!',
+							variant: 'success',
+						});
+					},
+					onError: (error) => {
+						console.error('Create link error:', error);
+						toast.showToast({
+							message: 'Failed to create link. Please try again.',
+							variant: 'error',
+						});
+					},
+				},
+			);
 		},
 	});
 

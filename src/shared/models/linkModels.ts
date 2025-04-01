@@ -1,5 +1,22 @@
 // =========== LINK TYPE ===========
 
+export interface LinkType {
+	id: number;
+	linkId: string;
+	documentId: string;
+	userId: string;
+	friendlyName?: string;
+	linkUrl: string;
+	isPublic: boolean;
+	visitorFields?: string[];
+	expirationTime?: string;
+	password?: string;
+	updatedAt: string;
+	createdAt: string;
+}
+
+// =========== LINK FORM VALUES ===========
+
 export interface LinkFormValues {
 	password?: string;
 	isPublic: boolean;
