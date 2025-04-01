@@ -81,11 +81,11 @@ model DocumentLink {
   alias           String?
   linkUrl         String    @unique
   isPublic        Boolean   @default(false)
-  expirationTime  DateTime? // Must be NULL if isPublic = true
-  password        String? // Must be NULL if isPublic = true
+  expirationTime  DateTime?
+  password        String?
   updatedAt       DateTime  @updatedAt @db.Timestamptz(6)
   createdAt       DateTime  @default(now()) @db.Timestamptz(6)
-  visitorFields   Json? // Required user information during file access. ["fullname", "firstname", "lastname"]
+  visitorFields   Json?
 
   // Relations
   Document Document @relation(fields: [documentId], references: [document_id], onDelete: Cascade)

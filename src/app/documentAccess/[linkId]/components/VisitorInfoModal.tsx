@@ -1,6 +1,5 @@
 'use client';
 
-import axios from 'axios';
 import React from 'react';
 
 import {
@@ -16,7 +15,7 @@ import { styled } from '@mui/material/styles';
 
 import { FormInput, LoadingButton } from '@/components';
 
-import { useFormSubmission, useValidatedFormData } from '@/hooks';
+import { useFormSubmission, useValidatedFormData, useVisitorSubmission } from '@/hooks';
 
 import { EyeIcon, EyeOffIcon, FileDownloadIcon } from '@/icons';
 import { requiredFieldRule, splitName, validEmailRule } from '@/shared/utils';
@@ -32,7 +31,7 @@ const RowBox = styled(Box)({
 		flex: 2,
 	},
 	'& > div:nth-of-type(1)': {
-		flex: 7,
+		flex: 8,
 	},
 	'& > div:nth-of-type(2)': {
 		marginLeft: 0,
@@ -88,6 +87,7 @@ export default function VisitorInfoModal({
 		initialValues: formConfig.initialValues,
 		validationRules: formConfig.validationRules,
 	});
+	const submitVisitorData = useVisitorSubmission();
 
 	const { loading, handleSubmit, toast } = useFormSubmission({
 		onSubmit: async () => {
@@ -106,13 +106,13 @@ export default function VisitorInfoModal({
 				password: values.password || '',
 			};
 
-			const response = await axios.post(`/api/public_links/${linkId}/access`, payload);
+			const response = await submitVisitorData.mutateAsync({ linkId, payload });
 
-			if (!response.data.data) {
+			if (!response.data) {
 				throw new Error(response.data.message || 'No file data returned.');
 			}
 
-			onVisitorInfoModalSubmit(response.data.data);
+			onVisitorInfoModalSubmit(response.data);
 		},
 
 		successMessage: 'File access granted!',
@@ -157,8 +157,6 @@ export default function VisitorInfoModal({
 					{visitorFields.map((field) => {
 						const fieldConfig = visitorFieldsConfig[field];
 
-						console.log('field config: ', fieldConfig);
-
 						if (!fieldConfig) return null;
 
 						return (
@@ -169,18 +167,22 @@ export default function VisitorInfoModal({
 									{fieldConfig.label}
 								</Typography>
 								{field === 'password' ? (
-									<Box sx={{ display: 'flex', alignItems: 'center' }}>
-										<FormInput
-											id='password'
-											type={isPasswordVisible ? 'text' : 'password'}
-											placeholder={fieldConfig.placeholder}
-											label={fieldConfig.helperText}
-											value={values.password || ''}
-											onChange={handleChange}
-											onBlur={handleBlur}
-											errorMessage={getError('password')}
-										/>
-										<Box mt={10}>
+									<Box sx={{ display: 'flex' }}>
+										<Box sx={{ flex: 1 }}>
+											<FormInput
+												id='password'
+												type={isPasswordVisible ? 'text' : 'password'}
+												placeholder={fieldConfig.placeholder}
+												label={fieldConfig.helperText}
+												value={values.password || ''}
+												onChange={handleChange}
+												onBlur={handleBlur}
+												errorMessage={getError('password')}
+											/>
+										</Box>
+										<Box
+											display={'flex'}
+											mt={10}>
 											<IconButton
 												size='large'
 												onClick={() => setIsPasswordVisible(!isPasswordVisible)}>

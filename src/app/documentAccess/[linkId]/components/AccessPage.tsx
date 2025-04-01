@@ -2,34 +2,35 @@
 
 import axios from 'axios';
 import { useEffect, useState } from 'react';
-
 import { Container } from '@mui/material';
 
-import VisitorInfoModal from './VisitorInfoModal';
-import AccessError from './AccessError';
 import FileAccess from './FileDisplay';
+import AccessError from './AccessError';
+import VisitorInfoModal from './VisitorInfoModal';
 
-import { LoadingSpinner } from '@/components';
 import { LinkData } from '@/shared/models';
-import { useFormSubmission, useToast, useDocumentAccess } from '@/hooks';
+import { LoadingSpinner } from '@/components';
+import { sortFieldsByOrder } from '@/shared/utils';
+import { useFormSubmission, useDocumentAccess } from '@/hooks';
 
 interface Props {
 	linkId: string;
 }
 
-function sortVisitorFields(fields: string[]): string[] {
-	const order = ['name', 'email', 'password'];
-	return fields.sort((a, b) => order.indexOf(a) - order.indexOf(b));
-}
-
 export default function AccessPage({ linkId }: Props) {
 	const [linkData, setLinkData] = useState<LinkData>({});
 	const [fetchLinkError, setFetchLinkError] = useState<string>('');
-	const [hasInitialized, setHasInitialized] = useState(false);
+	const [hasInitialized, setHasInitialized] = useState(false); // This flag blocks the rendering of visitorInfoModal till the useEffect finishes to check whether a link url is truly public or not.
 
-	const toast = useToast();
 	const { error, data, isLoading } = useDocumentAccess(linkId);
 	const linkInfo = data?.data ?? {};
+
+	useEffect(() => {
+		if (error) {
+			setFetchLinkError(error?.message);
+			setHasInitialized(true);
+		}
+	}, [error]);
 
 	const { handleSubmit } = useFormSubmission({
 		onSubmit: async () => {
@@ -108,9 +109,9 @@ export default function AccessPage({ linkId }: Props) {
 		<Container>
 			<VisitorInfoModal
 				linkId={linkId}
-				visitorFields={sortVisitorFields(linkInfo.visitorFields || [])}
 				passwordRequired={linkInfo.isPasswordProtected}
 				onVisitorInfoModalSubmit={handleVisitorInfoFormModalSubmit}
+				visitorFields={sortFieldsByOrder(linkInfo?.visitorFields, ['name', 'email', 'password'])}
 			/>
 		</Container>
 	);

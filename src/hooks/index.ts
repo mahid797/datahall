@@ -11,3 +11,4 @@ export { useSort } from './useSort';
 export { useToast } from './useToast';
 export { useValidatedFormData } from './useValidatedFormData';
 export { default as useDocumentAccess } from './documentAccess/useDocumentAccess';
+export { default as useVisitorSubmission } from './documentAccess/useVisitorSubmission';

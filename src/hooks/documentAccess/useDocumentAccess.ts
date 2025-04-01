@@ -13,6 +13,7 @@ const useDocumentAccess = (linkId: string) => {
 	return useQuery({
 		queryKey: ['documentAccess', linkId],
 		queryFn: fetchDocumentDetails,
+		retry: false,
 	});
 };
 

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 
 const submitVisitorDetails = async ({ linkId, payload }: { linkId: string; payload: any }) => {
 	const response = await axios.post(`/api/public_links/${linkId}/access`, payload);
@@ -8,13 +8,9 @@ const submitVisitorDetails = async ({ linkId, payload }: { linkId: string; paylo
 };
 
 const useVisitorSubmission = () => {
-	const queryClient = useQueryClient();
-
 	return useMutation({
-		mutationFn: (variables: { linkId: string; payload: any }) => submitVisitorDetails(variables),
-		onSuccess: () => {
-			// queryClient.invalidateQueries({ queryKey: [''] });
-		},
+		mutationFn: async (variables: { linkId: string; payload: any }) =>
+			submitVisitorDetails(variables),
 		onError: (error) => {
 			console.error('Error adding document: ', error);
 		},
