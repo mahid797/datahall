@@ -6,6 +6,7 @@ export type { BarDataItem } from './documentModels';
 
 export type { LinkFormValues } from './linkModels';
 export type { CreateDocumentLinkPayload } from './linkModels';
+export type { InviteRecipientsPayload } from './linkModels';
 export type { LinkData } from './linkModels';
 export type { LinkDetail } from './linkModels';
 

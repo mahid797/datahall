@@ -39,7 +39,7 @@ const LinkDetailsAccordion = ({ formValues, handleInputChange }: Props) => {
 				flexDirection='column'
 				my={2}
 				gap={2}>
-				<Typography>Link Name</Typography>
+				<Typography>Link name</Typography>
 				<FormInput
 					id='friendlyName'
 					minWidth={460}

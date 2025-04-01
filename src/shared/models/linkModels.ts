@@ -3,13 +3,16 @@
 export interface LinkFormValues {
 	password?: string;
 	isPublic: boolean;
-	otherEmails: string;
 	friendlyName?: string;
 	expirationTime?: string;
 	requirePassword: boolean;
 	expirationEnabled: boolean;
 	requireUserDetails: boolean;
-	visitorFields?: string[]; // Array of required visitor details
+	visitorFields?: string[];
+	contactEmails?: string;
+	selectFromContact: boolean;
+	otherEmails?: string;
+	sendToOthers: boolean;
 }
 
 // =========== LINK PAYLOAD ===========
@@ -24,6 +27,17 @@ export interface CreateDocumentLinkPayload {
 	password?: string;
 	requireUserDetails?: boolean;
 	visitorFields?: string[]; // Array of required visitor details
+	contactEmails?: string;
+	selectFromContact: boolean;
+	otherEmails?: string;
+	sendToOthers: boolean;
+}
+
+// =========== INVITE RECIPIENTS PAYLOAD ===========
+
+export interface InviteRecipientsPayload {
+	linkUrl: string;
+	recipients: string[];
 }
 
 // =========== LINK DATA ===========

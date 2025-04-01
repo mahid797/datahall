@@ -25,6 +25,37 @@ export const validEmailRule: ValidationRule = {
 };
 
 /**
+ * Validates a comma-separated list of email addresses.
+ */
+export const validateEmails = (emails: string) => {
+	const emailArray = emails
+		.split(',')
+		.map((email) => email.trim()) // Remove spaces
+		.filter((email) => email.length > 0 && email !== 'Unknown email'); // Remove empty and unknown values
+
+	const validEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Basic email regex
+
+	// Separate valid and invalid emails
+	const invalidEmails = emailArray.filter((email) => !validEmailRegex.test(email));
+	const isValid = invalidEmails.length === 0;
+
+	return {
+		validEmails: emailArray,
+		isValid,
+	};
+};
+
+/**
+ * Provides a validation rule for multiple email addresses.
+ */
+export const validateEmailsRule = (): ValidationRule => {
+	return {
+		rule: (value: string) => validateEmails(value).isValid,
+		message: 'Please enter valid email addresses separated by commas.',
+	};
+};
+
+/**
  * Example for min length (e.g., passwords).
  */
 export function minLengthRule(

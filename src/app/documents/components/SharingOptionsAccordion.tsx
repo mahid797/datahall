@@ -54,12 +54,11 @@ export default function SharingOptionsAccordion(props: SharingOptionsAccordionPr
 			{formValues.requireUserDetails && (
 				<Box
 					display='flex'
-					flexDirection='column'
-					mb={8}>
+					flexDirection='column'>
 					<Typography variant='body2'>Select required visitor details:</Typography>
 					<Box
 						ml={14}
-						mt={4}>
+						my={4}>
 						{visitorFieldsConfig.map(({ key, label }) => (
 							<Box key={key}>
 								<CustomCheckbox
@@ -87,7 +86,7 @@ export default function SharingOptionsAccordion(props: SharingOptionsAccordionPr
 				alignItems='center'
 				justifyContent='flex-start'
 				mt={2}
-				mb={8}
+				mb={4}
 				ml={14}>
 				<FormInput
 					id='password'
@@ -162,8 +161,7 @@ export default function SharingOptionsAccordion(props: SharingOptionsAccordionPr
 					display='flex'
 					alignItems='center'
 					gap={2}
-					ml={7.5}
-					mb={8}>
+					ml={7.5}>
 					{/* <Radio value="date" /> */}
 					<Typography
 						variant='body1'

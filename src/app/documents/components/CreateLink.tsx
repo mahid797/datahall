@@ -14,12 +14,23 @@ import {
 import CustomAccordion from './CustomAccordion';
 import LinkDetailsAccordion from './LinkDetailsAccordion';
 import SharingOptionsAccordion from './SharingOptionsAccordion';
+import SendingAccordion from './SendingAccordion';
+
 import { LoadingButton } from '@/components';
 
 import { useDocumentDetail, useFormSubmission, useValidatedFormData } from '@/hooks';
 
-import { CreateDocumentLinkPayload, LinkFormValues } from '@/shared/models';
-import { computeExpirationDays, minLengthRule } from '@/shared/utils';
+import {
+	CreateDocumentLinkPayload,
+	InviteRecipientsPayload,
+	LinkFormValues,
+} from '@/shared/models';
+import {
+	computeExpirationDays,
+	minLengthRule,
+	validateEmails,
+	validateEmailsRule,
+} from '@/shared/utils';
 
 interface CreateLinkProps {
 	open: boolean;
@@ -33,20 +44,24 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 	const [visitorFields, setVisitorFields] = useState<string[]>([]);
 
-	// Validation for password length
+	// Validation for password length and emails
 	const validationRules = {
 		password: [minLengthRule(5, 'Password must be at least 5 characters long.')],
+		otherEmails: [validateEmailsRule()],
 	};
 
 	const initialFormValues: LinkFormValues = {
 		friendlyName: '',
 		isPublic: true,
-		otherEmails: '',
 		expirationTime: '',
 		requirePassword: false,
 		expirationEnabled: false,
 		requireUserDetails: false,
 		visitorFields: [],
+		contactEmails: '',
+		selectFromContact: false,
+		otherEmails: '',
+		sendToOthers: false,
 	};
 
 	const { values, setValues, validateAll, getError, handleBlur } =
@@ -98,6 +113,8 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 						requireUserDetails: false,
 						requirePassword: false,
 						expirationEnabled: false,
+						sendToOthers: false,
+						selectFromContact: false,
 					}));
 				} else {
 					setValues((prev) => ({
@@ -155,8 +172,48 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 			password: values.requirePassword ? values.password : undefined,
 			requireUserDetails: values.requireUserDetails,
 			visitorFields: visitorFields.length > 0 ? visitorFields : undefined,
+			contactEmails: values.selectFromContact ? values.contactEmails : undefined,
+			selectFromContact: values.selectFromContact,
+			otherEmails: values.sendToOthers ? values.otherEmails : undefined,
+			sendToOthers: values.sendToOthers,
 		};
 	}
+
+	const handleSendInvites = async (linkUrl: string) => {
+		const validContactEmails = validateEmails(values.contactEmails || '').validEmails;
+		const validOtherEmails = validateEmails(values.otherEmails || '').validEmails;
+		const recipients = [...validContactEmails, ...validOtherEmails];
+
+		if (recipients.length === 0) {
+			throw new Error('No valid email addresses provided.');
+		}
+
+		// Define payload using InviteRecipientsPayload
+		const payload: InviteRecipientsPayload = {
+			linkUrl,
+			recipients,
+		};
+
+		try {
+			// TODO: This API route does not currently exist, but it may be implemented in the future.
+			const response = await axios.post(`/api/documents/${documentId}/links/email`, payload);
+
+			// Handle success
+			if (response.status === 200) {
+				toast.showToast({
+					message: 'Invites sent successfully!',
+					variant: 'success',
+				});
+			}
+		} catch (error) {
+			console.error('Email sending failed:', error);
+
+			toast.showToast({
+				message: 'Failed to send invites. Please try again later.',
+				variant: 'error',
+			});
+		}
+	};
 
 	const { loading, handleSubmit, toast } = useFormSubmission({
 		onSubmit: async () => {
@@ -173,6 +230,10 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 			}
 
 			onClose('Form submitted', response.data.link.linkUrl);
+
+			if (values.selectFromContact || values.sendToOthers) {
+				handleSendInvites(response.data.link.linkUrl);
+			}
 		},
 		onSuccess: () => {
 			toast.showToast({
@@ -201,8 +262,9 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 				Create shareable link
 				<Typography
 					my={4}
+					component='div'
 					variant='body2'>
-					Selected Document:{' '}
+					Selected document:{' '}
 					<Chip
 						sx={{
 							backgroundColor: 'alert.info',
@@ -226,7 +288,7 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 					/>
 
 					<CustomAccordion
-						title='Sharing Options'
+						title='Sharing options'
 						expanded={expanded === 'sharing-options'}
 						onChange={handleChange('sharing-options')}>
 						<SharingOptionsAccordion
@@ -240,6 +302,18 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 							handleExpirationChange={handleExpirationChange}
 							visitorFields={visitorFields}
 							handleVisitorFieldChange={handleVisitorFieldChange}
+						/>
+					</CustomAccordion>
+
+					<CustomAccordion
+						title='Sending'
+						expanded={expanded === 'sending'}
+						onChange={handleChange('sending')}>
+						<SendingAccordion
+							formValues={values}
+							handleInputChange={handleInputChange}
+							handleBlur={handleBlur}
+							getError={getError}
 						/>
 					</CustomAccordion>
 				</Box>
