@@ -10,7 +10,6 @@ import VisitorInfoModal from './VisitorInfoModal';
 
 import { LinkData } from '@/shared/models';
 import { LoadingSpinner } from '@/components';
-import { sortFieldsByOrder } from '@/shared/utils';
 import { useFormSubmission, useDocumentAccess } from '@/hooks';
 
 interface Props {
@@ -109,9 +108,9 @@ export default function AccessPage({ linkId }: Props) {
 		<Container>
 			<VisitorInfoModal
 				linkId={linkId}
+				visitorFields={linkInfo.visitorFields}
 				passwordRequired={linkInfo.isPasswordProtected}
 				onVisitorInfoModalSubmit={handleVisitorInfoFormModalSubmit}
-				visitorFields={sortFieldsByOrder(linkInfo?.visitorFields, ['name', 'email', 'password'])}
 			/>
 		</Container>
 	);

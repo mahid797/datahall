@@ -19,7 +19,7 @@ import { useFormSubmission, useValidatedFormData, useVisitorSubmission } from '@
 
 import { EyeIcon, EyeOffIcon, FileDownloadIcon } from '@/icons';
 import { requiredFieldRule, splitName, validEmailRule } from '@/shared/utils';
-import { visitorFieldsConfig } from '@/shared/config/visitorFieldsConfig';
+import { visitorFieldsConfigByKey } from '@/shared/config/visitorFieldsConfig';
 
 const RowBox = styled(Box)({
 	display: 'flex',
@@ -155,7 +155,7 @@ export default function VisitorInfoModal({
 					width='100%'
 					gap={10}>
 					{visitorFields.map((field) => {
-						const fieldConfig = visitorFieldsConfig[field];
+						const [fieldConfig] = visitorFieldsConfigByKey[field];
 
 						if (!fieldConfig) return null;
 
@@ -166,44 +166,49 @@ export default function VisitorInfoModal({
 									mt={field === 'password' ? 10 : 0}>
 									{fieldConfig.label}
 								</Typography>
-								{field === 'password' ? (
-									<Box sx={{ display: 'flex' }}>
-										<Box sx={{ flex: 1 }}>
-											<FormInput
-												id='password'
-												type={isPasswordVisible ? 'text' : 'password'}
-												placeholder={fieldConfig.placeholder}
-												label={fieldConfig.helperText}
-												value={values.password || ''}
-												onChange={handleChange}
-												onBlur={handleBlur}
-												errorMessage={getError('password')}
-											/>
-										</Box>
-										<Box
-											display={'flex'}
-											mt={10}>
-											<IconButton
-												size='large'
-												onClick={() => setIsPasswordVisible(!isPasswordVisible)}>
-												{isPasswordVisible ? <EyeOffIcon /> : <EyeIcon />}
-											</IconButton>
-										</Box>
-									</Box>
-								) : (
-									<FormInput
-										id={field}
-										type={fieldConfig.type}
-										placeholder={fieldConfig.placeholder}
-										value={values[field] || ''}
-										onChange={handleChange}
-										onBlur={handleBlur}
-										errorMessage={getError(field)}
-									/>
-								)}
+								<FormInput
+									id={field}
+									type={fieldConfig.type}
+									placeholder={fieldConfig.placeholder}
+									value={values[field] || ''}
+									onChange={handleChange}
+									onBlur={handleBlur}
+									errorMessage={getError(field)}
+								/>
 							</RowBox>
 						);
 					})}
+					{passwordRequired && (
+						<RowBox>
+							<Typography
+								variant='h3'
+								mt={10}>
+								Password
+							</Typography>
+							<Box sx={{ display: 'flex' }}>
+								<Box sx={{ flex: 1 }}>
+									<FormInput
+										id='password'
+										type={isPasswordVisible ? 'text' : 'password'}
+										label='Please enter the password shared with you'
+										value={values.password || ''}
+										onChange={handleChange}
+										onBlur={handleBlur}
+										errorMessage={getError('password')}
+									/>
+								</Box>
+								<Box
+									display={'flex'}
+									mt={10}>
+									<IconButton
+										size='large'
+										onClick={() => setIsPasswordVisible(!isPasswordVisible)}>
+										{isPasswordVisible ? <EyeOffIcon /> : <EyeIcon />}
+									</IconButton>
+								</Box>
+							</Box>
+						</RowBox>
+					)}
 				</Box>
 			</DialogContent>
 

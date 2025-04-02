@@ -20,7 +20,7 @@ export interface LinkType {
 export interface LinkFormValues {
 	password?: string;
 	isPublic: boolean;
-	friendlyName?: string;
+	alias?: string;
 	expirationTime?: string;
 	requirePassword: boolean;
 	expirationEnabled: boolean;
@@ -36,7 +36,7 @@ export interface LinkFormValues {
 
 export interface CreateDocumentLinkPayload {
 	documentId: string;
-	friendlyName?: string; // Alias for the link
+	alias?: string; // Alias for the link
 	isPublic: boolean;
 	expirationTime?: string; // ISO string format
 	expirationEnabled?: boolean;

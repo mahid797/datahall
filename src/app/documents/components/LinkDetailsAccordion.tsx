@@ -41,10 +41,10 @@ const LinkDetailsAccordion = ({ formValues, handleInputChange }: Props) => {
 				gap={2}>
 				<Typography>Link name</Typography>
 				<FormInput
-					id='friendlyName'
+					id='alias'
 					minWidth={460}
 					type='text'
-					value={formValues.friendlyName}
+					value={formValues.alias}
 					onChange={handleInputChange}
 					placeholder='Enter a friendly name for the link'
 				/>

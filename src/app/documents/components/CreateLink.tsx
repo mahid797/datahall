@@ -53,7 +53,7 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 	};
 
 	const initialFormValues: LinkFormValues = {
-		friendlyName: '',
+		alias: '',
 		isPublic: true,
 		expirationTime: '',
 		requirePassword: false,
@@ -165,7 +165,7 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 	function buildRequestPayload(): CreateDocumentLinkPayload {
 		return {
 			documentId,
-			friendlyName: values.friendlyName,
+			alias: values.alias,
 			isPublic: values.isPublic,
 			expirationTime:
 				values.expirationEnabled && values.expirationTime ? values.expirationTime : undefined,
