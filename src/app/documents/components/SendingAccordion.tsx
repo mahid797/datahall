@@ -45,12 +45,14 @@ export default function SendingAccordion({
 		} as unknown as ChangeEvent<HTMLInputElement>);
 	};
 
-	//Get contact emails
+	//Get filtered contact emails.
 	const contactEmails =
-		data?.map((contact, index) => ({
-			label: contact.email ?? 'Unknown email',
-			id: contact.id ?? index,
-		})) ?? [];
+		data
+			?.map((contact, index) => ({
+				label: contact.email ?? 'Unknown email',
+				id: contact.id ?? index,
+			}))
+			?.filter((email) => !selectedEmails.some((selected) => selected.id === email.id)) ?? [];
 
 	const disabled = formValues.isPublic;
 	// If link is public => disable all these additional security checkboxes
