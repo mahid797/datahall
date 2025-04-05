@@ -1,10 +1,8 @@
 'use client';
 
-import axios from 'axios';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { Box, Button } from '@mui/material';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import { useDropzone } from 'react-dropzone';
 
 import { FilePlusIcon } from '@/icons';
@@ -20,9 +18,7 @@ const DragAndDropBox = ({ text, height = { sm: 150, md: 200, lg: 250 } }: DragAn
 	const { isOpen, openModal, closeModal } = useModal();
 	const { showToast } = useToast();
 	const { data: session } = useSession();
-	const [uploading, setUploading] = useState(false);
-	const router = useRouter();
-	const { mutate: uploadDocument } = useUploadDocument();
+	const uploadDocument = useUploadDocument();
 
 	const handleUploadSuccess = useCallback(() => {
 		showToast({ message: 'File uploaded successfully!', variant: 'success' });
@@ -40,8 +36,6 @@ const DragAndDropBox = ({ text, height = { sm: 150, md: 200, lg: 250 } }: DragAn
 		async (file: File | undefined) => {
 			if (!file) return;
 
-			setUploading(true);
-
 			try {
 				if (!session) {
 					handleUploadError('User not authenticated!');
@@ -51,14 +45,10 @@ const DragAndDropBox = ({ text, height = { sm: 150, md: 200, lg: 250 } }: DragAn
 				const formData = new FormData();
 				formData.append('file', file);
 
-				const response = await axios.post('/api/documents', formData);
+				const response = await uploadDocument.mutateAsync(formData);
 
-				if (response?.status === 200 && response.data?.document) {
+				if (response?.document) {
 					handleUploadSuccess();
-					//TODO: Temporary fix, until we use tanstack query or zustand
-					setTimeout(() => {
-						window.location.reload();
-					}, 1000);
 				} else {
 					handleUploadError('Server responded with an error.');
 				}
@@ -67,7 +57,6 @@ const DragAndDropBox = ({ text, height = { sm: 150, md: 200, lg: 250 } }: DragAn
 					error.response?.data?.message || error.message || 'Unexpected error occurred.';
 				handleUploadError(errorMessage, error.response?.status);
 			} finally {
-				setUploading(false);
 			}
 		},
 		[session, handleUploadError, handleUploadSuccess],

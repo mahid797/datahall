@@ -11,7 +11,7 @@ const useUploadDocument = () => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: uploadDocument,
+		mutationFn: async (formData: FormData) => uploadDocument(formData),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['documents'] });
 		},
