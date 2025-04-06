@@ -1,11 +1,9 @@
 import { Menu, MenuItem, Typography } from '@mui/material';
-import { useState } from 'react';
 
 import { ModalWrapper } from '@/components';
-import CreateLink from './CreateLink';
-import ShareableLinkDialog from './ShareableLinkDialog';
 
 import { useModal } from '@/hooks';
+import { useModalContext } from '@/providers/modal/ModalProvider';
 
 interface Props {
 	open: boolean;
@@ -27,20 +25,22 @@ export default function ActionMenu({
 	const deleteModal = useModal();
 	const updateModal = useModal();
 
-	// Store the newly created link to show in ShareableLinkDialog
-	const [newLinkUrl, setNewLinkUrl] = useState('');
-	const [createLinkOpen, setCreateLinkOpen] = useState(false);
+	const { openModal } = useModalContext();
 
 	function handleOpenCreateLink() {
-		setCreateLinkOpen(true);
-		// onClose();
-	}
-
-	function handleCloseCreateLink(action: string, createdLink?: string) {
-		setCreateLinkOpen(false);
-		if (createdLink) {
-			setNewLinkUrl(createdLink);
-		}
+		openModal({
+			type: 'createLink',
+			contentProps: {
+				documentId,
+				onLinkGenerated: (linkUrl: string) => {
+					openModal({
+						type: 'shareableLink',
+						contentProps: { linkUrl },
+					});
+				},
+			},
+		});
+		onClose();
 	}
 
 	return (
@@ -62,19 +62,6 @@ export default function ActionMenu({
 					</Typography>
 				</MenuItem>
 			</Menu>
-
-			{/* CREATE LINK DIALOG */}
-			<CreateLink
-				open={createLinkOpen}
-				documentId={documentId}
-				onClose={handleCloseCreateLink}
-			/>
-
-			{/* SHAREABLE LINK DIALOG */}
-			<ShareableLinkDialog
-				linkUrl={newLinkUrl}
-				onClose={() => setNewLinkUrl('')} // hide the dialog
-			/>
 
 			{/* DELETE CONFIRMATION MODAL */}
 			<ModalWrapper
