@@ -1,35 +1,119 @@
 'use client';
-import { useState } from 'react';
-
+import { useState, MouseEvent } from 'react';
 import { Avatar, Box, Button, CircularProgress, Link, Typography } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 
-import { ModalWrapper } from '@/components';
+import { useToast } from '@/hooks';
+// ***** Modals V2 (Typed Global System) *****
+import { useModalContext } from '@/providers/modal/ModalProvider';
+// ***** Legacy Approach: ModalWrapper (Commented Out) *****
+// import { ModalWrapper } from '@/components';
+// import { useModal } from '@/hooks';
 
 import ColorPickerBox from './ColorPickerBox';
 
-import { useModal, useToast } from '@/hooks';
-
 import { PencilIcon } from '@/icons';
 
+/**
+ * NOTE FOR DEVELOPERS:
+ * =====================
+ * This file has been updated to use our new typed modals approach.
+ * I have commented out the old 'ModalWrapper' usage at the bottom so you can see how it was before.
+ *
+ * - "Modals V2" uses a typed global system: openModal({ type: ... }),
+ *   defined in ModalProvider + ModalContainer + ModalRegistry.
+ * - The old usage used: useModal() + <ModalWrapper variant="..." />
+ *
+ * TEMPORARY: Once the entire project is migrated to the new approach,
+ * we can safely remove the old references and these explanatory comments.
+ * ============================================================
+ */
 export default function BrandingSetting() {
-	const deleteModal = useModal();
-	const uploadModal = useModal();
 	const { showToast } = useToast();
 
 	const [loading, setLoading] = useState(false);
 
-	const handleDelete = () => {
-		console.log('Logo deleted');
-		showToast({
-			message: 'Logo deleted!',
-			variant: 'error',
+	/**
+	 * ==============================
+	 * OLD MODAL LOGIC (commented usage)
+	 * ==============================
+	 * We keep them commented out so devs can see how it worked before.
+	 */
+	// const deleteModal = useModal();
+	// const uploadModal = useModal();
+
+	// const handleDelete = () => {
+	//   console.log('Logo deleted');
+	//   showToast({
+	//     message: 'Logo deleted!',
+	//     variant: 'error',
+	//   });
+	// };
+
+	// const handleUpdate = () => {
+	//   console.log('Logo updated successfully!');
+	//   showToast({
+	//     message: 'Logo updated successfully!',
+	//     variant: 'success',
+	//   });
+	// };
+
+	/**
+	 * ==================================================
+	 * NEW APPROACH: MODALS V2 (TYPED GLOBAL SYSTEM)
+	 * ==================================================
+	 * We call openModal({ type: 'deleteConfirm' | 'uploadFile', ... }) to open modals.
+	 * This replaces the old <ModalWrapper variant="..." /> usage.
+	 */
+	const { openModal } = useModalContext();
+	const handleNewDelete = (e: MouseEvent) => {
+		// We do preventDefault() to avoid the link jump
+		e.preventDefault();
+
+		openModal({
+			type: 'deleteConfirm',
+			contentProps: {
+				title: 'Really delete this logo?',
+				description:
+					'When you delete this logo, all the links associated with the logo will also be removed. This action is non-reversible.',
+				onConfirm: () => {
+					showToast({
+						message: 'Logo deleted!',
+						variant: 'error',
+					});
+				},
+			},
+			dialogProps: {
+				fullWidth: true,
+			},
 		});
 	};
 
+	const handleNewUpload = (e: MouseEvent) => {
+		e.preventDefault();
+
+		openModal({
+			type: 'uploadFile',
+			contentProps: {
+				maxFileSize: '3 MB',
+				fileFormats: 'JPG,PNG',
+				onUploadComplete: () => {
+					console.log('Logo updated successfully!');
+					showToast({
+						message: 'Logo updated successfully!',
+						variant: 'success',
+					});
+				},
+			},
+			dialogProps: {
+				fullWidth: true,
+			},
+		});
+	};
+
+	// Simulate saving some branding settings
 	const handleSave = () => {
 		setLoading(true);
-
 		setTimeout(() => {
 			console.log('Settings updated successfully!');
 			showToast({
@@ -38,14 +122,6 @@ export default function BrandingSetting() {
 			});
 			setLoading(false);
 		}, 2000);
-	};
-
-	const handleUpdate = () => {
-		console.log('Logo updated successfully!');
-		showToast({
-			message: 'Logo updated successfully!',
-			variant: 'success',
-		});
 	};
 
 	return (
@@ -57,6 +133,7 @@ export default function BrandingSetting() {
 						see.
 					</Typography>
 				</Box>
+
 				<Box>
 					<Grid
 						container
@@ -113,7 +190,8 @@ export default function BrandingSetting() {
 											transition: 'opacity 0.3s',
 											cursor: 'pointer',
 										}}
-										onClick={uploadModal.openModal}>
+										onClick={handleNewUpload} // Old approach: onClick={uploadModal.openModal}
+									>
 										<PencilIcon
 											width={25}
 											height={25}
@@ -121,20 +199,39 @@ export default function BrandingSetting() {
 										/>
 									</Box>
 								</Box>
+								{/* ============== OLD Approach (Commented Out) ============== */}
+								{/*
+                  <Link
+                    href='#'
+                    underline='hover'
+                    sx={{ px: 4, color: 'text.secondary' }}
+                    onClick={deleteModal.openModal}
+                  >
+                    Delete
+                  </Link>
+                  <Link
+                    href='#'
+                    underline='hover'
+                    sx={{ px: 4, color: 'text.brand' }}
+                    onClick={uploadModal.openModal}
+                  >
+                    Update
+                  </Link>
+                */}
 
-								{/* Delete and Update Links */}
+								{/* ============== NEW Approach: Modals V2 ============== */}
 								<Link
 									href='#'
 									underline='hover'
 									sx={{ px: 4, color: 'text.secondary' }}
-									onClick={deleteModal.openModal}>
+									onClick={handleNewDelete}>
 									Delete
 								</Link>
 								<Link
 									href='#'
 									underline='hover'
 									sx={{ px: 4, color: 'text.brand' }}
-									onClick={uploadModal.openModal}>
+									onClick={handleNewUpload}>
 									Update
 								</Link>
 							</Box>
@@ -180,26 +277,35 @@ export default function BrandingSetting() {
 				</Box>
 			</Box>
 
-			<ModalWrapper
-				variant='delete'
-				title='Really delete this logo?'
-				description='When you delete this logo, all the links associated with the logo will also be removed. This action is non-reversible.'
-				confirmButtonText='Delete logo'
-				open={deleteModal.isOpen}
-				onClose={handleDelete}
-				toggleModal={deleteModal.closeModal}
-			/>
+			{/**
+			 * =================================================================
+			 * OLD "ModalWrapper" usage commented out, for reference:
+			 * - Removing these comments would revert to the old approach
+			 * - This is purely so devs can see how it used to be
+			 * =================================================================
+			 */}
+			{/*
+      <ModalWrapper
+        variant='delete'
+        title='Really delete this logo?'
+        description='When you delete this logo, all the links associated with the logo will also be removed. This action is non-reversible.'
+        confirmButtonText='Delete logo'
+        open={deleteModal.isOpen}
+        onClose={handleDelete}
+        toggleModal={deleteModal.closeModal}
+      />
 
-			<ModalWrapper
-				variant='upload'
-				title='Upload logo'
-				confirmButtonText='Update'
-				open={uploadModal.isOpen}
-				onClose={handleUpdate}
-				maxFileSize='3 MB'
-				fileFormats='JPG, PNG'
-				toggleModal={uploadModal.closeModal}
-			/>
+      <ModalWrapper
+        variant='upload'
+        title='Upload logo'
+        confirmButtonText='Update'
+        open={uploadModal.isOpen}
+        onClose={handleUpdate}
+        maxFileSize='3 MB'
+        fileFormats='JPG, PNG'
+        toggleModal={uploadModal.closeModal}
+      />
+      */}
 		</>
 	);
 }
