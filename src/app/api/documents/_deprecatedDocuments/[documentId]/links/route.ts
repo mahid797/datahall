@@ -10,7 +10,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ documentI
 		// Verify doc ownership
 		const doc = await prisma.document.findFirst({
 			where: { document_id: documentId, user_id: userId },
-			include: { Link: true },
+			include: { documentLink: true },
 		});
 
 		if (!doc) {
@@ -22,11 +22,11 @@ export async function GET(req: NextRequest, props: { params: Promise<{ documentI
 
 		// Map the DB fields to the shape needed by InfoTable -> LinkDetail
 
-		const links = doc.Link.map((link) => ({
+		const links = doc.documentLink.map((link) => ({
 			id: link.id,
 			documentId: doc.document_id,
-			linkId: link.linkId,
-			friendlyName: link.friendlyName,
+			linkId: link.documentLinkId,
+			friendlyName: link.alias,
 			createdLink: link.linkUrl,
 			lastViewed: link.updatedAt,
 			linkViews: 0, // Placeholder

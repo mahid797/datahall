@@ -70,7 +70,7 @@ export interface LinkData {
 // =========== LINK DETAIL ===========
 
 export interface LinkDetail {
-	linkId: string; // unique string
+	documentLinkId: string; // unique string
 	friendlyName: string; // The links's friendly name
 	document_id: string; // The document_id from DB
 	createdLink: string; // The linkUrl from DB
