@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { ReactNode, useEffect, useState } from 'react';
 
-export default function AuthWrapper({ children }: { children: ReactNode }) {
+export default function AuthProvider({ children }: { children: ReactNode }) {
 	const { data: session, status } = useSession();
 	const pathname = usePathname(); // Get the current route path
 
