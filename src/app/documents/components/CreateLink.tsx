@@ -247,8 +247,10 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 					},
 					onError: (error) => {
 						console.error('Create link error:', error);
+						const message =
+							(error as any)?.response?.data?.message || 'Failed to create link. Please try again.';
 						toast.showToast({
-							message: 'Failed to create link. Please try again.',
+							message,
 							variant: 'error',
 						});
 					},
