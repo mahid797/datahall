@@ -66,7 +66,7 @@ export default function BrandingSetting() {
 	 * This replaces the old <ModalWrapper variant="..." /> usage.
 	 */
 	const { openModal } = useModalContext();
-	const handleNewDelete = (e: MouseEvent) => {
+	const handleDelete = (e: MouseEvent) => {
 		// We do preventDefault() to avoid the link jump
 		e.preventDefault();
 
@@ -89,7 +89,7 @@ export default function BrandingSetting() {
 		});
 	};
 
-	const handleNewUpload = (e: MouseEvent) => {
+	const handleUpload = (e: MouseEvent) => {
 		e.preventDefault();
 
 		openModal({
@@ -190,7 +190,7 @@ export default function BrandingSetting() {
 											transition: 'opacity 0.3s',
 											cursor: 'pointer',
 										}}
-										onClick={handleNewUpload} // Old approach: onClick={uploadModal.openModal}
+										onClick={handleUpload} // Old approach: onClick={uploadModal.openModal}
 									>
 										<PencilIcon
 											width={25}
@@ -224,14 +224,14 @@ export default function BrandingSetting() {
 									href='#'
 									underline='hover'
 									sx={{ px: 4, color: 'text.secondary' }}
-									onClick={handleNewDelete}>
+									onClick={handleDelete}>
 									Delete
 								</Link>
 								<Link
 									href='#'
 									underline='hover'
 									sx={{ px: 4, color: 'text.brand' }}
-									onClick={handleNewUpload}>
+									onClick={handleUpload}>
 									Update
 								</Link>
 							</Box>
