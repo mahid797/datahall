@@ -73,9 +73,7 @@ export default function InfoTableRow({ documentDetail, variant }: InfoTableRowPr
 								}}
 								placement='bottom-start'>
 								<Typography>
-									{documentDetail.friendlyName
-										? documentDetail.friendlyName
-										: documentDetail.createdLink}
+									{documentDetail.alias ? documentDetail.alias : documentDetail.createdLink}
 									<IconButton
 										sx={{ ml: 10 }}
 										onClick={handleLinkCopy}>

@@ -5,7 +5,7 @@ export interface LinkType {
 	linkId: string;
 	documentId: string;
 	userId: string;
-	friendlyName?: string;
+	alias?: string;
 	linkUrl: string;
 	isPublic: boolean;
 	visitorFields?: string[];
@@ -71,7 +71,7 @@ export interface LinkData {
 
 export interface LinkDetail {
 	documentLinkId: string; // unique string
-	friendlyName: string; // The links's friendly name
+	alias: string; // The links's friendly name
 	document_id: string; // The document_id from DB
 	createdLink: string; // The linkUrl from DB
 	lastActivity: Date; // The link's updatedAt
