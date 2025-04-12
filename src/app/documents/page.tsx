@@ -86,7 +86,10 @@ export default async function DocumentsPage() {
 								</ListItem>
 							))}
 						</List>
-						<DragAndDropBox text='Drag and drop your first document here or click to upload' />
+						<DragAndDropBox
+							documentCount={documentCount}
+							text='Drag and drop your first document here or click to upload'
+						/>
 					</Box>
 				</>
 			) : (
@@ -104,7 +107,10 @@ export default async function DocumentsPage() {
 					<Box
 						mb={{ sm: 8, md: 10, lg: 12 }}
 						width='100%'>
-						<DragAndDropBox text='Drag and drop your document here or click to upload' />
+						<DragAndDropBox
+							documentCount={documentCount}
+							text='Drag and drop your document here or click to upload'
+						/>
 					</Box>
 
 					{/* 📊 Documents Table */}

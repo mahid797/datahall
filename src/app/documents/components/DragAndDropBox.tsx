@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import { Box, Button } from '@mui/material';
 import { useSession } from 'next-auth/react';
 import { useDropzone } from 'react-dropzone';
+import { useRouter } from 'next/navigation';
 
 import { FilePlusIcon } from '@/icons';
 import { useModal, useToast, useUploadDocument } from '@/hooks';
@@ -12,16 +13,27 @@ import { ModalWrapper } from '@/components';
 interface DragAndDropBoxProps {
 	text: string;
 	height?: { [key: string]: number };
+	documentCount: number;
 }
 
-const DragAndDropBox = ({ text, height = { sm: 150, md: 200, lg: 250 } }: DragAndDropBoxProps) => {
+const DragAndDropBox = ({
+	text,
+	height = { sm: 150, md: 200, lg: 250 },
+	documentCount,
+}: DragAndDropBoxProps) => {
 	const { isOpen, openModal, closeModal } = useModal();
 	const { showToast } = useToast();
 	const { data: session } = useSession();
 	const uploadDocument = useUploadDocument();
+	const router = useRouter();
 
 	const handleUploadSuccess = useCallback(() => {
 		showToast({ message: 'File uploaded successfully!', variant: 'success' });
+
+		// Needed to explicitly refresh page to preserve SSR of parent component.
+		if (!documentCount) {
+			router.refresh();
+		}
 	}, [showToast]);
 
 	const handleUploadError = useCallback(
