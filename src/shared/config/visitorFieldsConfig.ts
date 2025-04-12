@@ -1,6 +1,7 @@
 const visitorFieldKeys = ['name', 'email'] as const;
 
 type VisitorFieldKey = (typeof visitorFieldKeys)[number];
+type VisitorFieldsConfigByKey = Record<string, VisitorField[]>;
 
 export interface VisitorField {
 	key: VisitorFieldKey;
@@ -13,4 +14,7 @@ export const visitorFieldsConfig: VisitorField[] = [
 	{ key: 'email', label: 'Email', placeholder: 'your_email@bluewave.com' },
 ];
 
-export const visitorFieldsConfigByKey = Object.groupBy(visitorFieldsConfig, (item) => item.key);
+export const visitorFieldsConfigByKey: VisitorFieldsConfigByKey = Object.groupBy(
+	visitorFieldsConfig,
+	(item) => item.key,
+);

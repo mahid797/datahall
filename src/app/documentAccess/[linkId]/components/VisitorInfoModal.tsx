@@ -169,7 +169,6 @@ export default function VisitorInfoModal({
 								</Typography>
 								<FormInput
 									id={field}
-									type={fieldConfig.type}
 									placeholder={fieldConfig.placeholder}
 									value={values[field] || ''}
 									onChange={handleChange}
