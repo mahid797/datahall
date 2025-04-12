@@ -180,7 +180,7 @@ export default function SharingOptionsAccordion(props: SharingOptionsAccordionPr
 							} as any)
 						}
 						placeholder=''
-						type='date'
+						type='datetime-local'
 						minWidth={200}
 						disabled={!formValues.expirationEnabled}
 					/>
