@@ -31,7 +31,7 @@ export const validateEmails = (emails: string) => {
 	const emailArray = emails
 		.split(',')
 		.map((email) => email.trim()) // Remove spaces
-		.filter((email) => email.length > 0 && email !== 'Unknown email'); // Remove empty and unknown values
+		.filter((email) => email.length > 0); // Remove empty values
 
 	const validEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Basic email regex
 

@@ -1,4 +1,4 @@
-import React, { ChangeEvent, FocusEvent, useState } from 'react';
+import React, { ChangeEvent, FocusEvent, SyntheticEvent } from 'react';
 
 import { Autocomplete, Box, Chip } from '@mui/material';
 
@@ -8,7 +8,7 @@ import { useFetchContacts } from '@/hooks';
 import { LinkFormValues } from '@/shared/models';
 
 interface SendingAccordionProps {
-	formValues: any;
+	formValues: LinkFormValues;
 	handleInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
 	handleBlur: (event: FocusEvent<HTMLInputElement>) => void;
 	getError: (fieldName: keyof LinkFormValues) => string;
@@ -20,27 +20,20 @@ export default function SendingAccordion({
 	handleBlur,
 	getError,
 }: SendingAccordionProps) {
-	const [selectedEmails, setSelectedEmails] = useState<{ label: string; id: number }[]>([]);
 	const { data } = useFetchContacts();
 
 	const handleContactEmailsChange = (
-		event: React.SyntheticEvent,
+		event: SyntheticEvent,
 		newValue: { id: number; label: string }[],
 	) => {
 		// Remove duplicates by converting to a Map (ensures unique IDs)
 		const uniqueEmails = Array.from(new Map(newValue.map((item) => [item.id, item])).values());
 
-		// Update selectedEmails state
-		setSelectedEmails(uniqueEmails);
-
-		// Convert selected emails into a comma-separated string
-		const emailString = uniqueEmails.map((email) => email.label).join(', ');
-
 		// Update formValues.contactEmails
 		handleInputChange({
 			target: {
 				name: 'contactEmails',
-				value: emailString,
+				value: uniqueEmails,
 			},
 		} as unknown as ChangeEvent<HTMLInputElement>);
 	};
@@ -48,11 +41,14 @@ export default function SendingAccordion({
 	//Get filtered contact emails.
 	const contactEmails =
 		data
-			?.map((contact, index) => ({
-				label: contact.email ?? 'Unknown email',
+			?.filter((contact) => !!contact.email) // Exclude contacts without email
+			.map((contact, index) => ({
+				label: contact.email!,
 				id: contact.id ?? index,
 			}))
-			?.filter((email) => !selectedEmails.some((selected) => selected.id === email.id)) ?? [];
+			// Remove any contacts that are already selected in the form
+			.filter((email) => !formValues.contactEmails?.some((selected) => selected.id === email.id)) ??
+		[];
 
 	const disabled = formValues.isPublic;
 	// If link is public => disable all these additional security checkboxes
@@ -75,7 +71,7 @@ export default function SendingAccordion({
 					disablePortal
 					id='contactEmails'
 					options={contactEmails}
-					value={selectedEmails}
+					value={formValues.contactEmails}
 					getOptionLabel={(option) => option.label}
 					onChange={handleContactEmailsChange}
 					disabled={!formValues.selectFromContact}
@@ -87,6 +83,7 @@ export default function SendingAccordion({
 									key={key}
 									label={option.label}
 									{...restProps}
+									size='small'
 								/>
 							);
 						})
@@ -123,7 +120,7 @@ export default function SendingAccordion({
 					placeholder='Enter emails, separated by commas'
 					onChange={handleInputChange}
 					onBlur={handleBlur}
-					errorMessage={getError('otherEmails')}
+					errorMessage={formValues.otherEmails ? getError('otherEmails') : undefined}
 					disabled={!formValues.sendToOthers}
 					fullWidth
 				/>

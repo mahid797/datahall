@@ -26,7 +26,7 @@ export interface LinkFormValues {
 	expirationEnabled: boolean;
 	requireUserDetails: boolean;
 	visitorFields?: string[];
-	contactEmails?: string;
+	contactEmails?: { label: string; id: number }[];
 	selectFromContact: boolean;
 	otherEmails?: string;
 	sendToOthers: boolean;
@@ -44,7 +44,7 @@ export interface CreateDocumentLinkPayload {
 	password?: string;
 	requireUserDetails?: boolean;
 	visitorFields?: string[]; // Array of required visitor details
-	contactEmails?: string;
+	contactEmails?: { label: string; id: number }[];
 	selectFromContact: boolean;
 	otherEmails?: string;
 	sendToOthers: boolean;

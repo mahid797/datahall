@@ -1,10 +1,11 @@
 import React from 'react';
-import { Box, IconButton, Typography, RadioGroup } from '@mui/material';
+import { Box, IconButton, Typography, RadioGroup, Select, Chip, MenuItem } from '@mui/material';
 
 import { EyeIcon, EyeOffIcon } from '@/icons';
 
 import { CustomCheckbox, FormInput } from '@/components';
 import { LinkFormValues } from '@/shared/models';
+import { sortFields } from '@/shared/utils';
 import { visitorFieldsConfig } from '@/shared/config/visitorFieldsConfig';
 
 interface SharingOptionsAccordionProps {
@@ -16,8 +17,7 @@ interface SharingOptionsAccordionProps {
 	getError: (fieldName: keyof LinkFormValues) => string;
 	handleExpirationChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 	handleBlur: (event: React.FocusEvent<HTMLInputElement>) => void;
-	visitorFields: string[];
-	handleVisitorFieldChange: (field: string) => void;
+	handleVisitorFieldChange: (fields: string[]) => void;
 }
 
 export default function SharingOptionsAccordion(props: SharingOptionsAccordionProps) {
@@ -30,7 +30,6 @@ export default function SharingOptionsAccordion(props: SharingOptionsAccordionPr
 		getError,
 		handleExpirationChange,
 		handleBlur,
-		visitorFields,
 		handleVisitorFieldChange,
 	} = props;
 
@@ -50,28 +49,48 @@ export default function SharingOptionsAccordion(props: SharingOptionsAccordionPr
 				disabled={disabled}
 			/>
 
-			{/* Render visitor fields checkboxes only if user details are required */}
-			{formValues.requireUserDetails && (
+			<Box
+				display='flex'
+				flexDirection='column'>
+				<Typography variant='body2'>Select required visitor details:</Typography>
 				<Box
-					display='flex'
-					flexDirection='column'>
-					<Typography variant='body2'>Select required visitor details:</Typography>
-					<Box
-						ml={14}
-						my={4}>
+					ml={14}
+					mt={5}
+					mb={8}>
+					<Select
+						multiple
+						size='small'
+						id='visitorFields'
+						value={formValues.visitorFields}
+						disabled={!formValues.requireUserDetails}
+						onChange={(e) => handleVisitorFieldChange(e.target.value as string[])}
+						sx={{ minWidth: 455 }}
+						renderValue={(selected) => {
+							const sortedSelected = sortFields(selected, visitorFieldsConfig);
+							return (
+								<Box
+									display='flex'
+									gap={5}>
+									{sortedSelected.map((value) => (
+										<Chip
+											key={value}
+											label={value}
+											size='small'
+										/>
+									))}
+								</Box>
+							);
+						}}>
 						{visitorFieldsConfig.map(({ key, label }) => (
-							<Box key={key}>
-								<CustomCheckbox
-									checked={visitorFields.includes(key)}
-									onChange={() => handleVisitorFieldChange(key)}
-									name={key}
-									label={label}
-								/>
-							</Box>
+							<MenuItem
+								key={key}
+								value={key}>
+								{label}
+							</MenuItem>
 						))}
-					</Box>
+					</Select>
 				</Box>
-			)}
+			</Box>
 
 			<CustomCheckbox
 				checked={formValues.requirePassword}
@@ -85,26 +104,18 @@ export default function SharingOptionsAccordion(props: SharingOptionsAccordionPr
 				display='flex'
 				alignItems='center'
 				justifyContent='flex-start'
-				mt={2}
 				mb={4}
 				ml={14}>
 				<FormInput
 					id='password'
-					minWidth={420}
+					minWidth={455}
 					value={formValues.password}
-					onChange={(e) =>
-						handleInputChange({
-							target: {
-								name: 'password',
-								value: e.target.value,
-							},
-						} as any)
-					}
+					onChange={handleInputChange}
 					sx={{ my: 4 }}
 					placeholder='Enter password'
 					type={isPasswordVisible ? 'text' : 'password'}
 					disabled={!formValues.requirePassword}
-					errorMessage={getError('password')}
+					errorMessage={formValues.password ? getError('password') : undefined}
 					onBlur={handleBlur}
 				/>
 				<IconButton
@@ -161,7 +172,8 @@ export default function SharingOptionsAccordion(props: SharingOptionsAccordionPr
 					display='flex'
 					alignItems='center'
 					gap={2}
-					ml={7.5}>
+					ml={7.5}
+					mb={10}>
 					{/* <Radio value="date" /> */}
 					<Typography
 						variant='body1'
@@ -171,14 +183,7 @@ export default function SharingOptionsAccordion(props: SharingOptionsAccordionPr
 					<FormInput
 						id='expirationTime'
 						value={formValues.expirationTime}
-						onChange={(e) =>
-							handleInputChange({
-								target: {
-									name: 'expirationTime',
-									value: e.target.value,
-								},
-							} as any)
-						}
+						onChange={handleInputChange}
 						placeholder=''
 						type='datetime-local'
 						minWidth={200}

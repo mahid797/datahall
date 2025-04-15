@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { SyntheticEvent, useState } from 'react';
+import React, { ChangeEvent, SyntheticEvent, useCallback, useEffect, useState } from 'react';
 
 import {
 	Box,
@@ -28,9 +28,11 @@ import {
 import {
 	computeExpirationDays,
 	minLengthRule,
+	sortFields,
 	validateEmails,
 	validateEmailsRule,
 } from '@/shared/utils';
+import { visitorFieldsConfig } from '@/shared/config/visitorFieldsConfig';
 
 interface CreateLinkProps {
 	open: boolean;
@@ -42,7 +44,6 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 	const [expanded, setExpanded] = useState<string | false>('');
 	const [expirationType, setExpirationType] = useState('days');
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-	const [visitorFields, setVisitorFields] = useState<string[]>([]);
 
 	const { mutate: createdLink } = useCreateLink();
 
@@ -55,12 +56,13 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 	const initialFormValues: LinkFormValues = {
 		alias: '',
 		isPublic: true,
-		expirationTime: '',
-		requirePassword: false,
-		expirationEnabled: false,
 		requireUserDetails: false,
 		visitorFields: [],
-		contactEmails: '',
+		requirePassword: false,
+		password: '',
+		expirationEnabled: false,
+		expirationTime: '',
+		contactEmails: [],
 		selectFromContact: false,
 		otherEmails: '',
 		sendToOthers: false,
@@ -74,8 +76,8 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 
 	const document = useDocumentDetail(documentId);
 
-	const handleInputChange = React.useCallback(
-		(event: React.ChangeEvent<HTMLInputElement>) => {
+	const handleInputChange = useCallback(
+		(event: ChangeEvent<HTMLInputElement>) => {
 			const { name, value, type, checked } = event.target;
 
 			// If user sets expirationDays
@@ -117,6 +119,11 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 						expirationEnabled: false,
 						sendToOthers: false,
 						selectFromContact: false,
+						visitorFields: [],
+						password: '',
+						expirationTime: '',
+						contactEmails: [],
+						otherEmails: '',
 					}));
 				} else {
 					setValues((prev) => ({
@@ -139,16 +146,12 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 		setExpanded(newExpanded ? panel : false);
 	};
 
-	const handleVisitorFieldChange = (field: string) => {
-		setVisitorFields(
-			(prevVisitorFields) =>
-				prevVisitorFields.includes(field)
-					? prevVisitorFields.filter((f) => f !== field) // Remove if already selected
-					: [...prevVisitorFields, field], // Add if not selected
-		);
+	const handleVisitorFieldChange = (fields: string[]) => {
+		const sortedFields = sortFields(fields, visitorFieldsConfig);
+		setValues((prevValues) => ({ ...prevValues, visitorFields: sortedFields }));
 	};
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (values.expirationTime) {
 			const diffDays = computeExpirationDays(values.expirationTime);
 			setValues((prev) => ({
@@ -158,7 +161,7 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 		}
 	}, [values.expirationTime, setValues]);
 
-	const handleExpirationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleExpirationChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setExpirationType(e.target.value);
 	};
 
@@ -173,7 +176,7 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 			requirePassword: values.requirePassword,
 			password: values.requirePassword ? values.password : undefined,
 			requireUserDetails: values.requireUserDetails,
-			visitorFields: visitorFields.length > 0 ? visitorFields : undefined,
+			visitorFields: values.requireUserDetails ? values.visitorFields : undefined,
 			contactEmails: values.selectFromContact ? values.contactEmails : undefined,
 			selectFromContact: values.selectFromContact,
 			otherEmails: values.sendToOthers ? values.otherEmails : undefined,
@@ -182,7 +185,10 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 	}
 
 	const handleSendInvites = async (linkUrl: string) => {
-		const validContactEmails = validateEmails(values.contactEmails || '').validEmails;
+		const validContactEmails =
+			values.contactEmails?.map((email) => {
+				return email.label;
+			}) || [];
 		const validOtherEmails = validateEmails(values.otherEmails || '').validEmails;
 		const recipients = [...validContactEmails, ...validOtherEmails];
 
@@ -219,7 +225,7 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 
 	const { loading, handleSubmit, toast } = useFormSubmission({
 		onSubmit: async () => {
-			const hasError = validateAll();
+			const hasError = !values.password && !values.otherEmails ? false : validateAll();
 			if (hasError) {
 				throw new Error('Please correct any errors before generating a link.');
 			}
@@ -313,7 +319,6 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 							setIsPasswordVisible={setIsPasswordVisible}
 							expirationType={expirationType}
 							handleExpirationChange={handleExpirationChange}
-							visitorFields={visitorFields}
 							handleVisitorFieldChange={handleVisitorFieldChange}
 						/>
 					</CustomAccordion>
