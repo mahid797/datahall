@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { Fragment } from 'react';
 
 import {
 	Box,
@@ -11,7 +11,7 @@ import {
 	IconButton,
 	Typography,
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import Grid from '@mui/material/Grid2';
 
 import { FormInput, LoadingButton } from '@/components';
 
@@ -20,24 +20,6 @@ import { useFormSubmission, useValidatedFormData, useVisitorSubmission } from '@
 import { EyeIcon, EyeOffIcon, FileDownloadIcon } from '@/icons';
 import { requiredFieldRule, splitName, validEmailRule } from '@/shared/utils';
 import { visitorFieldsConfigByKey } from '@/shared/config/visitorFieldsConfig';
-
-const RowBox = styled(Box)({
-	display: 'flex',
-	justifyContent: 'space-between',
-	alignItems: 'center',
-	gap: 10,
-	width: '100%',
-	'& > h3': {
-		flex: 2,
-	},
-	'& > div:nth-of-type(1)': {
-		flex: 8,
-	},
-	'& > div:nth-of-type(2)': {
-		marginLeft: 0,
-		flex: 1,
-	},
-});
 
 function getFormConfig(passwordRequired: boolean, visitorFields: string[]) {
 	const formConfig: {
@@ -50,12 +32,12 @@ function getFormConfig(passwordRequired: boolean, visitorFields: string[]) {
 
 	if (passwordRequired) {
 		formConfig.initialValues.password = '';
-		formConfig.validationRules.password = [requiredFieldRule('*This field is required')];
+		formConfig.validationRules.password = [requiredFieldRule('This field is required')];
 	}
 
 	visitorFields.forEach((field) => {
 		formConfig.initialValues[field] = '';
-		const rules = [requiredFieldRule('*This field is required')];
+		const rules = [requiredFieldRule('This field is required')];
 
 		if (field === 'email') {
 			rules.push(validEmailRule);
@@ -123,11 +105,8 @@ export default function VisitorInfoModal({
 		<Dialog
 			open
 			onClose={() => {}}
-			PaperProps={{
-				component: 'form',
-				onSubmit: handleSubmit,
-				sx: { minWidth: 600, p: 0 },
-			}}>
+			component='form'
+			onSubmit={handleSubmit}>
 			{/* Header */}
 			<Box
 				display='flex'
@@ -149,67 +128,78 @@ export default function VisitorInfoModal({
 			<Divider />
 
 			{/* Form Fields */}
-			<DialogContent sx={{ m: 12 }}>
-				<Box
-					display='flex'
-					flexDirection='column'
-					width='100%'
-					gap={10}>
+			<DialogContent sx={{ m: 8 }}>
+				<Grid
+					container
+					rowSpacing={14}
+					columnSpacing={{ sm: 2, md: 4, lg: 8 }}
+					alignItems='center'>
 					{visitorFields.map((field) => {
 						const [fieldConfig] = visitorFieldsConfigByKey[field];
 
 						if (!fieldConfig) return null;
 
 						return (
-							<RowBox key={field}>
-								<Typography
-									variant='h3'
-									mt={field === 'password' ? 10 : 0}>
-									{fieldConfig.label}
-								</Typography>
-								<FormInput
-									id={field}
-									placeholder={fieldConfig.placeholder}
-									value={values[field] || ''}
-									onChange={handleChange}
-									onBlur={handleBlur}
-									errorMessage={getError(field)}
-								/>
-							</RowBox>
-						);
-					})}
-					{passwordRequired && (
-						<RowBox>
-							<Typography
-								variant='h3'
-								mt={10}>
-								Password
-							</Typography>
-							<Box sx={{ display: 'flex' }}>
-								<Box sx={{ flex: 1 }}>
+							<Fragment key={field}>
+								{/* Visitor fields, e.g., name and email */}
+								<Grid size={3}>
+									<Typography
+										variant='h3'
+										mt={field === 'password' ? 10 : 0}>
+										{fieldConfig.label}
+									</Typography>
+								</Grid>
+								<Grid size={passwordRequired ? 8 : 9}>
 									<FormInput
-										id='password'
-										type={isPasswordVisible ? 'text' : 'password'}
-										label='Please enter the password shared with you'
-										value={values.password || ''}
+										id={field}
+										placeholder={fieldConfig.placeholder}
+										value={values[field] || ''}
 										onChange={handleChange}
 										onBlur={handleBlur}
-										errorMessage={getError('password')}
+										errorMessage={getError(field)}
 									/>
-								</Box>
-								<Box
-									display={'flex'}
-									mt={10}>
-									<IconButton
-										size='large'
-										onClick={() => setIsPasswordVisible(!isPasswordVisible)}>
-										{isPasswordVisible ? <EyeOffIcon /> : <EyeIcon />}
-									</IconButton>
-								</Box>
-							</Box>
-						</RowBox>
+								</Grid>
+							</Fragment>
+						);
+					})}
+
+					{passwordRequired && (
+						<>
+							{/* Divider */}
+							<Grid size={12}>
+								<Divider sx={{ mt: 5 }} />
+							</Grid>
+
+							{/* Password */}
+							<Grid
+								size={3}
+								pt={14}>
+								<Typography variant='h3'>Password</Typography>
+							</Grid>
+							<Grid
+								display='grid'
+								rowGap={5}
+								size={8}>
+								<Typography variant='body1'>Please enter the password shared with you</Typography>
+								<FormInput
+									id='password'
+									type={isPasswordVisible ? 'text' : 'password'}
+									value={values.password || ''}
+									onChange={handleChange}
+									onBlur={handleBlur}
+									errorMessage={getError('password')}
+								/>
+							</Grid>
+							<Grid
+								size={1}
+								pt={14}>
+								<IconButton onClick={() => setIsPasswordVisible(!isPasswordVisible)}>
+									{isPasswordVisible ? <EyeOffIcon /> : <EyeIcon />}
+								</IconButton>
+							</Grid>
+						</>
 					)}
-				</Box>
+				</Grid>
 			</DialogContent>
 
 			<Divider />
@@ -221,7 +211,6 @@ export default function VisitorInfoModal({
 					buttonText='Confirm'
 					loadingText='Confirming...'
 					fullWidth
-					type='submit'
 				/>
 			</DialogActions>
 		</Dialog>
