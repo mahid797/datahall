@@ -85,7 +85,7 @@ model DocumentLink {
   password        String?
   updatedAt       DateTime  @updatedAt @db.Timestamptz(6)
   createdAt       DateTime  @default(now()) @db.Timestamptz(6)
-  visitorFields   String[]  @default([])
+  visitorFields   Json
 
   // Relations
   Document Document @relation(fields: [documentId], references: [document_id], onDelete: Cascade)
