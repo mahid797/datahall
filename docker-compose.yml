@@ -3,7 +3,7 @@ services:
     build:
       context: .
       target: development
-    container_name: bluewave_dataroom_dev
+    container_name: bluewave_dataroom
     ports:
       - "3000:3000"
     volumes:
@@ -15,4 +15,3 @@ services:
       - .env
       - .env.local
     working_dir: /usr/src/app
-    command: npm run dev
