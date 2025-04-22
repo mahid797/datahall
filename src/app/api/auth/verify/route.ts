@@ -1,20 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authService } from '@/app/api/_services/authService';
+import { authService } from '@/services';
 
-/**
- * GET /api/auth/verify?token=... or userId=...
- */
+/** GET /api/auth/verify?token=abc */
 export async function GET(req: NextRequest) {
-	try {
-		const { searchParams } = new URL(req.url);
-		const token = searchParams.get('token') || undefined;
-		const userId = searchParams.get('userId') || undefined;
-
-		const result = await authService.verifyUser(token, userId);
-
-		return NextResponse.json({ message: result.message }, { status: result.statusCode });
-	} catch (err) {
-		console.error('[verify] Error verifying email:', err);
-		return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+	if (!authService.verifyUser) {
+		/* Auth0 mode: this endpoint is unused */
+		return NextResponse.json({ message: 'Not found' }, { status: 404 });
 	}
+
+	const token = new URL(req.url).searchParams.get('token') ?? undefined;
+	const result = await authService.verifyUser({ token });
+	return NextResponse.json({ message: result.message }, { status: result.statusCode });
 }

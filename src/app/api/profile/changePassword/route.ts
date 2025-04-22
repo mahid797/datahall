@@ -1,36 +1,35 @@
-import { NextResponse, NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
-import bcryptjs from 'bcryptjs';
+import { getServerSession } from 'next-auth';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(req: NextRequest) {
+import { authOptions } from '@/lib/authOptions';
+import { authService } from '@/services';
+
+/** PATCH /api/profile/changePassword  { oldPassword, newPassword } */
+export async function PATCH(req: NextRequest) {
 	try {
-		const { email, currentPassword, newPassword } = await req.json();
-		const user = await prisma.user.findUnique({
-			where: { email },
-		});
-
-		// Check if the user exists
-		if (!user) {
-			return NextResponse.json({ error: 'User not found' }, { status: 404 });
+		const session = await getServerSession(authOptions);
+		if (!session?.user?.email) {
+			return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 		}
 
-		const isPasswordValid = await bcryptjs.compare(currentPassword, user.password);
-		if (!isPasswordValid) {
-			return NextResponse.json({ error: 'Current password is incorrect' }, { status: 401 });
+		const { oldPassword, newPassword } = await req.json();
+		if (!oldPassword || !newPassword) {
+			return NextResponse.json({ message: 'Missing fields' }, { status: 400 });
 		}
-		const hashedPassword = await bcryptjs.hash(newPassword, 10);
 
-		await prisma.user.update({
-			where: { email },
-			data: { password: hashedPassword },
+		const result = await authService.changePassword({
+			email: session.user.email,
+			oldPassword,
+			newPassword,
 		});
 
-		return NextResponse.json({ message: 'Password updated successfully' }, { status: 200 });
-	} catch (error) {
-		console.error('Error updating password:', error);
-		return NextResponse.json(
-			{ error: 'An error occurred while updating the password' },
-			{ status: 500 },
-		);
+		if (!result.success) {
+			return NextResponse.json({ message: result.message }, { status: 400 });
+		}
+
+		return NextResponse.json({ message: result.message }, { status: 200 });
+	} catch (err) {
+		console.error('[changePassword]', err);
+		return NextResponse.json({ message: 'Server error' }, { status: 500 });
 	}
 }

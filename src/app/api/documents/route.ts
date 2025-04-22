@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authService, DocumentService, createErrorResponse } from '../_services';
-import { uploadFile } from '../_services/storageService';
+import { uploadFile } from '@/services';
 
 /**
  * GET /api/documents
