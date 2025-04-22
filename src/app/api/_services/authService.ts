@@ -1,10 +1,12 @@
-import { authOptions } from '@/lib/authOptions';
-import { getServerSession } from 'next-auth';
-import { NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
-import { randomUUID } from 'crypto';
 import bcryptjs from 'bcryptjs';
-import { RegisterPayload, RegisterResult } from '@/shared/models';
+import { randomUUID } from 'crypto';
+import { getServerSession } from 'next-auth';
+
+import { authOptions } from '@/lib/authOptions';
+import prisma from '@/lib/prisma';
+
+import { SignUpRequest, SignUpResponse } from '@/shared/models';
+import { splitName } from '@/shared/utils';
 
 export const authService = {
 	/**
@@ -24,7 +26,7 @@ export const authService = {
 	 * Registers a new user with UNVERIFIED status.
 	 * Returns success flag, message, and possibly a verification token.
 	 */
-	async registerUser(payload: RegisterPayload): Promise<RegisterResult> {
+	async registerUser(payload: SignUpRequest): Promise<SignUpResponse> {
 		const { email, password, firstName, lastName, role } = payload;
 
 		// 1) Check if user already exists
@@ -59,7 +61,6 @@ export const authService = {
 			success: true,
 			message: 'User created successfully.',
 			userId: newUser.user_id,
-			verificationToken,
 		};
 	},
 
@@ -171,7 +172,7 @@ export const authService = {
 			if (!user) {
 				return { success: false, message: 'Invalid token', statusCode: 400 };
 			}
-			if (user.token_expires_at < new Date()) {
+			if (!user.token_expires_at || user.token_expires_at < new Date()) {
 				return { success: false, message: 'Expired token', statusCode: 400 };
 			}
 			if (user.status === 'ACTIVE') {
