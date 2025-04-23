@@ -3,7 +3,7 @@ FROM node:23-slim AS base
 ENV APP_HOME=/usr/src/app
 WORKDIR $APP_HOME
 
-# Dev and Build Dependencies
+# Dev and Build Dependencies stage
 FROM base AS deps
 RUN apt-get update && apt-get install -y \
   python3 \
@@ -22,6 +22,11 @@ RUN npm install
 
 COPY prisma ./prisma
 RUN npx prisma generate
+
+# Builder stage
+FROM deps AS builder
+COPY . .
+RUN npm run build
 
 # Development stage
 FROM deps AS development
