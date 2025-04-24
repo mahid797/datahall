@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 
 import { fetchDocumentCount } from '@/servicesTemp_UntilTanstack/documentService';
-import { authService } from '@/app/api/_services/authService';
+import { authService } from '@/services';
 
 import { BackgroundIcon, CheckCircleIcon } from '@/icons';
 
