@@ -10,5 +10,14 @@ export async function GET(req: NextRequest) {
 
 	const token = new URL(req.url).searchParams.get('token') ?? undefined;
 	const result = await authService.verifyUser({ token });
-	return NextResponse.json({ message: result.message }, { status: result.statusCode });
+
+	const redirectUrl = new URL(`${process.env.NEXT_PUBLIC_APP_URL}/auth/sign-in`);
+
+	if (result.success) {
+		redirectUrl.searchParams.set('verified', 'true');
+	} else {
+		redirectUrl.searchParams.set('error', result.message);
+	}
+
+	return NextResponse.redirect(redirectUrl, 302);
 }

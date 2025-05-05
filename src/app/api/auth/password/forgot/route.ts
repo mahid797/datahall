@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
 
 		/* Optional dev helper: show reset link when e‑mails disabled */
 		if (process.env.SEND_EMAILS !== 'true' && result.resetToken) {
-			const link = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/reset-password?token=${result.resetToken}`;
+			const link = `${process.env.NEXT_PUBLIC_APP_URL}/auth/reset-password?token=${result.resetToken}`;
 			return NextResponse.json(
 				{
 					success: true,
