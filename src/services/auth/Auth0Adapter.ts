@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
 import prisma from '../../lib/prisma';
+
 import type {
 	ChangePasswordRequest,
 	ChangePasswordResponse,
@@ -10,6 +11,8 @@ import type {
 } from '@/shared/models';
 import { mapAuth0Error } from './helpers';
 import type { IAuth } from './IAuth';
+import { getMgmtToken } from './auth0MgmtToken';
+import { Debug } from '@prisma/client/runtime/library';
 
 export class Auth0Adapter implements IAuth {
 	async signUp(request: SignUpRequest): Promise<SignUpResponse> {
@@ -18,7 +21,7 @@ export class Auth0Adapter implements IAuth {
 		const already = await prisma.user.findUnique({ where: { email } });
 		if (already) return { success: false, message: 'Email already exists' };
 
-		const mgmtToken = process.env.AUTH0_MANAGEMENT_API_TOKEN!;
+		const mgmtToken = await getMgmtToken();
 		const issuer = process.env.AUTH0_ISSUER_BASE_URL!;
 
 		const res = await fetch(`${issuer}/api/v2/users`, {
@@ -112,7 +115,7 @@ export class Auth0Adapter implements IAuth {
 		}
 
 		// 3) Patch password in Auth0
-		const mgmtToken = process.env.AUTH0_MANAGEMENT_API_TOKEN!;
+		const mgmtToken = await getMgmtToken();
 		const patch = await fetch(`${issuer}/api/v2/users/${local.auth0_sub}`, {
 			method: 'PATCH',
 			headers: {
@@ -124,7 +127,12 @@ export class Auth0Adapter implements IAuth {
 				connection: 'Username-Password-Authentication',
 			}),
 		});
+
 		const patchData = await patch.json();
+
+		if (process.env.DEBUG_LOGS === 'true') {
+			console.log('patchData', patchData);
+		}
 
 		return patch.ok
 			? { success: true, message: 'Password updated in Auth0' }

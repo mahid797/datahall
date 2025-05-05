@@ -111,12 +111,6 @@ if (process.env.AUTH_METHOD?.toLowerCase() === 'credentials') {
 					finalUser.status = 'ACTIVE';
 				}
 
-				// id_token_claims does not exist: already decoded the token into claims, so this second check is dead‑code.
-				// Remove or replace with claims.email_verified.
-
-				if (!auth0Data.id_token_claims.email_verified) {
-					throw new Error('Please verify your email with Auth0');
-				}
 				return {
 					id: finalUser.id.toString(),
 					userId: finalUser.user_id,
