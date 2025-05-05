@@ -14,6 +14,7 @@ import type {
 	VerifyUserResponse,
 } from '@/shared/models';
 import type { IAuth } from './IAuth';
+import { emailService } from '../email/emailService';
 
 export class LocalAuthAdapter implements IAuth {
 	async signUp(request: SignUpRequest): Promise<SignUpResponse> {
@@ -40,15 +41,7 @@ export class LocalAuthAdapter implements IAuth {
 			},
 		});
 
-		const verifyLink = `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/verify?token=${verificationToken}`;
-
-		// TODO: Implement email service to send verification link
-
-		// await emailService.sendVerificationEmail({
-		// 	to: email,
-		// 	firstName,
-		// 	verifyLink,
-		// });
+		await emailService.sendVerificationEmail(user.email, verificationToken, firstName);
 
 		return {
 			success: true,
@@ -70,15 +63,9 @@ export class LocalAuthAdapter implements IAuth {
 			},
 		});
 
-		const resetLink = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/reset-password?token=${resetToken}`;
+		await emailService.sendResetPasswordEmail(email, resetToken);
 
-		//TODO: Implement email service to send reset link
-		// await emailService.sendPasswordResetEmail({
-		// 	to: email,
-		// 	firstName: user.first_name,
-		// 	resetLink,
-		// });
-
+		// Remove resetToken in production
 		return {
 			success: true,
 			message: 'Reset token generated',

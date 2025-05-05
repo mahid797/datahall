@@ -8,4 +8,4 @@ export { uploadFile, deleteFile } from './storage/storageService';
 export { DocumentService } from './documentService';
 export { createErrorResponse } from './errorService';
 export { LinkService } from './linkService';
-export { emailService } from './emailService';
+export { emailService } from './email/emailService';
