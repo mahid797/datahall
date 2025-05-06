@@ -15,6 +15,7 @@ import type {
 } from '@/shared/models';
 import type { IAuth } from './IAuth';
 import { emailService } from '../email/emailService';
+import { ChangeNameRequest } from '@/shared/models/authModels';
 
 export class LocalAuthAdapter implements IAuth {
 	async signUp(request: SignUpRequest): Promise<SignUpResponse> {
@@ -103,7 +104,7 @@ export class LocalAuthAdapter implements IAuth {
 	}
 
 	async changePassword(request: ChangePasswordRequest): Promise<ChangePasswordResponse> {
-		const { email, oldPassword, newPassword } = request;
+		const { email, currentPassword: oldPassword, newPassword } = request;
 		const user = await prisma.user.findUnique({ where: { email } });
 		if (!user?.password) {
 			return { success: false, message: 'User not found locally' };
@@ -154,5 +155,20 @@ export class LocalAuthAdapter implements IAuth {
 		});
 
 		return { success: true, message: 'Email verified', statusCode: 200 };
+	}
+	async changeName(request: ChangeNameRequest): Promise<ChangePasswordResponse> {
+		const { userId, payload } = request;
+		const { firstName, lastName } = payload;
+		if (!firstName && !lastName) return { success: false, message: 'Nothing to update' };
+
+		await prisma.user.update({
+			where: { user_id: userId },
+			data: {
+				...(firstName && { first_name: firstName }),
+				...(lastName && { last_name: lastName }),
+			},
+		});
+
+		return { success: true, message: 'Name updated locally' };
 	}
 }

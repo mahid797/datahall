@@ -49,6 +49,13 @@ export const authService = {
 	changePassword: adapter.changePassword.bind(adapter),
 
 	/**
+	 * @method changeName
+	 * @description Change an authenticated user's name.
+	 * @see IAuth.changeName
+	 */
+	changeName: adapter.changeName.bind(adapter),
+
+	/**
 	 * @method verifyUser
 	 * @description Verify account via token or userId (local only).
 	 * @see IAuth.verifyUser

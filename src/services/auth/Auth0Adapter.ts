@@ -2,6 +2,8 @@ import { randomUUID } from 'crypto';
 import prisma from '../../lib/prisma';
 
 import type {
+	ChangeNameRequest,
+	ChangeNameResponse,
 	ChangePasswordRequest,
 	ChangePasswordResponse,
 	ForgotPasswordRequest,
@@ -9,10 +11,10 @@ import type {
 	SignUpRequest,
 	SignUpResponse,
 } from '@/shared/models';
-import { mapAuth0Error } from './helpers';
 import type { IAuth } from './IAuth';
+
 import { getMgmtToken } from './auth0MgmtToken';
-import { Debug } from '@prisma/client/runtime/library';
+import { mapAuth0Error } from './helpers';
 
 export class Auth0Adapter implements IAuth {
 	async signUp(request: SignUpRequest): Promise<SignUpResponse> {
@@ -78,15 +80,17 @@ export class Auth0Adapter implements IAuth {
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(body),
 		});
-		const data = await res.json();
+		const responseText = await res.text();
 
-		return res.ok
-			? { success: true, message: 'Reset e‑mail sent via Auth0' }
-			: { success: false, message: mapAuth0Error(data) };
+		if (!res.ok || responseText.toLowerCase().includes('error')) {
+			return { success: false, message: 'Failed to send reset email' };
+		}
+
+		return { success: true, message: 'Reset e‑mail sent via Auth0' };
 	}
 
 	async changePassword(request: ChangePasswordRequest): Promise<ChangePasswordResponse> {
-		const { email, oldPassword, newPassword } = request;
+		const { email, currentPassword: oldPassword, newPassword } = request;
 
 		const issuer = process.env.AUTH0_ISSUER_BASE_URL!;
 
@@ -100,6 +104,7 @@ export class Auth0Adapter implements IAuth {
 				password: oldPassword,
 				client_id: process.env.AUTH0_CLIENT_ID,
 				client_secret: process.env.AUTH0_CLIENT_SECRET,
+				realm: process.env.AUTH0_DB_CONNECTION,
 				scope: 'openid',
 			}),
 		});
@@ -137,5 +142,58 @@ export class Auth0Adapter implements IAuth {
 		return patch.ok
 			? { success: true, message: 'Password updated in Auth0' }
 			: { success: false, message: mapAuth0Error(patchData) };
+	}
+
+	async changeName(request: ChangeNameRequest): Promise<ChangeNameResponse> {
+		const { userId, payload } = request;
+		const { firstName, lastName } = payload;
+
+		if (!userId) throw new Error('Missing userId');
+
+		if (!firstName && !lastName) return { success: false, message: 'Nothing to update' };
+
+		const user = await prisma.user.findFirst({ where: { user_id: userId } });
+		if (!user?.auth0_sub) throw new Error('User missing auth0_sub');
+
+		try {
+			/* ── 1) push to Auth0 ────────────────────────────────────── */
+			const token = await getMgmtToken();
+			const issuer = process.env.AUTH0_ISSUER_BASE_URL!;
+			const res = await fetch(`${issuer}/api/v2/users/${user.auth0_sub}`, {
+				method: 'PATCH',
+				headers: {
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					user_metadata: {
+						...(firstName && { firstName }),
+						...(lastName && { lastName }),
+					},
+				}),
+			});
+
+			if (!res.ok) {
+				const { message } = await res.json();
+				return { success: false, message: `Auth0 update failed: ${message}` };
+			}
+
+			/* ── 2) update DB ───────────────────────────────────────────── */
+			await prisma.user.update({
+				where: { user_id: userId },
+				data: {
+					...(firstName && { first_name: firstName }),
+					...(lastName && { last_name: lastName }),
+				},
+			});
+
+			return { success: true, message: 'Name updated successfully' };
+		} catch (error) {
+			console.error('[Auth0Adapter.changeName]', error);
+			return {
+				success: false,
+				message: 'Failed to update name',
+			};
+		}
 	}
 }

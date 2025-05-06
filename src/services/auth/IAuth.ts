@@ -10,6 +10,7 @@ import type {
 	ResetPasswordRequest,
 	VerifyUserRequest,
 } from '@/shared/models';
+import { ChangeNameRequest, ChangeNameResponse } from '@/shared/models/authModels';
 
 /**
  * @interface IAuth
@@ -52,11 +53,23 @@ export interface IAuth {
 	 * Change an authenticated user’s password.
 	 * @param {ChangePasswordRequest} request - Request for change‑password.
 	 * @param {string} request.email - The user’s email.
-	 * @param {string} request.oldPassword - Current password.
+	 * @param {string} request.currentPassword - Current password.
 	 * @param {string} request.newPassword - New password to set.
 	 * @returns {Promise<ChangePasswordResponse>} Result object.
 	 */
 	changePassword(request: ChangePasswordRequest): Promise<ChangePasswordResponse>;
+
+	/**
+	 * Change a user’s first / last name.
+	 * @param {ChangeNameRequest} request - Request for change‑password.
+	 * @param {string} request.userId  Local primary key (user.user_id).
+	 * @param {object} request.payload - The name update payload
+	 * @param {string} [request.payload.firstName] - New first name (optional)
+	 * @param {string} [request.payload.lastName] - New last name (optional)
+	 * @returns {Promise<ChangeNameResponse>} Result object.
+	 */
+	changeName(request: ChangeNameRequest): Promise<ChangeNameResponse>;
+
 	/**
 	 * Verify an account via email token.
 	 * Local‑only adapter method; missing in Auth0 mode.
