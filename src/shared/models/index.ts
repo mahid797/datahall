@@ -10,6 +10,8 @@ export type { ChangePasswordRequest } from './authModels';
 export type { ChangePasswordResponse } from './authModels';
 export type { VerifyUserRequest } from './authModels';
 export type { VerifyUserResponse } from './authModels';
+export type { ChangeNameRequest } from './authModels';
+export type { ChangeNameResponse } from './authModels';
 
 export type { DocumentType } from './documentModels';
 export type { BarDataItem } from './documentModels';

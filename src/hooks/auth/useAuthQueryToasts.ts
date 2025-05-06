@@ -3,7 +3,7 @@
 /* -------------------------------------------------------------------------- */
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useToast } from '@/hooks';
 
@@ -23,9 +23,10 @@ export default function useAuthQueryToasts() {
 	const search = useSearchParams();
 	const toast = useToast();
 	const router = useRouter();
+	const hasRun = useRef(false);
 
 	useEffect(() => {
-		if (!search) return;
+		if (!search || hasRun.current) return;
 
 		const didShowToast =
 			search.get('verified') === 'true' ||
@@ -72,6 +73,7 @@ export default function useAuthQueryToasts() {
 		}
 		/* ----- clean URL  ---------------------------------------------------- */
 		if (didShowToast) {
+			hasRun.current = true;
 			router.replace('/auth/sign-in', { scroll: false });
 		}
 	}, [search, router, toast]);

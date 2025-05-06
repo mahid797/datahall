@@ -1,8 +1,13 @@
 let cache: { token: string; exp: number } | null = null;
 
+const REFRESH_THRESHOLD = 60; // seconds before expiry to refresh
+
 export async function getMgmtToken(): Promise<string> {
 	const now = Math.floor(Date.now() / 1000);
-	if (cache && cache.exp - 60 > now) return cache.token;
+
+	if (cache?.token && cache.exp - now > REFRESH_THRESHOLD) {
+		return cache.token;
+	}
 
 	const res = await fetch(`${process.env.AUTH0_ISSUER_BASE_URL}/oauth/token`, {
 		method: 'POST',
@@ -12,6 +17,7 @@ export async function getMgmtToken(): Promise<string> {
 			client_id: process.env.AUTH0_M2M_CLIENT_ID,
 			client_secret: process.env.AUTH0_M2M_CLIENT_SECRET,
 			audience: process.env.AUTH0_MGMT_AUDIENCE,
+			realm: process.env.AUTH0_DB_CONNECTION,
 		}),
 	});
 	const data = await res.json();

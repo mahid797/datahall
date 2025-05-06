@@ -81,7 +81,7 @@ if (process.env.AUTH_METHOD?.toLowerCase() === 'credentials') {
 						password: credentials.password,
 						client_id: process.env.AUTH0_CLIENT_ID,
 						client_secret: process.env.AUTH0_CLIENT_SECRET,
-						scope: 'openid profile email',
+						realm: process.env.AUTH0_DB_CONNECTION,
 					}),
 				});
 				const auth0Data = await resp.json();
@@ -138,7 +138,7 @@ export const authOptions: NextAuthOptions = {
 	},
 	callbacks: {
 		// signIn callback might not be necessary if using ROPG,
-		// but you can keep it if you do something else (like unify social logins).
+		// but kept it if we do something else (like unify social logins).
 		async signIn({ user }) {
 			return true;
 		},
@@ -153,7 +153,13 @@ export const authOptions: NextAuthOptions = {
 				token.avatarUrl = user.avatarUrl;
 				token.status = user.status;
 				token.email = user.email;
+				token.remember30d = (user as any).remember ?? false;
+
+				if (token.remember30d) {
+					token.exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30; // 30 days
+				}
 			}
+
 			return token;
 		},
 		async session({ session, token }) {

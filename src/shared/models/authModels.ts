@@ -44,10 +44,22 @@ export interface ResetPasswordResponse {
 
 export interface ChangePasswordRequest {
 	email: string;
-	oldPassword: string;
+	currentPassword: string;
 	newPassword: string;
 }
 export interface ChangePasswordResponse {
+	success: boolean;
+	message: string;
+}
+
+export interface ChangeNameRequest {
+	userId: string;
+	payload: {
+		firstName?: string;
+		lastName?: string;
+	};
+}
+export interface ChangeNameResponse {
 	success: boolean;
 	message: string;
 }
