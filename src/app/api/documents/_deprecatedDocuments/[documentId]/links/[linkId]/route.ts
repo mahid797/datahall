@@ -8,10 +8,10 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ linkId
 		const { linkId } = await props.params;
 
 		// Verify doc ownership + link existence
-		const link = await prisma.link.findFirst({
+		const link = await prisma.documentLink.findFirst({
 			where: {
-				linkId: linkId,
-				userId: userId,
+				documentLinkId: linkId,
+				createdByUserId: userId,
 			},
 		});
 
@@ -23,8 +23,8 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ linkId
 		}
 
 		// Delete the link
-		await prisma.link.delete({
-			where: { linkId: link.linkId },
+		await prisma.documentLink.delete({
+			where: { documentLinkId: link.documentLinkId },
 		});
 
 		return NextResponse.json({ message: 'Link deleted successfully.' }, { status: 200 });

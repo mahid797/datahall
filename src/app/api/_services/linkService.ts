@@ -14,10 +14,10 @@ export class LinkService {
 		// Ensure doc ownership
 		const doc = await prisma.document.findFirst({
 			where: { document_id: documentId, user_id: userId },
-			include: { Link: true },
+			include: { documentLink: true },
 		});
 		if (!doc) return null; // doc not found or no access
-		return doc.Link;
+		return doc.documentLink;
 	}
 
 	/**
@@ -27,17 +27,17 @@ export class LinkService {
 		userId: string,
 		documentId: string,
 		{
-			friendlyName,
+			alias = '',
 			isPublic,
 			password,
 			expirationTime,
-			requiredUserDetailsOption,
+			visitorFields = [],
 		}: {
-			friendlyName?: string;
+			alias?: string;
 			isPublic?: boolean;
 			password?: string;
 			expirationTime?: string;
-			requiredUserDetailsOption?: number;
+			visitorFields?: string[];
 		},
 	) {
 		// Check doc ownership
@@ -54,7 +54,7 @@ export class LinkService {
 		// Generate link details
 		const uniqueId = randomUUID();
 		const HOST = process.env.HOST || 'http://localhost:3000';
-		const linkUrl = `${HOST}/links/${uniqueId}`;
+		const linkUrl = `${HOST}/documentAccess/${uniqueId}`;
 
 		// Hash password if provided
 		let hashedPassword: string | null = null;
@@ -62,17 +62,17 @@ export class LinkService {
 			hashedPassword = await bcryptjs.hash(password, 10);
 		}
 		try {
-			return await prisma.link.create({
+			return await prisma.documentLink.create({
 				data: {
-					userId,
-					linkId: uniqueId,
+					createdByUserId: userId,
+					documentLinkId: uniqueId,
 					linkUrl,
 					documentId: doc.document_id,
 					isPublic: !!isPublic,
 					password: hashedPassword,
-					friendlyName: friendlyName || linkUrl,
+					alias,
 					expirationTime: expirationTime ? new Date(expirationTime) : null,
-					requiredUserDetailsOption: requiredUserDetailsOption ?? null,
+					visitorFields,
 				},
 			});
 		} catch (err: any) {
@@ -86,13 +86,14 @@ export class LinkService {
 	/**
 	 * Deletes a link if it belongs to the user.
 	 */
-	static async deleteLink(userId: string, linkId: string) {
-		const link = await prisma.link.findFirst({
-			where: { linkId, userId },
+	static async deleteLink(userId: string, documentLinkId: string) {
+		const link = await prisma.documentLink.findFirst({
+			where: { documentLinkId, createdByUserId: userId },
 		});
+
 		if (!link) return null; // no access
-		return prisma.link.delete({
-			where: { linkId: link.linkId },
+		return prisma.documentLink.delete({
+			where: { documentLinkId: link.documentLinkId },
 		});
 	}
 
@@ -101,8 +102,8 @@ export class LinkService {
 	 * If expired, caller can handle. Returns the raw link record.
 	 */
 	static async getPublicLink(linkId: string) {
-		return prisma.link.findUnique({
-			where: { linkId },
+		return prisma.documentLink.findUnique({
+			where: { documentLinkId: linkId },
 		});
 	}
 
@@ -126,11 +127,11 @@ export class LinkService {
 	 * Logs a new record in LinkVisitors for this link.
 	 */
 	static async logVisitor(linkId: string, firstName = '', lastName = '', email = '') {
-		return prisma.linkVisitors.create({
+		return prisma.documentLinkVisitor.create({
 			data: {
-				linkId,
-				first_name: firstName,
-				last_name: lastName,
+				documentLinkId: linkId,
+				firstName,
+				lastName,
 				email,
 			},
 		});
@@ -145,8 +146,8 @@ export class LinkService {
 		fileName: string;
 		size: number;
 	}> {
-		const link = await prisma.link.findUnique({
-			where: { linkId },
+		const link = await prisma.documentLink.findUnique({
+			where: { documentLinkId: linkId },
 			include: { Document: true },
 		});
 		if (!link || !link.Document) {

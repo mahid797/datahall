@@ -15,10 +15,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
 			flexDirection='column'
 			p={20}
 			height='100vh'>
-			<BlueWaveLogo
-				width={400}
-				height={40}
-			/>
+			<Box width={{ sm: '15rem', md: '18rem', lg: '20rem' }}>
+				<BlueWaveLogo
+					width='100%'
+					height='auto'
+				/>
+			</Box>
 			{children}
 			<Box
 				display='flex'

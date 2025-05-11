@@ -10,7 +10,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ documentI
 		// Ensure doc belongs to user
 		const doc = await prisma.document.findFirst({
 			where: { document_id: documentId, user_id: userId },
-			include: { Link: true },
+			include: { documentLink: true },
 		});
 		if (!doc) {
 			return NextResponse.json(
@@ -20,16 +20,16 @@ export async function GET(req: NextRequest, props: { params: Promise<{ documentI
 		}
 
 		// Gather all linkIds
-		const linkIds = doc.Link.map((l) => l.linkId);
+		const linkIds = doc.documentLink.map((l) => l.documentLinkId);
 		if (linkIds.length === 0) {
 			// No links => no visitors
 			return NextResponse.json({ visitors: [] }, { status: 200 });
 		}
 
 		// Query LinkVisitors for all those linkIds
-		const linkVisitors = await prisma.linkVisitors.findMany({
+		const linkVisitors = await prisma.documentLinkVisitor.findMany({
 			where: {
-				linkId: { in: linkIds },
+				documentLinkId: { in: linkIds },
 			},
 			orderBy: { updatedAt: 'desc' },
 		});
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ documentI
 		const visitors = linkVisitors.map((visitor) => ({
 			id: visitor.id,
 			documentId: doc.document_id,
-			name: `${visitor.first_name} ${visitor.last_name}`.trim(),
+			name: `${visitor.firstName} ${visitor.firstName}`.trim(),
 			email: visitor.email,
 			lastActivity: visitor.updatedAt,
 			// These are placeholders for now

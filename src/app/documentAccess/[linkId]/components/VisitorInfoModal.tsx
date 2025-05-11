@@ -1,7 +1,6 @@
 'use client';
 
-import axios from 'axios';
-import React from 'react';
+import React, { Fragment } from 'react';
 
 import {
 	Box,
@@ -12,34 +11,17 @@ import {
 	IconButton,
 	Typography,
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import Grid from '@mui/material/Grid2';
 
 import { FormInput, LoadingButton } from '@/components';
 
-import { useFormSubmission, useValidatedFormData } from '@/hooks';
+import { useFormSubmission, useValidatedFormData, useVisitorSubmission } from '@/hooks';
 
 import { EyeIcon, EyeOffIcon, FileDownloadIcon } from '@/icons';
 import { requiredFieldRule, splitName, validEmailRule } from '@/shared/utils';
+import { visitorFieldsConfigByKey } from '@/shared/config/visitorFieldsConfig';
 
-const RowBox = styled(Box)({
-	display: 'flex',
-	justifyContent: 'space-between',
-	alignItems: 'center',
-	gap: 10,
-	width: '100%',
-	'& > h3': {
-		flex: 2,
-	},
-	'& > div:nth-of-type(1)': {
-		flex: 7,
-	},
-	'& > div:nth-of-type(2)': {
-		marginLeft: 0,
-		flex: 1,
-	},
-});
-
-function getFormConfig(passwordRequired: boolean, userDetailsOption: number) {
+function getFormConfig(passwordRequired: boolean, visitorFields: string[]) {
 	const formConfig: {
 		initialValues: Record<string, string>;
 		validationRules: Record<string, any[]>;
@@ -50,23 +32,19 @@ function getFormConfig(passwordRequired: boolean, userDetailsOption: number) {
 
 	if (passwordRequired) {
 		formConfig.initialValues.password = '';
-		formConfig.validationRules.password = [requiredFieldRule('*This field is required')];
+		formConfig.validationRules.password = [requiredFieldRule('This field is required')];
 	}
 
-	if (userDetailsOption === 1) {
-		formConfig.initialValues.name = '';
-		formConfig.validationRules.name = [requiredFieldRule('*This field is required')];
-	}
+	visitorFields.forEach((field) => {
+		formConfig.initialValues[field] = '';
+		const rules = [requiredFieldRule('This field is required')];
 
-	if (userDetailsOption === 2) {
-		formConfig.initialValues.name = '';
-		formConfig.initialValues.email = '';
-		formConfig.validationRules.name = [requiredFieldRule('*This field is required')];
-		formConfig.validationRules.email = [
-			requiredFieldRule('*This field is required'),
-			validEmailRule,
-		];
-	}
+		if (field === 'email') {
+			rules.push(validEmailRule);
+		}
+
+		formConfig.validationRules[field] = rules;
+	});
 
 	return formConfig;
 }
@@ -74,24 +52,25 @@ function getFormConfig(passwordRequired: boolean, userDetailsOption: number) {
 interface VisitorInfoModalProps {
 	linkId: string;
 	passwordRequired: boolean;
-	userDetailsOption: number;
+	visitorFields: string[];
 	onVisitorInfoModalSubmit: (data: Record<string, any>) => void;
 }
 
 export default function VisitorInfoModal({
 	linkId,
 	passwordRequired,
-	userDetailsOption,
+	visitorFields,
 	onVisitorInfoModalSubmit,
 }: VisitorInfoModalProps) {
 	const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
-
-	const formConfig = getFormConfig(passwordRequired, userDetailsOption);
+	const formConfig = getFormConfig(passwordRequired, visitorFields);
 
 	const { values, handleChange, handleBlur, getError, validateAll } = useValidatedFormData({
 		initialValues: formConfig.initialValues,
 		validationRules: formConfig.validationRules,
 	});
+
+	const { mutateAsync: submitVisitorData, isPending } = useVisitorSubmission();
 
 	const { loading, handleSubmit, toast } = useFormSubmission({
 		onSubmit: async () => {
@@ -100,23 +79,38 @@ export default function VisitorInfoModal({
 				throw new Error('Please correct the highlighted fields.');
 			}
 
-			const splittedName = splitName(values.name);
+			// HOTFIX: Untouched empty fields weren't being validated on first submit
+			// Additional validation to catch empty required fields even if untouched
+			// This is a temporary fix until we can refactor the validation logic with Zod
+			const requiredFields = visitorFields.filter((field) =>
+				formConfig.validationRules[field]?.some((rule) => rule.message.includes('required')),
+			);
 
+			const emptyFields = requiredFields.filter(
+				(field) => !values[field] || values[field].trim() === '',
+			);
+
+			if (emptyFields.length > 0) {
+				throw new Error('Please fill in all required fields.');
+			}
+
+			const splittedName = splitName(values.name);
 			const payload = {
 				linkId,
-				first_name: splittedName.first_name,
-				last_name: splittedName.last_name,
+				firstName: splittedName.first_name,
+				lastName: splittedName.last_name,
 				email: values.email || '',
 				password: values.password || '',
+				visitorMetaData: null, // This will be populated to add any additional user information, Implementation from API endpoint as well.
 			};
 
-			const response = await axios.post(`/api/public_links/${linkId}/access`, payload);
+			const response = await submitVisitorData({ linkId, payload });
 
-			if (!response.data.data) {
+			if (!response.data) {
 				throw new Error(response.data.message || 'No file data returned.');
 			}
 
-			onVisitorInfoModalSubmit(response.data.data);
+			onVisitorInfoModalSubmit(response.data);
 		},
 
 		successMessage: 'File access granted!',
@@ -126,11 +120,9 @@ export default function VisitorInfoModal({
 		<Dialog
 			open
 			onClose={() => {}}
-			PaperProps={{
-				component: 'form',
-				onSubmit: handleSubmit,
-				sx: { minWidth: 600, p: 0 },
-			}}>
+			component='form'
+			onSubmit={handleSubmit}
+			fullWidth>
 			{/* Header */}
 			<Box
 				display='flex'
@@ -152,72 +144,80 @@ export default function VisitorInfoModal({
 			<Divider />
 
 			{/* Form Fields */}
-			<DialogContent sx={{ m: 12 }}>
-				<Box
-					display='flex'
-					flexDirection='column'
-					width='100%'
-					gap={10}>
-					{[1, 2].includes(userDetailsOption) && (
-						<RowBox>
-							<Typography variant='h3'>Name</Typography>
-							<FormInput
-								id='name'
-								value={values.name || ''}
-								onChange={handleChange}
-								onBlur={handleBlur}
-								errorMessage={getError('name')}
-								placeholder='Your Name'
-							/>
-							<Box />
-						</RowBox>
-					)}
+			<DialogContent sx={{ m: 4 }}>
+				<Grid
+					container
+					rowSpacing={14}
+					columnSpacing={{ sm: 2, md: 4, lg: 8 }}
+					alignItems='center'>
+					{visitorFields.map((field) => {
+						const [fieldConfig] = visitorFieldsConfigByKey[field];
 
-					{userDetailsOption === 2 && (
-						<RowBox>
-							<Typography variant='h3'>Email</Typography>
-							<FormInput
-								id='email'
-								type='email'
-								value={values.email || ''}
-								onChange={handleChange}
-								onBlur={handleBlur}
-								errorMessage={getError('email')}
-								placeholder='your_email@bluewave.com'
-							/>
-							<Box />
-						</RowBox>
-					)}
+						if (!fieldConfig) return null;
 
-					{userDetailsOption === 2 && passwordRequired && <Divider />}
+						return (
+							<Fragment key={field}>
+								{/* Visitor fields, e.g., name and email */}
+								<Grid size={3}>
+									<Typography
+										variant='h3'
+										mt={field === 'password' ? 10 : 0}>
+										{fieldConfig.label}
+									</Typography>
+								</Grid>
+								<Grid size={passwordRequired ? 8 : 9}>
+									<FormInput
+										id={field}
+										placeholder={fieldConfig.placeholder}
+										value={values[field] || ''}
+										onChange={handleChange}
+										onBlur={handleBlur}
+										errorMessage={getError(field)}
+									/>
+								</Grid>
+							</Fragment>
+						);
+					})}
 
 					{passwordRequired && (
-						<RowBox>
-							<Typography
-								variant='h3'
-								mt={10}>
-								Password
-							</Typography>
-							<FormInput
-								placeholder=''
-								id='password'
-								label='Please enter the password shared with you'
-								value={values.password || ''}
-								onChange={handleChange}
-								errorMessage={getError('password')}
-								onBlur={handleBlur}
-								type={isPasswordVisible ? 'text' : 'password'}
-							/>
-							<Box mt={10}>
-								<IconButton
-									size='large'
-									onClick={() => setIsPasswordVisible(!isPasswordVisible)}>
+						<>
+							{/* Divider */}
+							{visitorFields.length > 0 && (
+								<Grid size={12}>
+									<Divider sx={{ borderBottomWidth: 2 }} />
+								</Grid>
+							)}
+
+							{/* Password */}
+							<Grid
+								size={3}
+								pt={14}>
+								<Typography variant='h3'>Password</Typography>
+							</Grid>
+							<Grid
+								display='grid'
+								rowGap={5}
+								size={8}>
+								<Typography variant='body1'>Please enter the password shared with you</Typography>
+								<FormInput
+									id='password'
+									type={isPasswordVisible ? 'text' : 'password'}
+									value={values.password || ''}
+									onChange={handleChange}
+									onBlur={handleBlur}
+									errorMessage={getError('password')}
+								/>
+							</Grid>
+							<Grid
+								size={1}
+								pt={14}>
+								<IconButton onClick={() => setIsPasswordVisible(!isPasswordVisible)}>
 									{isPasswordVisible ? <EyeOffIcon /> : <EyeIcon />}
 								</IconButton>
-							</Box>
-						</RowBox>
+							</Grid>
+						</>
 					)}
-				</Box>
+				</Grid>
 			</DialogContent>
 
 			<Divider />
@@ -225,11 +225,11 @@ export default function VisitorInfoModal({
 			{/* Submit Button */}
 			<DialogActions sx={{ p: 0, m: 12 }}>
 				<LoadingButton
-					loading={loading}
+					loading={loading || isPending}
+					disabled={loading || isPending}
 					buttonText='Confirm'
 					loadingText='Confirming...'
 					fullWidth
-					type='submit'
 				/>
 			</DialogActions>
 		</Dialog>
