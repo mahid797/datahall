@@ -36,7 +36,7 @@ if (process.env.AUTH_METHOD !== 'auth0') {
 					throw new Error('Please verify your email to sign in.');
 				}
 
-				const isPasswordValid = await bcryptjs.compare(credentials.password, user.password);
+				const isPasswordValid = await bcryptjs.compare(credentials.password, user.password!);
 				if (!isPasswordValid) {
 					throw new Error('Invalid password');
 				}
