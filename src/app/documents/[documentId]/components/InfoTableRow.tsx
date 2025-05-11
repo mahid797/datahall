@@ -30,7 +30,7 @@ export default function InfoTableRow({ documentDetail, variant }: InfoTableRowPr
 	const handleDeleteLink = async () => {
 		try {
 			const link = documentDetail as LinkDetail;
-			await axios.delete(`/api/documents/${link.document_id}/links/${link.linkId}`);
+			await axios.delete(`/api/documents/${link.document_id}/links/${link.documentLinkId}`);
 
 			showToast({ message: 'Link deleted!', variant: 'success' });
 			deleteModal.closeModal();
@@ -73,9 +73,7 @@ export default function InfoTableRow({ documentDetail, variant }: InfoTableRowPr
 								}}
 								placement='bottom-start'>
 								<Typography>
-									{documentDetail.friendlyName
-										? documentDetail.friendlyName
-										: documentDetail.createdLink}
+									{documentDetail.alias ? documentDetail.alias : documentDetail.createdLink}
 									<IconButton
 										sx={{ ml: 10 }}
 										onClick={handleLinkCopy}>

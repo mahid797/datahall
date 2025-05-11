@@ -17,8 +17,8 @@ export async function GET(req: NextRequest, props: { params: Promise<{ documentI
 		const result = links.map((link) => ({
 			id: link.id,
 			documentId: link.documentId,
-			linkId: link.linkId,
-			friendlyName: link.friendlyName,
+			linkId: link.documentLinkId,
+			alias: link.alias,
 			createdLink: link.linkUrl,
 			lastViewed: link.updatedAt,
 			linkViews: 0,
@@ -57,7 +57,10 @@ export async function POST(req: NextRequest, props: { params: Promise<{ document
 				return createErrorResponse('Expiration time cannot be in the past.', 400);
 			}
 			if (createErr instanceof Error && createErr.message === 'FRIENDLY_NAME_CONFLICT') {
-				return createErrorResponse('Friendly name is already taken.', 409);
+				return createErrorResponse(
+					'This alias is already in use. Please choose a different link alias.',
+					409,
+				);
 			}
 			throw createErr; // rethrow
 		}

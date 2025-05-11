@@ -6,20 +6,20 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 	try {
 		const userId = await authService.authenticate();
 
-		const userLinks = await prisma.link.findMany({
-			where: { userId },
-			select: { linkId: true },
+		const userLinks = await prisma.documentLink.findMany({
+			where: { createdByUserId: userId },
+			select: { documentLinkId: true },
 		});
 		if (!userLinks.length) {
 			return NextResponse.json({ data: [] }, { status: 200 });
 		}
 
-		const linkIds = userLinks.map((l) => l.linkId);
+		const linkIds = userLinks.map((l) => l.documentLinkId);
 
-		const visitors = await prisma.linkVisitors.groupBy({
+		const visitors = await prisma.documentLinkVisitor.groupBy({
 			by: ['email'],
 			where: {
-				linkId: { in: linkIds },
+				documentLinkId: { in: linkIds },
 			},
 			_count: {
 				email: true,
@@ -31,14 +31,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
 		const visitorDetails = await Promise.all(
 			visitors.map(async (visitor) => {
-				const lastVisit = await prisma.linkVisitors.findFirst({
+				const lastVisit = await prisma.documentLinkVisitor.findFirst({
 					where: {
 						email: visitor.email,
-						linkId: { in: linkIds },
+						documentLinkId: { in: linkIds },
 					},
 					orderBy: { updatedAt: 'desc' },
 					include: {
-						Link: true,
+						documentLink: true,
 					},
 				});
 
@@ -46,8 +46,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 					return null;
 				}
 
-				const firstName = lastVisit.first_name?.trim() || null;
-				const lastName = lastVisit.last_name?.trim() || null;
+				const firstName = lastVisit.firstName?.trim() || null;
+				const lastName = lastVisit.lastName?.trim() || null;
 				const fullName =
 					firstName || lastName ? `${firstName || ''} ${lastName || ''}`.trim() : null;
 
@@ -55,7 +55,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 					id: lastVisit.id,
 					name: fullName,
 					email: visitor.email || null,
-					lastViewedLink: lastVisit.Link?.friendlyName || lastVisit.Link?.linkUrl || null,
+					lastViewedLink: lastVisit.documentLink?.alias || lastVisit.documentLink?.linkUrl || null,
 					lastActivity: lastVisit.updatedAt || null,
 					totalVisits: visitor._count.email || 0,
 				};

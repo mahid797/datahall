@@ -9,17 +9,18 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model ArchivedUser {
-  id         Int      @id @default(autoincrement())
-  user_id    String   @unique @default(cuid())
-  first_name String   @default("")
-  last_name  String   @default("")
-  email      String   @unique @default("")
-  password   String
-  created_at DateTime @default(now()) @db.Timestamptz(6)
-  role       UserRole @default(USER)
-  address    String?  @default("")
-}
+// Temporary disabled ArchivedUser model - Can re-enable later when we have Delete User functionality
+// model ArchivedUser {
+//   id         Int      @id @default(autoincrement())
+//   user_id    String   @unique @default(uuid())
+//   first_name String   @default("")
+//   last_name  String   @default("")
+//   email      String   @unique @default("")
+//   password   String
+//   created_at DateTime @default(now()) @db.Timestamptz(6)
+//   role       UserRole @default(USER)
+//   address    String?  @default("")
+// }
 
 model PasswordResetToken {
   id         Int       @id @default(autoincrement())
@@ -37,11 +38,11 @@ model User {
   auth0_sub          String?      @unique
   first_name         String       @default("")
   last_name          String       @default("")
-  email              String       @unique @default("")
+  email              String       @unique @default("") @db.Text
   password           String?
   avatar_url         String?
   created_at         DateTime     @default(now()) @db.Timestamptz(6)
-  role               UserRole     @default(ADMIN)
+  role               UserRole     @default(USER)
   status             Status       @default(UNVERIFIED)
   verification_token String?
   token_expires_at   DateTime?
@@ -49,7 +50,7 @@ model User {
 
   PasswordResetToken PasswordResetToken[]
   Document           Document[]
-  Link               Link[]
+  documentLink       DocumentLink[]
 }
 
 enum AuthProvider {
@@ -60,16 +61,20 @@ enum AuthProvider {
 
 model Document {
   id          Int      @id @default(autoincrement())
-  document_id String   @unique @default(cuid())
+  document_id String   @unique @default(uuid())
   user_id     String
   fileName    String
-  filePath    String
+  filePath    String   @db.Text
   fileType    String
   size        Int
   createdAt   DateTime @default(now()) @db.Timestamptz(6)
   updatedAt   DateTime @updatedAt @db.Timestamptz(6)
   User        User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  Link        Link[]
+
+  documentLink DocumentLink[]
+
+  //Helpful indexes for look-ups
+  @@index([user_id])
 }
 
 enum Status {
@@ -80,39 +85,50 @@ enum Status {
 
 enum UserRole {
   ADMIN
+  MEMBER
   USER
 }
 
-model Link {
-  id                        Int       @id @default(autoincrement())
-  linkId                    String    @unique
-  documentId                String
-  userId                    String
-  friendlyName              String?   @unique
-  linkUrl                   String    @unique
-  isPublic                  Boolean   @default(false)
-  requiredUserDetailsOption Int? // Must be NULL if isPublic = true
-  expirationTime            DateTime? // Must be NULL if isPublic = true
-  password                  String? // Must be NULL if isPublic = true
-  updatedAt                 DateTime  @updatedAt @db.Timestamptz(6)
-  createdAt                 DateTime  @default(now()) @db.Timestamptz(6)
+model DocumentLink {
+  id              Int       @id @default(autoincrement())
+  documentLinkId  String    @unique
+  documentId      String
+  createdByUserId String
+  alias           String?
+  linkUrl         String    @unique
+  isPublic        Boolean   @default(false)
+  expirationTime  DateTime?
+  password        String?
+  updatedAt       DateTime  @updatedAt @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @db.Timestamptz(6)
+  visitorFields   Json
 
   // Relations
   Document Document @relation(fields: [documentId], references: [document_id], onDelete: Cascade)
-  User     User     @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  User     User     @relation(fields: [createdByUserId], references: [user_id], onDelete: Cascade)
 
-  LinkVisitors LinkVisitors[]
+  documentLinkVisitors DocumentLinkVisitor[]
+
+  // Composite uniqueness: alias must be unique only within its document
+  @@unique([documentId, alias], name: "document_alias_unique")
+  // Helpful indexes for look-ups
+  @@index([documentId])
+  @@index([createdByUserId])
 }
 
-model LinkVisitors {
-  id         Int      @id @default(autoincrement())
-  linkId     String
-  first_name String   @default("")
-  last_name  String   @default("")
-  email      String   @default("")
-  createdAt  DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt  DateTime @updatedAt @db.Timestamptz(6)
+model DocumentLinkVisitor {
+  id              Int      @id @default(autoincrement())
+  documentLinkId  String
+  firstName       String   @default("")
+  lastName        String   @default("")
+  email           String   @default("") @db.Text
+  visitorMetaData Json? // Any additional user details will be here.
+  visitedAt       DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
 
   // Relations
-  Link Link @relation(fields: [linkId], references: [linkId], onDelete: Cascade)
+  documentLink DocumentLink @relation(fields: [documentLinkId], references: [documentLinkId], onDelete: Cascade)
+
+  // Helpful indexes for look-ups
+  @@index([documentLinkId, visitedAt])
 }
