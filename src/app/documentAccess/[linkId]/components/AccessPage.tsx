@@ -2,16 +2,15 @@
 
 import axios from 'axios';
 import { useEffect, useState } from 'react';
-
 import { Container } from '@mui/material';
 
-import VisitorInfoModal from './VisitorInfoModal';
-import AccessError from './AccessError';
 import FileAccess from './FileDisplay';
+import AccessError from './AccessError';
+import VisitorInfoModal from './VisitorInfoModal';
 
-import { LoadingSpinner } from '@/components';
-import { useFormSubmission, useToast } from '@/hooks';
 import { LinkData } from '@/shared/models';
+import { LoadingSpinner } from '@/components';
+import { useFormSubmission, useDocumentAccess } from '@/hooks';
 
 interface Props {
 	linkId: string;
@@ -19,38 +18,18 @@ interface Props {
 
 export default function AccessPage({ linkId }: Props) {
 	const [linkData, setLinkData] = useState<LinkData>({});
-	const [loading, setLoading] = useState(true);
-	const [fetchLinkError, setFetchLinkError] = useState<string>(''); // store error from GET
-	const toast = useToast();
+	const [fetchLinkError, setFetchLinkError] = useState<string>('');
+	const [hasInitialized, setHasInitialized] = useState(false); // This flag blocks the rendering of visitorInfoModal till the useEffect finishes to check whether a link url is truly public or not.
+
+	const { error, data, isLoading } = useDocumentAccess(linkId);
+	const linkInfo = data?.data ?? {};
 
 	useEffect(() => {
-		const fetchLinkDetails = async () => {
-			setLoading(true);
-			setFetchLinkError('');
-			try {
-				const response = await axios.get(`/api/public_links/${linkId}`);
-				if (!response?.data?.data) {
-					// e.g. 404 or expired
-					setFetchLinkError(response?.data?.message || 'Link not found or expired.');
-				} else {
-					const { isPasswordProtected, needsUserDetails } = response.data.data;
-					setLinkData({
-						isPasswordProtected,
-						requiredUserDetailsOption: needsUserDetails ? 2 : 0,
-					});
-				}
-			} catch (error: any) {
-				console.error('Error fetching link details:', error);
-				const msg = error?.response?.data?.message || 'Unexpected error fetching link details.';
-				setFetchLinkError(msg);
-				toast.showToast({ variant: 'error', message: msg });
-			} finally {
-				setLoading(false);
-			}
-		};
-
-		fetchLinkDetails();
-	}, [linkId, toast]);
+		if (error) {
+			setFetchLinkError(error?.message);
+			setHasInitialized(true);
+		}
+	}, [error]);
 
 	const { handleSubmit } = useFormSubmission({
 		onSubmit: async () => {
@@ -58,8 +37,8 @@ export default function AccessPage({ linkId }: Props) {
 
 			const payload = {
 				linkId,
-				first_name: '',
-				last_name: '',
+				firstName: '',
+				lastName: '',
 				email: '',
 				password: '',
 			};
@@ -69,16 +48,14 @@ export default function AccessPage({ linkId }: Props) {
 				throw new Error(response.data?.message || 'Unable to access file.');
 			}
 
-			setLinkData((prev) => ({
-				...prev,
+			setLinkData({
 				signedUrl: response.data.data.signedUrl,
 				fileName: response.data.data.fileName,
 				size: response.data.data.size,
-			}));
+			});
 		},
 
 		successMessage: 'File accessed successfully!',
-
 		errorMessage: 'Error accessing the link. Please try again later.',
 		onError: (errMsg) => {
 			setFetchLinkError(errMsg);
@@ -86,25 +63,30 @@ export default function AccessPage({ linkId }: Props) {
 	});
 
 	useEffect(() => {
-		if (!loading) {
-			const { isPasswordProtected, requiredUserDetailsOption, signedUrl } = linkData;
-			const isTrulyPublic = !isPasswordProtected && !requiredUserDetailsOption;
+		if (!isLoading && data?.data && !hasInitialized) {
+			const { isPasswordProtected, visitorFields, signedUrl } = linkInfo;
+			const isTrulyPublic = !isPasswordProtected && visitorFields.length === 0;
+
 			if (isTrulyPublic && !signedUrl) {
-				handleSubmit({ preventDefault: () => {} } as any);
+				handleSubmit({ preventDefault: () => {} } as any).finally(() => {
+					setHasInitialized(true);
+				});
+			} else {
+				setHasInitialized(true);
 			}
 		}
-	}, [loading, linkData, handleSubmit]);
+	}, [isLoading, data, hasInitialized]);
 
-	function handleVisitorInfoFormModalSubmit(data: { [key: string]: any }) {
-		setLinkData((prev) => ({
-			...prev,
+	const handleVisitorInfoFormModalSubmit = (data: { [key: string]: any }) => {
+		setLinkData({
 			signedUrl: data.signedUrl,
 			fileName: data.fileName,
 			size: data.size,
-		}));
-	}
+		});
+	};
 
-	if (loading) {
+	// ⏳ Still fetching or still waiting for useEffect decision logic
+	if (isLoading || !hasInitialized) {
 		return <LoadingSpinner />;
 	}
 
@@ -112,7 +94,6 @@ export default function AccessPage({ linkId }: Props) {
 		return <AccessError message={fetchLinkError} />;
 	}
 
-	// If we have a signedUrl => show file
 	if (linkData.signedUrl) {
 		return (
 			<FileAccess
@@ -127,8 +108,8 @@ export default function AccessPage({ linkId }: Props) {
 		<Container>
 			<VisitorInfoModal
 				linkId={linkId}
-				passwordRequired={!!linkData.isPasswordProtected}
-				userDetailsOption={linkData.requiredUserDetailsOption ?? 0}
+				visitorFields={linkInfo.visitorFields}
+				passwordRequired={linkInfo.isPasswordProtected}
 				onVisitorInfoModalSubmit={handleVisitorInfoFormModalSubmit}
 			/>
 		</Container>

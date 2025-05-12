@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import { ModalWrapper } from '@/components';
 import CreateLink from './CreateLink';
-import ShareableLinkDialog from './ShareableLinkDialog';
+import NewLinkDialog from './NewLinkDialog';
 
 import { useModal } from '@/hooks';
 
@@ -27,7 +27,7 @@ export default function ActionMenu({
 	const deleteModal = useModal();
 	const updateModal = useModal();
 
-	// Store the newly created link to show in ShareableLinkDialog
+	// Store the newly created link to show in NewLinkDialog
 	const [newLinkUrl, setNewLinkUrl] = useState('');
 	const [createLinkOpen, setCreateLinkOpen] = useState(false);
 
@@ -50,7 +50,7 @@ export default function ActionMenu({
 				open={open}
 				onClose={onClose}
 				disableScrollLock={true}>
-				<MenuItem onClick={handleOpenCreateLink}>Create Link</MenuItem>
+				<MenuItem onClick={handleOpenCreateLink}>Create link</MenuItem>
 				{/* <MenuItem onClick={onClose}>Duplicate document</MenuItem> */}
 				{/* <MenuItem onClick={updateModal.openModal}>Update document</MenuItem> */}
 				{onAnalytics && <MenuItem onClick={onAnalytics}>View analytics</MenuItem>}
@@ -71,7 +71,7 @@ export default function ActionMenu({
 			/>
 
 			{/* SHAREABLE LINK DIALOG */}
-			<ShareableLinkDialog
+			<NewLinkDialog
 				linkUrl={newLinkUrl}
 				onClose={() => setNewLinkUrl('')} // hide the dialog
 			/>
