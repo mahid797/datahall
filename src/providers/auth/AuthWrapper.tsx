@@ -19,6 +19,7 @@ export default function AuthWrapper({ children }: { children: ReactNode }) {
 		'/auth/account-created',
 		'/auth/password-reset-confirm',
 		'/auth/check-email',
+		'/auth/sign-in',
 	];
 
 	// Check if the current path starts with /auth/reset-password, which is dynamic
@@ -26,7 +27,8 @@ export default function AuthWrapper({ children }: { children: ReactNode }) {
 		pathname.startsWith('/auth/reset-password') && pathname.includes('reset-password');
 
 	const isLinksUuidRoute =
-		pathname.startsWith('/links/') && /^[a-f0-9-]{36}$/.test(pathname.split('/links/')[1]);
+		pathname.startsWith('/documentAccess/') &&
+		/^[a-f0-9-]{36}$/.test(pathname.split('/documentAccess/')[1]);
 	// Local state to handle loading state
 	const [isLoading, setIsLoading] = useState(true);
 

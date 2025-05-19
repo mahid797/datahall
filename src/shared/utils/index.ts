@@ -8,10 +8,13 @@ export { parseFileSize } from './fileUtils';
 
 export { splitName } from './stringUtils';
 export { convertTransparencyToHex } from './stringUtils';
+export { sortFields } from './stringUtils';
 
 export type { ValidationRule } from './validators';
 export { requiredFieldRule } from './validators';
 export { validEmailRule } from './validators';
+export { validateEmails } from './validators';
+export { validateEmailsRule } from './validators';
 export { minLengthRule } from './validators';
 export { hasSpecialCharRule } from './validators';
 export { passwordValidationRule } from './validators';

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { SyntheticEvent, useState } from 'react';
+import React, { ChangeEvent, SyntheticEvent, useCallback, useEffect, useState } from 'react';
 
 import {
 	Box,
@@ -14,12 +14,25 @@ import {
 import CustomAccordion from './CustomAccordion';
 import LinkDetailsAccordion from './LinkDetailsAccordion';
 import SharingOptionsAccordion from './SharingOptionsAccordion';
+import SendingAccordion from './SendingAccordion';
+
 import { LoadingButton } from '@/components';
 
-import { useDocumentDetail, useFormSubmission, useValidatedFormData } from '@/hooks';
+import { useCreateLink, useDocumentDetail, useFormSubmission, useValidatedFormData } from '@/hooks';
 
-import { LinkFormValues } from '@/shared/models';
-import { computeExpirationDays, minLengthRule } from '@/shared/utils';
+import {
+	CreateDocumentLinkPayload,
+	InviteRecipientsPayload,
+	LinkFormValues,
+} from '@/shared/models';
+import {
+	computeExpirationDays,
+	minLengthRule,
+	sortFields,
+	validateEmails,
+	validateEmailsRule,
+} from '@/shared/utils';
+import { visitorFieldsConfig } from '@/shared/config/visitorFieldsConfig';
 
 interface CreateLinkProps {
 	open: boolean;
@@ -32,20 +45,27 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 	const [expirationType, setExpirationType] = useState('days');
 	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-	// Validation for password length
+	const { mutateAsync: createLink, isPending } = useCreateLink();
+
+	// Validation for password length and emails
 	const validationRules = {
 		password: [minLengthRule(5, 'Password must be at least 5 characters long.')],
+		otherEmails: [validateEmailsRule()],
 	};
 
 	const initialFormValues: LinkFormValues = {
-		friendlyName: '',
+		alias: '',
 		isPublic: true,
-		otherEmails: '',
-		expirationTime: '',
-		requirePassword: false,
-		expirationEnabled: false,
 		requireUserDetails: false,
-		requiredUserDetailsOption: 1,
+		visitorFields: [],
+		requirePassword: false,
+		password: '',
+		expirationEnabled: false,
+		expirationTime: '',
+		contactEmails: [],
+		selectFromContact: false,
+		otherEmails: '',
+		sendToOthers: false,
 	};
 
 	const { values, setValues, validateAll, getError, handleBlur } =
@@ -56,8 +76,8 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 
 	const document = useDocumentDetail(documentId);
 
-	const handleInputChange = React.useCallback(
-		(event: React.ChangeEvent<HTMLInputElement>) => {
+	const handleInputChange = useCallback(
+		(event: ChangeEvent<HTMLInputElement>) => {
 			const { name, value, type, checked } = event.target;
 
 			// If user sets expirationDays
@@ -95,8 +115,15 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 						...prev,
 						isPublic: true,
 						requireUserDetails: false,
-						requiredUserDetailsOption: 1,
 						requirePassword: false,
+						expirationEnabled: false,
+						sendToOthers: false,
+						selectFromContact: false,
+						visitorFields: [],
+						password: '',
+						expirationTime: '',
+						contactEmails: [],
+						otherEmails: '',
 					}));
 				} else {
 					setValues((prev) => ({
@@ -119,7 +146,12 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 		setExpanded(newExpanded ? panel : false);
 	};
 
-	React.useEffect(() => {
+	const handleVisitorFieldChange = (fields: string[]) => {
+		const sortedFields = sortFields(fields, visitorFieldsConfig);
+		setValues((prevValues) => ({ ...prevValues, visitorFields: sortedFields }));
+	};
+
+	useEffect(() => {
 		if (values.expirationTime) {
 			const diffDays = computeExpirationDays(values.expirationTime);
 			setValues((prev) => ({
@@ -129,58 +161,132 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 		}
 	}, [values.expirationTime, setValues]);
 
-	const handleExpirationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleExpirationChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setExpirationType(e.target.value);
 	};
 
-	function buildRequestPayload(): Record<string, any> {
-		const payload: Record<string, any> = {
+	function buildRequestPayload(): CreateDocumentLinkPayload {
+		return {
 			documentId,
+			alias: values.alias,
 			isPublic: values.isPublic,
-			friendlyName: values.friendlyName,
+			expirationTime:
+				values.expirationEnabled && values.expirationTime ? values.expirationTime : undefined,
+			expirationEnabled: values.expirationEnabled,
+			requirePassword: values.requirePassword,
+			password: values.requirePassword ? values.password : undefined,
+			requireUserDetails: values.requireUserDetails,
+			visitorFields: values.requireUserDetails ? values.visitorFields : undefined,
+			contactEmails: values.selectFromContact ? values.contactEmails : undefined,
+			selectFromContact: values.selectFromContact,
+			otherEmails: values.sendToOthers ? values.otherEmails : undefined,
+			sendToOthers: values.sendToOthers,
 		};
-		if (values.requireUserDetails) {
-			payload.requiredUserDetailsOption = values.requiredUserDetailsOption;
-		}
-		if (values.requirePassword) {
-			payload.password = values.password;
-		}
-		if (values.expirationEnabled) {
-			payload.expirationTime = values.expirationTime;
-		}
-		return payload;
 	}
 
-	const { loading, handleSubmit, toast } = useFormSubmission({
+	const handleSendInvites = async (linkUrl: string) => {
+		const validContactEmails =
+			values.contactEmails?.map((email) => {
+				return email.label;
+			}) || [];
+		const validOtherEmails = validateEmails(values.otherEmails || '').validEmails;
+		const recipients = [...validContactEmails, ...validOtherEmails];
+
+		if (recipients.length === 0) {
+			throw new Error('No valid email addresses provided.');
+		}
+
+		// Define payload using InviteRecipientsPayload
+		const payload: InviteRecipientsPayload = {
+			linkUrl,
+			recipients,
+		};
+
+		try {
+			// TODO: This API route does not currently exist, but it may be implemented in the future.
+			const response = await axios.post(`/api/documents/${documentId}/links/email`, payload);
+
+			// Handle success
+			if (response.status === 200) {
+				toast.showToast({
+					message: 'Invites sent successfully!',
+					variant: 'success',
+				});
+			}
+		} catch (error) {
+			console.error('Email sending failed:', error);
+
+			toast.showToast({
+				message: 'Failed to send invites. Please try again later.',
+				variant: 'error',
+			});
+		}
+	};
+
+	const {
+		loading: formLoading,
+		handleSubmit,
+		toast,
+	} = useFormSubmission({
 		onSubmit: async () => {
-			const hasError = validateAll();
+			const hasError = !values.password && !values.otherEmails ? false : validateAll();
 			if (hasError) {
 				throw new Error('Please correct any errors before generating a link.');
 			}
 
 			const payload = buildRequestPayload();
-			const response = await axios.post(`/api/documents/${documentId}/links`, payload);
 
-			if (!response.data?.link?.linkUrl) {
-				throw new Error(response.data?.error || 'No link returned by server.');
+			/** Needs to be fixed due Tanstack Query and useFormSubmission conflict - Loading states, Error handling, etc. don't work as expected*/
+
+			// createLink(
+			// 	{ documentId, payload },
+			// 	{
+			// 		onSuccess: (data) => {
+			// 			if (!data?.link?.linkUrl) {
+			// 				throw new Error('No link returned by server.');
+			// 			}
+
+			// 			onClose('Form submitted', data.link.linkUrl);
+
+			// 			if (values.selectFromContact || values.sendToOthers) {
+			// 				handleSendInvites(data.link.linkUrl);
+			// 			}
+
+			// 			toast.showToast({
+			// 				message: 'New link created successfully!',
+			// 				variant: 'success',
+			// 			});
+			// 		},
+			// 		onError: (error) => {
+			// 			console.error('Create link error:', error);
+			// 			const message =
+			// 				(error as any)?.response?.data?.message || 'Failed to create link. Please try again.';
+			// 			toast.showToast({
+			// 				message,
+			// 				variant: 'error',
+			// 			});
+			// 		},
+			// 	},
+			// );
+
+			/**
+			 * TODO: This is a temporary solution to handle the loading state and error handling.
+			 * Working on a better solution to handle the loading state and error handling.
+			 */
+			const { link } = await createLink({ documentId, payload });
+			onClose('submitted', link.linkUrl);
+
+			if (values.selectFromContact || values.sendToOthers) {
+				await handleSendInvites(link.linkUrl);
 			}
-
-			onClose('Form submitted', response.data.link.linkUrl);
 		},
-		onSuccess: () => {
-			toast.showToast({
-				message: 'Shareable link created successfully!',
-				variant: 'success',
-			});
-		},
-		onError: (errMsg) => {
-			console.error('Create link error:', errMsg);
-		},
+		successMessage: 'Link created successfully!',
 	});
 
 	function handleCancel() {
 		onClose('cancelled');
 	}
+	const isLoading = formLoading || isPending;
 
 	return (
 		<Dialog
@@ -191,12 +297,12 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 			fullWidth
 			maxWidth='sm'>
 			<DialogTitle variant='h2'>
-				Create shareable link
+				Create new link
 				<Typography
 					my={4}
 					component='div'
 					variant='body2'>
-					Selected Document:{' '}
+					Selected document:{' '}
 					<Chip
 						sx={{
 							backgroundColor: 'alert.info',
@@ -210,14 +316,17 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 			</DialogTitle>
 
 			<DialogContent sx={{ overflowY: 'auto' }}>
-				<Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+				<Box
+					display='flex'
+					flexDirection='column'
+					gap={2}>
 					<LinkDetailsAccordion
 						formValues={values}
 						handleInputChange={handleInputChange}
 					/>
 
 					<CustomAccordion
-						title='Sharing Options'
+						title='Sharing options'
 						expanded={expanded === 'sharing-options'}
 						onChange={handleChange('sharing-options')}>
 						<SharingOptionsAccordion
@@ -229,6 +338,19 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 							setIsPasswordVisible={setIsPasswordVisible}
 							expirationType={expirationType}
 							handleExpirationChange={handleExpirationChange}
+							handleVisitorFieldChange={handleVisitorFieldChange}
+						/>
+					</CustomAccordion>
+
+					<CustomAccordion
+						title='Sending'
+						expanded={expanded === 'sending'}
+						onChange={handleChange('sending')}>
+						<SendingAccordion
+							formValues={values}
+							handleInputChange={handleInputChange}
+							handleBlur={handleBlur}
+							getError={getError}
 						/>
 					</CustomAccordion>
 				</Box>
@@ -236,7 +358,7 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 
 			<DialogActions sx={{ p: 16 }}>
 				<LoadingButton
-					loading={loading}
+					loading={isLoading}
 					buttonText='Generate'
 					loadingText='Generating...'
 					fullWidth

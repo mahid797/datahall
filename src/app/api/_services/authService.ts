@@ -171,7 +171,7 @@ export const authService = {
 			if (!user) {
 				return { success: false, message: 'Invalid token', statusCode: 400 };
 			}
-			if (user.token_expires_at < new Date()) {
+			if (!user.token_expires_at || user.token_expires_at < new Date()) {
 				return { success: false, message: 'Expired token', statusCode: 400 };
 			}
 			if (user.status === 'ACTIVE') {
