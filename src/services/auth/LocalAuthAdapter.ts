@@ -1,7 +1,11 @@
+import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
-import prisma from '@/lib/prisma';
+
+import { AuthProvider, UserRole, UserStatus } from '@/shared/enums';
 import type {
+	ChangeNameRequest,
+	ChangeNameResponse,
 	ChangePasswordRequest,
 	ChangePasswordResponse,
 	ForgotPasswordRequest,
@@ -13,9 +17,9 @@ import type {
 	VerifyUserRequest,
 	VerifyUserResponse,
 } from '@/shared/models';
-import type { IAuth } from './IAuth';
+
 import { emailService } from '../email/emailService';
-import { ChangeNameRequest } from '@/shared/models/authModels';
+import type { IAuth } from './IAuth';
 
 export class LocalAuthAdapter implements IAuth {
 	async signUp(request: SignUpRequest): Promise<SignUpResponse> {
@@ -29,16 +33,16 @@ export class LocalAuthAdapter implements IAuth {
 
 		const user = await prisma.user.create({
 			data: {
-				user_id: randomUUID().replace(/-/g, ''),
+				userId: randomUUID().replace(/-/g, ''),
 				email,
 				password: hashed,
-				first_name: firstName,
-				last_name: lastName,
-				auth_provider: 'CREDENTIALS',
-				status: 'UNVERIFIED',
-				role: 'ADMIN',
-				verification_token: verificationToken,
-				token_expires_at: new Date(Date.now() + 86_400_000), // 24h
+				firstName: firstName,
+				lastName: lastName,
+				authProvider: AuthProvider.Credentials,
+				status: UserStatus.Unverified,
+				role: UserRole.Admin, // Default to Admin; adjust as needed
+				verificationToken: verificationToken,
+				tokenExpiresAt: new Date(Date.now() + 86_400_000), // 24h
 			},
 		});
 
@@ -47,7 +51,7 @@ export class LocalAuthAdapter implements IAuth {
 		return {
 			success: true,
 			message: 'User registered; verification e‑mail sent.',
-			userId: user.user_id,
+			userId: user.userId,
 		};
 	}
 
@@ -60,7 +64,7 @@ export class LocalAuthAdapter implements IAuth {
 		await prisma.passwordResetToken.create({
 			data: {
 				token: resetToken,
-				User: { connect: { user_id: user.user_id } },
+				user: { connect: { userId: user.userId } },
 			},
 		});
 
@@ -81,8 +85,8 @@ export class LocalAuthAdapter implements IAuth {
 		const rec = await prisma.passwordResetToken.findFirst({
 			where: {
 				token,
-				reset_at: null,
-				created_at: { gte: fourHoursAgo },
+				resetAt: null,
+				createdAt: { gte: fourHoursAgo },
 			},
 		});
 		if (!rec) return { success: false, message: 'Token invalid or expired' };
@@ -91,12 +95,12 @@ export class LocalAuthAdapter implements IAuth {
 
 		await prisma.$transaction([
 			prisma.user.update({
-				where: { user_id: rec.user_id },
+				where: { userId: rec.userId },
 				data: { password: hashed },
 			}),
 			prisma.passwordResetToken.update({
 				where: { id: rec.id },
-				data: { reset_at: new Date() },
+				data: { resetAt: new Date() },
 			}),
 		]);
 
@@ -132,40 +136,40 @@ export class LocalAuthAdapter implements IAuth {
 			return { success: false, message: 'Token required', statusCode: 400 };
 		}
 
-		const user = await prisma.user.findFirst({ where: { verification_token: token } });
+		const user = await prisma.user.findFirst({ where: { verificationToken: token } });
 		if (!user) {
 			return { success: false, message: 'Invalid token', statusCode: 400 };
 		}
 
-		if (user.status === 'ACTIVE') {
+		if (user.status === UserStatus.Active) {
 			return { success: true, message: 'Already verified', statusCode: 200 };
 		}
 
-		if (user.token_expires_at && user.token_expires_at < new Date()) {
+		if (user.tokenExpiresAt && user.tokenExpiresAt < new Date()) {
 			return { success: false, message: 'Token expired', statusCode: 400 };
 		}
 
 		await prisma.user.update({
-			where: { user_id: user.user_id },
+			where: { userId: user.userId },
 			data: {
-				status: 'ACTIVE',
-				verification_token: null,
-				token_expires_at: null,
+				status: UserStatus.Active,
+				verificationToken: null,
+				tokenExpiresAt: null,
 			},
 		});
 
 		return { success: true, message: 'Email verified', statusCode: 200 };
 	}
-	async changeName(request: ChangeNameRequest): Promise<ChangePasswordResponse> {
+	async changeName(request: ChangeNameRequest): Promise<ChangeNameResponse> {
 		const { userId, payload } = request;
 		const { firstName, lastName } = payload;
 		if (!firstName && !lastName) return { success: false, message: 'Nothing to update' };
 
 		await prisma.user.update({
-			where: { user_id: userId },
+			where: { userId },
 			data: {
-				...(firstName && { first_name: firstName }),
-				...(lastName && { last_name: lastName }),
+				...(firstName && { firstName: firstName }),
+				...(lastName && { lastName }),
 			},
 		});
 

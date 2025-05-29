@@ -7,13 +7,13 @@ export class DocumentService {
 	 */
 	static async getUserDocuments(userId: string) {
 		return prisma.document.findMany({
-			where: { user_id: userId },
+			where: { userId },
 			include: {
-				User: {
-					select: { first_name: true, last_name: true },
+				user: {
+					select: { firstName: true, lastName: true },
 				},
-				documentLink: {
-					include: { documentLinkVisitors: true },
+				documentLinks: {
+					include: { visitors: true },
 				},
 			},
 			orderBy: { createdAt: 'desc' },
@@ -38,7 +38,7 @@ export class DocumentService {
 	}) {
 		return prisma.document.create({
 			data: {
-				user_id: userId,
+				userId,
 				fileName,
 				filePath,
 				fileType,
@@ -52,18 +52,18 @@ export class DocumentService {
 	 */
 	static async getDocumentById(userId: string, documentId: string) {
 		return prisma.document.findFirst({
-			where: { document_id: documentId, user_id: userId },
+			where: { documentId, userId },
 			select: {
 				id: true,
-				document_id: true,
+				documentId: true,
 				fileName: true,
 				filePath: true,
 				fileType: true,
 				size: true,
 				createdAt: true,
 				updatedAt: true,
-				User: {
-					select: { first_name: true, last_name: true },
+				user: {
+					select: { firstName: true, lastName: true },
 				},
 			},
 		});
@@ -75,14 +75,14 @@ export class DocumentService {
 	static async updateDocument(userId: string, documentId: string, data: { fileName?: string }) {
 		// Ensure the document is owned by user
 		const existingDoc = await prisma.document.findUnique({
-			where: { document_id: documentId },
+			where: { documentId },
 		});
-		if (!existingDoc || existingDoc.user_id !== userId) {
+		if (!existingDoc || existingDoc.userId !== userId) {
 			return null; // signals "not found or no access"
 		}
 
 		return prisma.document.update({
-			where: { document_id: documentId },
+			where: { documentId },
 			data: {
 				fileName: data.fileName ?? existingDoc.fileName,
 			},
@@ -95,15 +95,15 @@ export class DocumentService {
 	static async deleteDocument(userId: string, documentId: string) {
 		// Check ownership
 		const document = await prisma.document.findUnique({
-			where: { document_id: documentId },
+			where: { documentId },
 		});
-		if (!document || document.user_id !== userId) {
+		if (!document || document.userId !== userId) {
 			return null; // signals "not found or no access"
 		}
 
 		// Delete from DB
 		const deletedDoc = await prisma.document.delete({
-			where: { document_id: documentId },
+			where: { documentId },
 		});
 
 		// Delete from storage
@@ -118,13 +118,13 @@ export class DocumentService {
 	static async getDocumentVisitors(userId: string, documentId: string) {
 		// Ensure doc ownership
 		const doc = await prisma.document.findFirst({
-			where: { document_id: documentId, user_id: userId },
-			include: { documentLink: true },
+			where: { documentId, userId },
+			include: { documentLinks: true },
 		});
 		if (!doc) return null; // doc not found or no access
 
 		// Gather linkIds
-		const linkIds = doc.documentLink.map((l) => l.documentLinkId);
+		const linkIds = doc.documentLinks.map((l) => l.documentLinkId);
 		if (linkIds.length === 0) {
 			return [];
 		}

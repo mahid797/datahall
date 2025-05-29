@@ -1,18 +1,17 @@
 'use client';
 
 import { Box, Typography } from '@mui/material';
-import axios from 'axios';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
+import { FormProvider } from 'react-hook-form';
 
 import { FormInput, LoadingButton, NavLink, PasswordValidation } from '@/components';
 import AuthFormWrapper from '../components/AuthFormWrapper';
 
 import { LockIcon } from '@/icons';
 
-import { useFormSubmission, useToast } from '@/hooks';
-import { useZodForm } from '@/hooks/useZodForm';
-import { ResetPasswordFormSchema, ResetPasswordFormValues } from '@/shared/validation/authSchemas';
-import { useEffect } from 'react';
+import { useFormSubmission, useResetPassword, useToast } from '@/hooks';
+import { useResetPasswordForm } from '@/hooks/forms';
 
 export default function ResetPassword() {
 	const router = useRouter();
@@ -20,29 +19,41 @@ export default function ResetPassword() {
 	const token = params.get('token') ?? '';
 	const toast = useToast();
 
+	/* ------------- early-guard: no token ------------- */
 	useEffect(() => {
 		if (!token) {
-			toast.showToast({ message: 'Reset link is invalid or expired', variant: 'error' });
+			toast.showToast({
+				message: 'Reset link is invalid or expired',
+				variant: 'error',
+			});
 			router.replace('/auth/forgot-password');
 		}
 	}, [token, router, toast]);
 
-	const form = useZodForm<ResetPasswordFormValues>(ResetPasswordFormSchema, {
-		newPassword: '',
-		confirmPassword: '',
-	});
+	const form = useResetPasswordForm();
+	const {
+		register,
+		formState: { errors, isValid, touchedFields },
+		watchPassword,
+		isPasswordTouched,
+	} = form;
+
+	const resetMutation = useResetPassword();
 
 	const { loading, handleSubmit } = useFormSubmission({
-		validate: () => form.validate(),
+		validate: () => isValid,
 		onSubmit: async () => {
-			await axios.post('/api/auth/password/reset', {
+			await resetMutation.mutateAsync({
 				token,
-				newPassword: form.values.newPassword,
-				confirmPassword: form.values.confirmPassword,
+				newPassword: form.getValues('newPassword'),
 			});
-			router.push('/auth/sign-in?reset=done');
 		},
-		errorMessage: 'Could not reset password',
+		onSuccess: () => router.push('/auth/sign-in?reset=done'),
+		onError: (err) => {
+			const message = (err as any)?.response?.data?.message ?? 'Could not reset password';
+			toast.showToast({ message, variant: 'error' });
+		},
+		skipDefaultToast: true,
 	});
 
 	return (
@@ -72,49 +83,45 @@ export default function ResetPassword() {
 				Your new password must be different from previously used passwords.
 			</Typography>
 
-			<Box
-				component='form'
-				onSubmit={handleSubmit}
-				noValidate
-				minWidth={400}
-				display='flex'
-				flexDirection='column'
-				gap={{ sm: 8, md: 9, lg: 10 }}>
-				<FormInput
-					label='New Password'
-					id='newPassword'
-					type='password'
-					placeholder='Create a password'
-					value={form.values.newPassword}
-					onChange={form.handleChange}
-					onBlur={form.handleBlur}
-					errorMessage={form.getError('newPassword')}
-				/>
+			<FormProvider {...form}>
+				<Box
+					component='form'
+					onSubmit={handleSubmit}
+					noValidate
+					minWidth={400}
+					display='flex'
+					flexDirection='column'
+					gap={{ sm: 8, md: 9, lg: 10 }}>
+					<FormInput
+						label='New Password'
+						type='password'
+						placeholder='Create a password'
+						{...register('newPassword')}
+						errorMessage={errors.newPassword?.message}
+					/>
 
-				<FormInput
-					label='Confirm password'
-					id='confirmPassword'
-					type='password'
-					placeholder='Confirm your password'
-					value={form.values.confirmPassword}
-					onChange={form.handleChange}
-					onBlur={form.handleBlur}
-					errorMessage={form.getError('confirmPassword')}
-				/>
+					<FormInput
+						label='Confirm password'
+						type='password'
+						placeholder='Confirm your password'
+						{...register('confirmPassword')}
+						errorMessage={errors.confirmPassword?.message}
+					/>
 
-				<PasswordValidation
-					passwordValue={form.values.newPassword}
-					isBlur={form.touched.newPassword}
-				/>
+					<PasswordValidation
+						passwordValue={watchPassword}
+						isBlur={isPasswordTouched}
+					/>
 
-				<LoadingButton
-					loading={loading}
-					disabled={!form.isValid}
-					buttonText='Reset password'
-					loadingText='Resetting Password...'
-				/>
-			</Box>
-
+					<LoadingButton
+						type='submit'
+						loading={loading}
+						disabled={!isValid}
+						buttonText='Reset password'
+						loadingText='Resetting Password...'
+					/>
+				</Box>
+			</FormProvider>
 			<NavLink
 				href='/auth/sign-in'
 				linkText='← Back to sign in'

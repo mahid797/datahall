@@ -17,10 +17,12 @@
 		"@emotion/cache": "^11.14.0",
 		"@emotion/react": "^11.14.0",
 		"@emotion/styled": "^11.14.0",
+		"@hookform/resolvers": "^5.0.1",
 		"@mui/icons-material": "^6.4.6",
 		"@mui/material": "^6.4.6",
 		"@mui/material-nextjs": "^6.4.3",
-		"@mui/x-charts": "^7.27.1",
+		"@mui/x-charts": "^8.3.0",
+		"@mui/x-date-pickers": "^8.3.0",
 		"@prisma/client": "^6.4.1",
 		"@react-email/components": "^0.0.36",
 		"@react-email/preview": "^0.0.12",
@@ -32,6 +34,7 @@
 		"bcryptjs": "^3.0.2",
 		"canvas": "^3.1.0",
 		"date-fns": "^4.1.0",
+		"dayjs": "^1.11.13",
 		"dotenv": "^16.4.7",
 		"jwt-decode": "^4.0.0",
 		"next": "^15.2.0",
@@ -41,8 +44,9 @@
 		"react-color": "^2.19.3",
 		"react-dom": "19.1.0",
 		"react-dropzone": "^14.3.8",
+		"react-hook-form": "^7.56.3",
 		"resend": "^4.1.2",
-		"zod": "^3.24.3"
+		"zod": "^3.24.4"
 	},
 	"devDependencies": {
 		"@types/bcryptjs": "^2.4.6",

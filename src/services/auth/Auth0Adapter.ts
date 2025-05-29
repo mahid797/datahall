@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import prisma from '../../lib/prisma';
 
+import { AuthProvider, UserRole, UserStatus } from '@/shared/enums';
 import type {
 	ChangeNameRequest,
 	ChangeNameResponse,
@@ -11,8 +12,8 @@ import type {
 	SignUpRequest,
 	SignUpResponse,
 } from '@/shared/models';
-import type { IAuth } from './IAuth';
 
+import type { IAuth } from './IAuth';
 import { getMgmtToken } from './auth0MgmtToken';
 import { mapAuth0Error } from './helpers';
 
@@ -47,22 +48,22 @@ export class Auth0Adapter implements IAuth {
 
 		const user = await prisma.user.create({
 			data: {
-				user_id: randomUUID().replace(/-/g, ''),
+				userId: randomUUID().replace(/-/g, ''),
 				email,
-				auth_provider: 'AUTH0',
-				auth0_sub: data.user_id,
-				first_name: firstName,
-				last_name: lastName,
+				authProvider: AuthProvider.Auth0,
+				auth0Sub: data.userId,
+				firstName,
+				lastName,
 				password: null,
-				status: 'UNVERIFIED',
-				role: 'ADMIN',
+				status: UserStatus.Unverified,
+				role: UserRole.Admin,
 			},
 		});
 
 		return {
 			success: true,
 			message: 'User registered via Auth0',
-			userId: user.user_id,
+			userId: user.userId,
 		};
 	}
 
@@ -113,15 +114,15 @@ export class Auth0Adapter implements IAuth {
 			return { success: false, message: mapAuth0Error(reauthData) };
 		}
 
-		// 2) Locate local row to get auth0_sub
+		// 2) Locate local row to get auth0Sub
 		const local = await prisma.user.findUnique({ where: { email } });
-		if (!local?.auth0_sub) {
-			return { success: false, message: 'Local user missing auth0_sub' };
+		if (!local?.auth0Sub) {
+			return { success: false, message: 'Local user missing auth0Sub' };
 		}
 
 		// 3) Patch password in Auth0
 		const mgmtToken = await getMgmtToken();
-		const patch = await fetch(`${issuer}/api/v2/users/${local.auth0_sub}`, {
+		const patch = await fetch(`${issuer}/api/v2/users/${local.auth0Sub}`, {
 			method: 'PATCH',
 			headers: {
 				Authorization: `Bearer ${mgmtToken}`,
@@ -152,14 +153,14 @@ export class Auth0Adapter implements IAuth {
 
 		if (!firstName && !lastName) return { success: false, message: 'Nothing to update' };
 
-		const user = await prisma.user.findFirst({ where: { user_id: userId } });
-		if (!user?.auth0_sub) throw new Error('User missing auth0_sub');
+		const user = await prisma.user.findFirst({ where: { userId } });
+		if (!user?.auth0Sub) throw new Error('User missing auth0Sub');
 
 		try {
 			/* ── 1) push to Auth0 ────────────────────────────────────── */
 			const token = await getMgmtToken();
 			const issuer = process.env.AUTH0_ISSUER_BASE_URL!;
-			const res = await fetch(`${issuer}/api/v2/users/${user.auth0_sub}`, {
+			const res = await fetch(`${issuer}/api/v2/users/${user.auth0Sub}`, {
 				method: 'PATCH',
 				headers: {
 					Authorization: `Bearer ${token}`,
@@ -180,10 +181,10 @@ export class Auth0Adapter implements IAuth {
 
 			/* ── 2) update DB ───────────────────────────────────────────── */
 			await prisma.user.update({
-				where: { user_id: userId },
+				where: { userId },
 				data: {
-					...(firstName && { first_name: firstName }),
-					...(lastName && { last_name: lastName }),
+					...(firstName && { firstName }),
+					...(lastName && { lastName }),
 				},
 			});
 

@@ -1,6 +1,7 @@
+import { QueryFunctionContext, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { useQuery } from '@tanstack/react-query';
-import { QueryFunctionContext } from '@tanstack/react-query';
+
+import { queryKeys } from '@/shared/queryKeys';
 
 const fetchDocumentDetails = async ({ queryKey }: QueryFunctionContext) => {
 	const [_, linkId] = queryKey as [string, string];
@@ -11,7 +12,7 @@ const fetchDocumentDetails = async ({ queryKey }: QueryFunctionContext) => {
 
 const useDocumentAccess = (linkId: string) => {
 	return useQuery({
-		queryKey: ['documentAccess', linkId],
+		queryKey: queryKeys.links.access(linkId),
 		queryFn: fetchDocumentDetails,
 		retry: false,
 	});

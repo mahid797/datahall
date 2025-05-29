@@ -1,54 +1,42 @@
 'use client';
 
 import { Box, Typography } from '@mui/material';
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import { FormProvider } from 'react-hook-form';
 
 import { BlueWaveLogo, FormInput, LoadingButton, NavLink, PasswordValidation } from '@/components';
 import AuthFormWrapper from '../components/AuthFormWrapper';
 
-import { useFormSubmission } from '@/hooks';
-import { useZodForm } from '@/hooks/useZodForm';
-import { SignUpSchema, SignUpValues } from '@/shared/validation/authSchemas';
+import { useFormSubmission, useSignUp } from '@/hooks';
+import { useSignUpForm } from '@/hooks/forms';
 
 export default function SignUp() {
 	const router = useRouter();
+	const registerMutation = useSignUp();
+	const form = useSignUpForm();
 
 	/* ------------------------------ form state ----------------------------- */
-	const form = useZodForm<SignUpValues>(SignUpSchema, {
-		firstName: '',
-		lastName: '',
-		email: '',
-		password: '',
-		confirmPassword: '',
-	});
+	const {
+		register,
+		watch,
+		formState: { errors, isValid, touchedFields },
+	} = form;
 
 	const { loading, handleSubmit, toast } = useFormSubmission({
-		validate: () => form.validate(),
-		onSubmit: async () => {
-			const res = await axios.post('/api/auth/register', {
-				firstName: form.values.firstName,
-				lastName: form.values.lastName,
-				email: form.values.email,
-				password: form.values.password,
-			});
-
-			/* 201 = created & e-mail sent */
-			if (res.status === 201) {
-				toast.showToast({
-					message: res.data.message ?? 'Verification e-mail sent. Check your inbox.',
-					variant: 'success',
-				});
-				router.push('/auth/sign-in?emailSent=true');
-				return;
-			}
-			/* 409 = e-mail already in use etc. (service returns .message) */
-			toast.showToast({
-				message: res.data?.message ?? 'Unable to create account',
-				variant: 'error',
-			});
+		mutation: registerMutation,
+		validate: () => isValid,
+		successMessage: 'Verification e-mail sent — check your inbox!',
+		onSuccess: () => {
+			const msg = registerMutation.data?.message ?? 'Verification e-mail sent. Check your inbox.';
+			toast.showToast({ message: msg, variant: 'success' });
+			router.push('/auth/sign-in?emailSent=true');
 		},
-		errorMessage: 'Registration failed',
+
+		onError: (err) => {
+			const message = (err as any)?.response?.data?.message ?? 'Unable to create account';
+			toast.showToast({ message, variant: 'error' });
+		},
+		skipDefaultToast: true,
 	});
 
 	return (
@@ -65,86 +53,73 @@ export default function SignUp() {
 				mb={{ sm: 10, md: 11, lg: 12 }}>
 				Create an account
 			</Typography>
-
-			<Box
-				component='form'
-				onSubmit={handleSubmit}
-				noValidate
-				minWidth={400}
-				display='flex'
-				flexDirection='column'
-				gap={8}>
+			<FormProvider {...form}>
 				<Box
+					component='form'
+					onSubmit={handleSubmit}
+					noValidate
+					minWidth={400}
 					display='flex'
-					gap={{ sm: 8, md: 9, lg: 10 }}
-					flexDirection='column'>
-					<FormInput
-						label='First name'
-						id='firstName'
-						placeholder='Enter your first name'
-						value={form.values.firstName}
-						onChange={form.handleChange}
-						onBlur={form.handleBlur}
-						errorMessage={form.getError('firstName')}
+					flexDirection='column'
+					gap={8}>
+					<Box
+						display='flex'
+						gap={{ sm: 8, md: 9, lg: 10 }}
+						flexDirection='column'>
+						<FormInput
+							label='First name'
+							placeholder='Enter your first name'
+							{...register('firstName')}
+							errorMessage={errors.firstName?.message}
+						/>
+
+						<FormInput
+							label='Last name'
+							placeholder='Enter your last name'
+							{...register('lastName')}
+							errorMessage={errors.lastName?.message}
+						/>
+
+						<FormInput
+							label='Email'
+							type='email'
+							placeholder='your_email@bluewave.ca'
+							{...register('email')}
+							errorMessage={errors.email?.message}
+						/>
+
+						<FormInput
+							label='Password'
+							type='password'
+							placeholder='Create a password'
+							{...register('password')}
+							errorMessage={errors.password?.message}
+						/>
+
+						<FormInput
+							label='Confirm password'
+							type='password'
+							placeholder='Confirm your password'
+							{...register('confirmPassword')}
+							errorMessage={errors.confirmPassword?.message}
+						/>
+					</Box>
+
+					{/* Real-time password strength feedback */}
+					<PasswordValidation
+						passwordValue={watch('password')}
+						isBlur={!!touchedFields.password}
 					/>
 
-					<FormInput
-						label='Last name'
-						id='lastName'
-						placeholder='Enter your last name'
-						value={form.values.lastName}
-						onChange={form.handleChange}
-						onBlur={form.handleBlur}
-						errorMessage={form.getError('lastName')}
-					/>
-
-					<FormInput
-						label='Email'
-						id='email'
-						type='email'
-						placeholder='your_email@bluewave.ca'
-						value={form.values.email}
-						onChange={form.handleChange}
-						onBlur={form.handleBlur}
-						errorMessage={form.getError('email')}
-					/>
-
-					<FormInput
-						label='Password'
-						id='password'
-						type='password'
-						placeholder='Create a password'
-						value={form.values.password}
-						onChange={form.handleChange}
-						onBlur={form.handleBlur}
-						errorMessage={form.getError('password')}
-					/>
-
-					<FormInput
-						label='Confirm password'
-						id='confirmPassword'
-						type='password'
-						placeholder='Confirm your password'
-						value={form.values.confirmPassword}
-						onChange={form.handleChange}
-						onBlur={form.handleBlur}
-						errorMessage={form.getError('confirmPassword')}
+					<LoadingButton
+						type='submit'
+						loading={loading}
+						disabled={!isValid}
+						buttonText='Get started'
+						loadingText='Creating account...'
 					/>
 				</Box>
-
-				{/* Real-time password strength feedback */}
-				<PasswordValidation
-					passwordValue={form.values.password}
-					isBlur={form.touched.password}
-				/>
-
-				<LoadingButton
-					loading={loading}
-					disabled={!form.isValid}
-					buttonText='Get started'
-					loadingText='Creating Account ...'
-				/>
-			</Box>
+			</FormProvider>
 
 			<Box
 				mt={25}

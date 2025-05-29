@@ -1,5 +1,7 @@
-import { authService, createErrorResponse, LinkService } from '@/services';
 import { NextRequest, NextResponse } from 'next/server';
+
+import { authService, createErrorResponse, LinkService } from '@/services';
+import { buildLinkUrl } from '@/shared/utils/urlBuilder';
 
 /**
  * GET /api/documents/[documentId]/links
@@ -19,7 +21,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ documentI
 			documentId: link.documentId,
 			linkId: link.documentLinkId,
 			alias: link.alias,
-			createdLink: link.linkUrl,
+			createdLink: buildLinkUrl(link.documentLinkId),
 			lastViewed: link.updatedAt,
 			linkViews: 0,
 		}));
@@ -56,7 +58,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ document
 			if (createErr instanceof Error && createErr.message === 'EXPIRATION_PAST') {
 				return createErrorResponse('Expiration time cannot be in the past.', 400);
 			}
-			if (createErr instanceof Error && createErr.message === 'FRIENDLY_NAME_CONFLICT') {
+			if (createErr instanceof Error && createErr.message === 'LINK_ALIAS_CONFLICT') {
 				return createErrorResponse(
 					'This alias is already in use. Please choose a different link alias.',
 					409,

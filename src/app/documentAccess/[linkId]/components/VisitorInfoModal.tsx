@@ -97,8 +97,8 @@ export default function VisitorInfoModal({
 			const splittedName = splitName(values.name);
 			const payload = {
 				linkId,
-				firstName: splittedName.first_name,
-				lastName: splittedName.last_name,
+				firstName: splittedName.firstName,
+				lastName: splittedName.lastName,
 				email: values.email || '',
 				password: values.password || '',
 				visitorMetaData: null, // This will be populated to add any additional user information, Implementation from API endpoint as well.

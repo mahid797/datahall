@@ -31,7 +31,7 @@ export default async function DocumentsPage() {
 		try {
 			documentCount = await prisma.document.count({
 				where: {
-					user_id: userId,
+					userId,
 				},
 			});
 		} catch (error) {

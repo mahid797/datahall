@@ -2,9 +2,9 @@
 
 export interface LinkType {
 	id: number;
-	linkId: string;
+	documentLinkId: string;
 	documentId: string;
-	userId: string;
+	createdByUserId: string;
 	alias?: string;
 	linkUrl: string;
 	isPublic: boolean;
@@ -72,7 +72,7 @@ export interface LinkData {
 export interface LinkDetail {
 	documentLinkId: string; // unique string
 	alias: string; // The links's friendly name
-	document_id: string; // The document_id from DB
+	documentId: string; // The documentId from DB
 	createdLink: string; // The linkUrl from DB
 	lastActivity: Date; // The link's updatedAt
 	linkViews: number; // If you track actual link views, you can use a real value

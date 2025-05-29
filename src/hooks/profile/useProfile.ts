@@ -1,23 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-/* ----- response shape returned by GET /api/profile ----------------------- */
-export interface ProfileDto {
-	email: string;
-	firstName: string;
-	lastName: string;
-}
+import { queryKeys } from '@/shared/queryKeys';
+import { ProfileDto } from '@/shared/models';
 
-export const PROFILE_QUERY_KEY = ['profile'] as const;
-
+/**
+ * Fetch current user profile. Cached for 5 min; no auto-refetch on focus.
+ */
 export default function useProfile() {
-	return useQuery({
-		queryKey: PROFILE_QUERY_KEY,
-		queryFn: async (): Promise<ProfileDto> => {
+	return useQuery<ProfileDto, Error>({
+		queryKey: queryKeys.profile.base,
+		queryFn: async () => {
 			const { data } = await axios.get<ProfileDto>('/api/profile');
 			return data;
 		},
-
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false,
 	});

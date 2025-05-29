@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 
 import { SupabaseProvider } from '@/services/storage/supabase/supabaseStorageProvider';
+import { buildLinkUrl } from '@/shared/utils/urlBuilder';
 
 export class LinkService {
 	/**
@@ -13,11 +14,11 @@ export class LinkService {
 	static async getDocumentLinks(userId: string, documentId: string) {
 		// Ensure doc ownership
 		const doc = await prisma.document.findFirst({
-			where: { document_id: documentId, user_id: userId },
-			include: { documentLink: true },
+			where: { documentId, userId },
+			include: { documentLinks: true },
 		});
 		if (!doc) return null; // doc not found or no access
-		return doc.documentLink;
+		return doc.documentLinks;
 	}
 
 	/**
@@ -26,13 +27,7 @@ export class LinkService {
 	static async createLinkForDocument(
 		userId: string,
 		documentId: string,
-		{
-			alias = '',
-			isPublic,
-			password,
-			expirationTime,
-			visitorFields = [],
-		}: {
+		options: {
 			alias?: string;
 			isPublic?: boolean;
 			password?: string;
@@ -40,49 +35,48 @@ export class LinkService {
 			visitorFields?: string[];
 		},
 	) {
-		// Check doc ownership
-		const doc = await prisma.document.findFirst({
-			where: { document_id: documentId, user_id: userId },
-		});
-		if (!doc) return null; // doc not found or no access
-
-		// Validate expiration time
-		if (expirationTime && new Date(expirationTime) < new Date()) {
-			throw new Error('EXPIRATION_PAST');
-		}
-
-		// Generate link details
-		const uniqueId = randomUUID();
-		const HOST = process.env.HOST || 'http://localhost:3000';
-		const linkUrl = `${HOST}/documentAccess/${uniqueId}`;
-
-		// Hash password if provided
-		let hashedPassword: string | null = null;
-		if (password) {
-			hashedPassword = await bcryptjs.hash(password, 10);
-		}
-		try {
-			return await prisma.documentLink.create({
-				data: {
-					createdByUserId: userId,
-					documentLinkId: uniqueId,
-					linkUrl,
-					documentId: doc.document_id,
-					isPublic: !!isPublic,
-					password: hashedPassword,
-					alias,
-					expirationTime: expirationTime ? new Date(expirationTime) : null,
-					visitorFields,
-				},
+		const { alias, isPublic = false, password, expirationTime, visitorFields = [] } = options;
+		return prisma.$transaction(async (tx) => {
+			// Check doc ownership
+			const doc = await tx.document.findFirst({
+				where: { documentId, userId },
+				select: { documentId: true },
 			});
-		} catch (err: any) {
-			if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-				throw new Error('FRIENDLY_NAME_CONFLICT');
-			}
-			throw err;
-		}
-	}
+			if (!doc) throw new Error('DOCUMENT_NOT_FOUND');
 
+			// Validate expiration time
+			if (expirationTime && new Date(expirationTime) < new Date()) {
+				throw new Error('EXPIRATION_PAST');
+			}
+
+			// Generate link details
+			const slug = randomUUID(); // <- documentLinkId
+			const hashedPassword = password ? await bcryptjs.hash(password, 10) : null;
+
+			try {
+				const created = await tx.documentLink.create({
+					data: {
+						documentLinkId: slug,
+						documentId: doc.documentId,
+						createdByUserId: userId,
+						alias: alias?.trim() || null,
+						isPublic,
+						password: hashedPassword,
+						expirationTime: expirationTime ? new Date(expirationTime) : null,
+						visitorFields,
+					},
+				});
+				// Return with fresh URL (in case HOST differs by env)
+				return { ...created, linkUrl: buildLinkUrl(slug) };
+			} catch (err) {
+				if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+					// Collision on (documentId, alias)
+					throw new Error('LINK_ALIAS_CONFLICT');
+				}
+				throw err;
+			}
+		});
+	}
 	/**
 	 * Deletes a link if it belongs to the user.
 	 */
@@ -148,9 +142,9 @@ export class LinkService {
 	}> {
 		const link = await prisma.documentLink.findUnique({
 			where: { documentLinkId: linkId },
-			include: { Document: true },
+			include: { document: true },
 		});
-		if (!link || !link.Document) {
+		if (!link || !link.document) {
 			throw [404, 'Link not found'];
 		}
 		if (link.expirationTime && new Date(link.expirationTime) < new Date()) {
@@ -158,12 +152,12 @@ export class LinkService {
 		}
 
 		const supabaseProvider = new SupabaseProvider();
-		const signedUrl = await supabaseProvider.generateSignedUrl('documents', link.Document.filePath);
+		const signedUrl = await supabaseProvider.generateSignedUrl('documents', link.document.filePath);
 
 		return {
 			signedUrl,
-			fileName: link.Document.fileName,
-			size: link.Document.size,
+			fileName: link.document.fileName,
+			size: link.document.size,
 		};
 	}
 }

@@ -1,30 +1,28 @@
-import React from 'react';
+import { useState } from 'react';
 
 import { Box, Chip, Dialog, DialogContent, DialogTitle, IconButton } from '@mui/material';
 
 import { CheckIcon, CopyIcon, LinkIcon } from '@/icons';
 
-interface NewLinkDialogProps {
+interface ShareLinkDialogProps {
 	linkUrl: string;
 	onClose: () => void;
 }
 
-export default function NewLinkDialog({ linkUrl, onClose }: NewLinkDialogProps) {
-	const [isLinkCopied, setIsLinkCopied] = React.useState(false);
+export default function ShareLinkDialog({ linkUrl, onClose }: ShareLinkDialogProps) {
+	const [copied, setCopied] = useState(false);
 
-	function handleLinkCopy() {
-		if (linkUrl) {
-			navigator.clipboard.writeText(linkUrl);
-			setIsLinkCopied(true);
-			setTimeout(() => setIsLinkCopied(false), 3000);
-		}
+	function handleCopy() {
+		navigator.clipboard.writeText(linkUrl);
+		setCopied(true);
+		setTimeout(() => setCopied(false), 3000);
 	}
 
-	const open = Boolean(linkUrl);
+	const showDialog = Boolean(linkUrl);
 
 	return (
 		<Dialog
-			open={open}
+			open={showDialog}
 			onClose={onClose}
 			fullWidth
 			maxWidth='sm'>
@@ -59,9 +57,9 @@ export default function NewLinkDialog({ linkUrl, onClose }: NewLinkDialogProps) 
 				/>
 
 				<IconButton
-					onClick={handleLinkCopy}
+					onClick={handleCopy}
 					sx={{ transition: '0.2s' }}>
-					{isLinkCopied ? (
+					{copied ? (
 						<CheckIcon
 							width={15}
 							height={15}

@@ -1,6 +1,5 @@
 import axios from 'axios';
-import { useSession } from 'next-auth/react';
-import { useState } from 'react';
+import { FormProvider } from 'react-hook-form';
 
 import {
 	Box,
@@ -17,131 +16,48 @@ import Grid from '@mui/material/Grid2';
 
 import { FormInput, LoadingButton, PasswordValidation } from '@/components';
 
-import { useFormSubmission, useValidatedFormData } from '@/hooks';
-import { passwordValidationRule, requiredFieldRule } from '@/shared/utils';
+import { useFormSubmission, useUpdatePassword } from '@/hooks';
 import { EyeIcon, EyeOffIcon, LockIcon } from '@/icons';
+
+import { useChangePasswordForm } from '@/hooks/forms/useChangePasswordForm';
 
 interface PasswordFormModalProps {
 	open: boolean;
 	toggleModal: () => void;
 }
 
-type PasswordFields = 'currentPassword' | 'newPassword' | 'confirmPassword';
-
 export default function PasswordFormModal({ open, toggleModal }: PasswordFormModalProps) {
-	const { data: session } = useSession();
-	const [isSubmitted, setIsSubmitted] = useState(false);
-	const [isPasswordVisible, setIsPasswordVisible] = useState<Record<PasswordFields, boolean>>({
-		currentPassword: false,
-		newPassword: false,
-		confirmPassword: false,
-	});
+	const form = useChangePasswordForm();
 
-	const { values, setValues, touched, handleChange, handleBlur, getError, validateAll } =
-		useValidatedFormData({
-			initialValues: {
-				currentPassword: '',
-				newPassword: '',
-				confirmPassword: '',
-			},
-			validationRules: {
-				currentPassword: [requiredFieldRule('Current password is required')],
-				newPassword: [
-					requiredFieldRule('New password is required'),
-					passwordValidationRule(8, true, true),
-				],
-				confirmPassword: [requiredFieldRule('Please confirm your password')],
-			},
-		});
+	const {
+		visible,
+		toggleVisibility,
+		watchNewPassword,
+		formState: { errors, isValid },
+		isNewPasswordTouched,
+		reset,
+		register,
+	} = form;
+
+	const changePassword = useUpdatePassword();
 
 	// Submit data
 	const { loading, handleSubmit, toast } = useFormSubmission({
-		onSubmit: async () => {
-			// Basic client checks
-			const hasError = validateAll();
-			if (hasError || !values.currentPassword || !values.newPassword || !values.confirmPassword) {
-				throw new Error('Please correct the highlighted fields.');
-			}
-
-			if (values.newPassword !== values.confirmPassword) {
-				if (values.confirmPassword) {
-					toast.showToast({
-						message: 'New password and confirmation password do not match.',
-						variant: 'warning',
-					});
-				}
-				return;
-			}
-
-			try {
-				// Make the POST request
-				const response = await axios.post('/api/profile/changePassword', {
-					email: session?.user.email,
-					currentPassword: values.currentPassword,
-					newPassword: values.newPassword,
-				});
-
-				// Handle success
-				if (response.status === 200) {
-					toast.showToast({
-						message: 'Password updated successfully!',
-						variant: 'success',
-					});
-					setIsSubmitted(true);
-					setValues((prevValues) => ({
-						...prevValues,
-						currentPassword: '',
-						newPassword: '',
-						confirmPassword: '',
-					}));
-					toggleModal();
-				}
-			} catch (error: unknown) {
-				// Narrowing down the type of `error`
-				if (axios.isAxiosError(error)) {
-					// Axios-specific error handling
-					if (error.response) {
-						// Server responded with an error
-						toast.showToast({
-							message: `Error: ${error.response.data.error}!`,
-							variant: 'error',
-						});
-					} else if (error.request) {
-						// No response received
-						toast.showToast({
-							message: 'Error: No response from server! Please try again later.',
-							variant: 'error',
-						});
-					} else {
-						// Other Axios error
-						toast.showToast({
-							message: `Error: ${error.message}!`,
-							variant: 'error',
-						});
-					}
-				} else if (error instanceof Error) {
-					// Generic error handling
-					toast.showToast({
-						message: `Error: ${error.message}!`,
-						variant: 'error',
-					});
-				} else {
-					// Fallback for unknown error types
-					toast.showToast({
-						message: 'An unexpected error occurred!',
-						variant: 'error',
-					});
-				}
-			}
+		mutation: changePassword,
+		validate: () => isValid,
+		successMessage: 'Password updated!',
+		onSuccess: () => {
+			reset();
+			toggleModal();
 		},
+		onError: (e) => {
+			const msg = axios.isAxiosError(e)
+				? (e.response?.data?.error ?? (e.request ? 'No response from server' : e.message))
+				: String(e);
+			toast.showToast({ message: `Error: ${msg}`, variant: 'error' });
+		},
+		skipDefaultToast: true,
 	});
-
-	const togglePasswordVisibility = (field: PasswordFields) => {
-		setIsPasswordVisible((prevIsPasswordVisible) => ({
-			...prevIsPasswordVisible,
-			[field]: !prevIsPasswordVisible[field],
-		}));
-	};
 
 	return (
 		<Dialog
@@ -179,84 +95,77 @@ export default function PasswordFormModal({ open, toggleModal }: PasswordFormMod
 			</DialogTitle>
 
 			<Divider sx={{ mb: 2 }} />
-
-			<DialogContent>
-				<Grid
-					container
-					columnSpacing={{ sm: 2, md: 4, lg: 6 }}
-					rowSpacing={8}
-					alignItems='center'>
-					{/* Current password */}
-					<Grid size={3}>
-						<Typography variant='h4'>Current Password</Typography>
-					</Grid>
-					<Grid size={8}>
-						<FormInput
-							id='currentPassword'
-							type={isPasswordVisible.currentPassword ? 'text' : 'password'}
-							value={values.currentPassword}
-							onChange={handleChange}
-							onBlur={handleBlur}
-							errorMessage={!isSubmitted ? getError('currentPassword') : undefined}
-						/>
-					</Grid>
-					<Grid size={1}>
-						<IconButton onClick={() => togglePasswordVisibility('currentPassword')}>
-							{isPasswordVisible.currentPassword ? <EyeOffIcon /> : <EyeIcon />}
-						</IconButton>
-					</Grid>
-
-					{/* New password */}
-					<Grid size={3}>
-						<Typography variant='h4'>New Password</Typography>
-					</Grid>
-					<Grid size={8}>
-						<FormInput
-							id='newPassword'
-							type={isPasswordVisible.newPassword ? 'text' : 'password'}
-							value={values.newPassword}
-							onChange={handleChange}
-							onBlur={handleBlur}
-							errorMessage={!isSubmitted ? getError('newPassword') : undefined}
-						/>
-					</Grid>
-					<Grid size={1}>
-						<IconButton onClick={() => togglePasswordVisibility('newPassword')}>
-							{isPasswordVisible.newPassword ? <EyeOffIcon /> : <EyeIcon />}
-						</IconButton>
-					</Grid>
-
-					{/* Confirm password */}
-					<Grid size={3}>
-						<Typography variant='h4'>Confirm Password</Typography>
-					</Grid>
-					<Grid size={8}>
-						<FormInput
-							id='confirmPassword'
-							type={isPasswordVisible.confirmPassword ? 'text' : 'password'}
-							value={values.confirmPassword}
-							onChange={handleChange}
-							onBlur={handleBlur}
-							errorMessage={!isSubmitted ? getError('confirmPassword') : undefined}
-						/>
-					</Grid>
-					<Grid size={1}>
-						<IconButton onClick={() => togglePasswordVisibility('confirmPassword')}>
-							{isPasswordVisible.confirmPassword ? <EyeOffIcon /> : <EyeIcon />}
-						</IconButton>
-					</Grid>
-
-					{/* Real-time password strength feedback */}
+			<FormProvider {...form}>
+				<DialogContent>
 					<Grid
-						size={9}
-						offset={'auto'}>
-						<PasswordValidation
-							passwordValue={values.newPassword}
-							isBlur={touched.newPassword}
-						/>
+						container
+						columnSpacing={{ sm: 2, md: 4, lg: 6 }}
+						rowSpacing={8}
+						alignItems='center'>
+						{/* Current password */}
+						<Grid size={3}>
+							<Typography variant='h4'>Current Password</Typography>
+						</Grid>
+						<Grid size={8}>
+							<FormInput
+								id='currentPassword'
+								type={visible.currentPassword ? 'text' : 'password'}
+								{...register('currentPassword')}
+								errorMessage={errors.currentPassword?.message}
+							/>
+						</Grid>
+						<Grid size={1}>
+							<IconButton onClick={() => toggleVisibility('currentPassword')}>
+								{visible.currentPassword ? <EyeOffIcon /> : <EyeIcon />}
+							</IconButton>
+						</Grid>
+
+						{/* New password */}
+						<Grid size={3}>
+							<Typography variant='h4'>New Password</Typography>
+						</Grid>
+						<Grid size={8}>
+							<FormInput
+								type={visible.newPassword ? 'text' : 'password'}
+								{...register('newPassword')}
+								errorMessage={errors.newPassword?.message}
+							/>
+						</Grid>
+						<Grid size={1}>
+							<IconButton onClick={() => toggleVisibility('newPassword')}>
+								{visible.newPassword ? <EyeOffIcon /> : <EyeIcon />}
+							</IconButton>
+						</Grid>
+
+						{/* Confirm password */}
+						<Grid size={3}>
+							<Typography variant='h4'>Confirm Password</Typography>
+						</Grid>
+						<Grid size={8}>
+							<FormInput
+								type={visible.confirmPassword ? 'text' : 'password'}
+								{...register('confirmPassword')}
+								errorMessage={errors.confirmPassword?.message}
+							/>
+						</Grid>
+						<Grid size={1}>
+							<IconButton onClick={() => toggleVisibility('confirmPassword')}>
+								{visible.confirmPassword ? <EyeOffIcon /> : <EyeIcon />}
+							</IconButton>
+						</Grid>
+
+						{/* Real-time password strength feedback */}
+						<Grid
+							size={9}
+							offset={'auto'}>
+							<PasswordValidation
+								passwordValue={watchNewPassword}
+								isBlur={isNewPasswordTouched}
+							/>
+						</Grid>
 					</Grid>
-				</Grid>
-			</DialogContent>
+				</DialogContent>
+			</FormProvider>
 
 			<DialogActions sx={{ mx: 5, my: 5 }}>
 				{/* Confirm button */}

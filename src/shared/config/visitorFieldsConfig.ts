@@ -1,6 +1,6 @@
-const visitorFieldKeys = ['name', 'email'] as const;
+export const visitorFieldKeys = ['name', 'email'] as const;
 
-type VisitorFieldKey = (typeof visitorFieldKeys)[number];
+export type VisitorFieldKey = (typeof visitorFieldKeys)[number];
 type VisitorFieldsConfigByKey = Record<string, VisitorField[]>;
 
 export interface VisitorField {

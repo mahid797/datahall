@@ -1,16 +1,17 @@
 import NextAuth from 'next-auth';
+import type { AuthProvider, UserStatus, UserRole } from '@/shared/enums';
 
 declare module 'next-auth' {
 	interface User {
 		id: string;
 		userId: string;
-		role: string; // 'ADMIN' | 'USER'
+		role: UserRole; // 'ADMIN' | 'USER'
 		firstName: string;
 		lastName: string;
 		email: string;
-		authProvider: 'CREDENTIALS' | 'AUTH0' | 'GOOGLE';
+		authProvider: AuthProvider;
 		avatarUrl?: string;
-		status?: 'ACTIVE' | 'ARCHIVED' | 'UNVERIFIED';
+		status?: UserStatus;
 	}
 
 	interface Session {

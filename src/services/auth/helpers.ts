@@ -1,11 +1,12 @@
 import { randomUUID } from 'crypto';
+import prisma from '@/lib/prisma';
 
-import prisma from '../../lib/prisma';
-import { splitName } from '../../shared/utils';
+import { splitName } from '@/shared/utils';
+import { AuthProvider, UserStatus, UserRole } from '@/shared/enums';
 
 /**
- * Create or update a local User row keyed by e‑mail and mark it as AUTH0.
- * Used by the ROPG sign‑in flow.
+ * Create or update a local User row keyed by e-mail and mark it as AUTH0.
+ * Used by the Auth0 ROPG sign-in flow.
  */
 export async function unifyUserByEmail(
 	email: string,
@@ -13,30 +14,31 @@ export async function unifyUserByEmail(
 ) {
 	const existing = await prisma.user.findUnique({ where: { email } });
 
-	const { first_name, last_name } = splitName(opts?.fullName ?? '');
+	const { firstName, lastName } = splitName(opts?.fullName ?? '');
 
 	if (!existing) {
 		return prisma.user.create({
 			data: {
-				user_id: randomUUID().replace(/-/g, ''),
+				userId: randomUUID().replace(/-/g, ''),
 				email,
-				auth_provider: 'AUTH0',
-				first_name,
-				last_name,
-				status: 'ACTIVE',
+				authProvider: AuthProvider.Auth0,
+				firstName,
+				lastName,
+				status: UserStatus.Active,
 				password: null,
-				avatar_url: opts?.picture ?? null,
-				role: 'ADMIN',
+				avatarUrl: opts?.picture ?? null,
+				role: UserRole.Admin,
 			},
 		});
 	}
 
 	const patch: Record<string, unknown> = {};
-	if (existing.auth_provider !== 'AUTH0') patch.auth_provider = 'AUTH0';
-	if (existing.status === 'UNVERIFIED') patch.status = 'ACTIVE';
-	if (!existing.first_name && first_name) patch.first_name = first_name;
-	if (!existing.last_name && last_name) patch.last_name = last_name;
-	if (!existing.avatar_url && opts?.picture) patch.avatar_url = opts.picture;
+
+	if (existing.authProvider !== AuthProvider.Auth0) patch.authProvider = AuthProvider.Auth0;
+	if (existing.status === UserStatus.Unverified) patch.status = UserStatus.Active;
+	if (!existing.firstName && firstName) patch.firstName = firstName;
+	if (!existing.lastName && lastName) patch.lastName = lastName;
+	if (!existing.avatarUrl && opts?.picture) patch.avatarUrl = opts.picture;
 
 	return Object.keys(patch).length
 		? prisma.user.update({ where: { email }, data: patch })

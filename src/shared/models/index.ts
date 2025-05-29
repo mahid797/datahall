@@ -1,27 +1,46 @@
-export type { SignUpRequest } from './authModels';
-export type { SignUpResponse } from './authModels';
-export type { SignInRequest } from './authModels';
-export type { SignInResponse } from './authModels';
-export type { ForgotPasswordRequest } from './authModels';
-export type { ForgotPasswordResponse } from './authModels';
-export type { ResetPasswordRequest } from './authModels';
-export type { ResetPasswordResponse } from './authModels';
-export type { ChangePasswordRequest } from './authModels';
-export type { ChangePasswordResponse } from './authModels';
-export type { VerifyUserRequest } from './authModels';
-export type { VerifyUserResponse } from './authModels';
-export type { ChangeNameRequest } from './authModels';
-export type { ChangeNameResponse } from './authModels';
+/**
+ * Public model types shared across client, API routes and back-end services.
+ */
 
-export type { DocumentType } from './documentModels';
-export type { BarDataItem } from './documentModels';
+export type {
+	SignUpRequest,
+	SignUpResponse,
+	SignInRequest,
+	SignInResponse,
+	ForgotPasswordRequest,
+	ForgotPasswordResponse,
+	ResetPasswordRequest,
+	ResetPasswordResponse,
+	ChangePasswordRequest,
+	ChangePasswordResponse,
+	VerifyUserRequest,
+	VerifyUserResponse,
+	ChangeNameRequest,
+	ChangeNameResponse,
+} from './authModels';
+export * from './authModels';
 
-export type { LinkType } from './linkModels';
-export type { LinkFormValues } from './linkModels';
-export type { CreateDocumentLinkPayload } from './linkModels';
-export type { InviteRecipientsPayload } from './linkModels';
-export type { LinkData } from './linkModels';
-export type { LinkDetail } from './linkModels';
+export type { DocumentType, BarDataItem } from './documentModels';
+export * from './documentModels';
 
-export type { User } from './userModels';
-export type { Contact } from './userModels';
+export type {
+	LinkType,
+	LinkFormValues,
+	CreateDocumentLinkPayload,
+	InviteRecipientsPayload,
+	LinkData,
+	LinkDetail,
+} from './linkModels';
+export * from './linkModels';
+
+export type { User, Contact } from './userModels';
+export * from './userModels';
+
+export type {
+	ProfileDto,
+	UpdateNameRequest,
+	UpdateNameResponse,
+	UpdatePasswordRequest,
+	UpdatePasswordResponse,
+} from './profileModels';
+export * from './profileModels';

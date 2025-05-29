@@ -6,11 +6,15 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 
 import prisma from '@/lib/prisma';
 import { unifyUserByEmail } from '@/services/auth/authService';
+import { AuthProvider as AuthProviderEnum, UserRole, UserStatus } from '@/shared/enums';
 
+/* -------------------------------------------------------------------------- */
+/*  Provider definitions                                                      */
+/* -------------------------------------------------------------------------- */
 const providers = [];
 
 if (process.env.AUTH_METHOD?.toLowerCase() === 'credentials') {
-	// --- Local Credentials Approach ---
+	/* ───────────── Local Credentials ───────────── */
 	providers.push(
 		CredentialsProvider({
 			name: 'Local Credentials',
@@ -28,11 +32,9 @@ if (process.env.AUTH_METHOD?.toLowerCase() === 'credentials') {
 				const user = await prisma.user.findUnique({
 					where: { email: credentials.email },
 				});
-				if (!user) {
-					throw new Error('No user found with the provided email');
-				}
-				if (user.status !== 'ACTIVE') {
-					throw new Error('Please verify your email to sign in.');
+				if (!user) throw new Error('No user found with that e-mail');
+				if (user.status !== UserStatus.Active) {
+					throw new Error('Please verify your e-mail before signing in');
 				}
 
 				// 2) Check password
@@ -44,21 +46,21 @@ if (process.env.AUTH_METHOD?.toLowerCase() === 'credentials') {
 				// Return user fields for the JWT/session
 				return {
 					id: user.id.toString(),
-					userId: user.user_id,
+					userId: user.userId,
 					email: user.email,
-					role: user.role,
-					firstName: user.first_name,
-					lastName: user.last_name,
-					authProvider: user.auth_provider,
-					avatarUrl: user.avatar_url ?? undefined,
-					status: user.status,
+					role: user.role as UserRole,
+					firstName: user.firstName,
+					lastName: user.lastName,
+					authProvider: user.authProvider as AuthProviderEnum,
+					avatarUrl: user.avatarUrl ?? undefined,
+					status: user.status as UserStatus,
 					remember: credentials.remember === 'true',
 				};
 			},
 		}),
 	);
 } else if (process.env.AUTH_METHOD?.toLowerCase() === 'auth0') {
-	// --- Auth0 ROPG Approach ---
+	/* ───────────── Auth0 – ROPG ───────────── */
 	providers.push(
 		CredentialsProvider({
 			name: 'Auth0 ROPG',
@@ -84,13 +86,9 @@ if (process.env.AUTH_METHOD?.toLowerCase() === 'credentials') {
 						realm: process.env.AUTH0_DB_CONNECTION,
 					}),
 				});
-				const auth0Data = await resp.json();
-
-				if (auth0Data.error) {
-					throw new Error(auth0Data.error_description || 'Invalid credentials');
-				}
-				if (!auth0Data.id_token) {
-					throw new Error('No id_token returned from Auth0');
+				const auth0 = await resp.json();
+				if (!resp.ok || !auth0.id_token) {
+					throw new Error(auth0.error_description || 'Invalid credentials');
 				}
 
 				// We could parse id_token to get user claims; for now, unify by email:
@@ -100,32 +98,36 @@ if (process.env.AUTH_METHOD?.toLowerCase() === 'credentials') {
 					picture: undefined,
 				});
 
-				const claims = jwtDecode<{ email_verified?: boolean }>(auth0Data.id_token);
-				if (!claims.email_verified) throw new Error('Please verify your email …');
+				const claims = jwtDecode<{ email_verified?: boolean }>(auth0.id_token);
+				if (!claims.email_verified) throw new Error('Please verify your e-mail');
 
-				if (claims.email_verified && finalUser.status !== 'ACTIVE') {
+				if (claims.email_verified && finalUser.status !== UserStatus.Active) {
 					await prisma.user.update({
-						where: { user_id: finalUser.user_id },
-						data: { status: 'ACTIVE' },
+						where: { userId: finalUser.userId },
+						data: { status: UserStatus.Active },
 					});
-					finalUser.status = 'ACTIVE';
+					finalUser.status = UserStatus.Active;
 				}
 
 				return {
 					id: finalUser.id.toString(),
-					userId: finalUser.user_id,
+					userId: finalUser.userId,
 					email: finalUser.email,
-					role: finalUser.role,
-					firstName: finalUser.first_name,
-					lastName: finalUser.last_name,
-					authProvider: finalUser.auth_provider,
-					avatarUrl: finalUser.avatar_url ?? undefined,
-					status: finalUser.status,
+					role: finalUser.role as UserRole,
+					firstName: finalUser.firstName,
+					lastName: finalUser.lastName,
+					authProvider: finalUser.authProvider as AuthProviderEnum,
+					avatarUrl: finalUser.avatarUrl ?? undefined,
+					status: finalUser.status as UserStatus,
 				};
 			},
 		}),
 	);
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Next-Auth config                                                          */
+/* -------------------------------------------------------------------------- */
 
 export const authOptions: NextAuthOptions = {
 	session: {
@@ -146,36 +148,37 @@ export const authOptions: NextAuthOptions = {
 			if (user) {
 				token.id = user.id;
 				token.userId = user.userId;
-				token.role = user.role;
+				token.role = user.role as UserRole;
 				token.firstName = user.firstName;
 				token.lastName = user.lastName;
-				token.authProvider = user.authProvider;
-				token.avatarUrl = user.avatarUrl;
-				token.status = user.status;
 				token.email = user.email;
+				token.authProvider = user.authProvider as AuthProviderEnum;
+				token.avatarUrl = user.avatarUrl;
+				token.status = user.status as UserStatus;
 				token.remember30d = (user as any).remember ?? false;
 
 				if (token.remember30d) {
-					token.exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30; // 30 days
+					token.exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30; // 30 days
 				}
 			}
-
 			return token;
 		},
+
 		async session({ session, token }) {
 			session.user = {
 				id: token.id as string,
 				userId: token.userId as string,
-				role: token.role as string,
+				role: token.role as UserRole,
 				firstName: token.firstName as string,
 				lastName: token.lastName as string,
 				email: token.email as string,
-				authProvider: token.authProvider as 'CREDENTIALS' | 'AUTH0' | 'GOOGLE',
+				authProvider: token.authProvider as AuthProviderEnum,
 				avatarUrl: token.avatarUrl as string | undefined,
-				status: token.status as 'ACTIVE' | 'ARCHIVED' | 'UNVERIFIED',
+				status: token.status as UserStatus,
 			};
 			return session;
 		},
+
 		async redirect({ url, baseUrl }) {
 			return url.startsWith(baseUrl) ? url : baseUrl;
 		},

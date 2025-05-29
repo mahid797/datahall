@@ -62,7 +62,7 @@ export interface IAuth {
 	/**
 	 * Change a user’s first / last name.
 	 * @param {ChangeNameRequest} request - Request for change‑password.
-	 * @param {string} request.userId  Local primary key (user.user_id).
+	 * @param {string} request.userId  Local primary key (user.userId).
 	 * @param {object} request.payload - The name update payload
 	 * @param {string} [request.payload.firstName] - New first name (optional)
 	 * @param {string} [request.payload.lastName] - New last name (optional)

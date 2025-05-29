@@ -1,32 +1,38 @@
 'use client';
 
 import { Box, Typography } from '@mui/material';
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import { FormProvider } from 'react-hook-form';
 
 import { FormInput, LoadingButton, NavLink } from '@/components';
 import AuthFormWrapper from '../components/AuthFormWrapper';
 
 import { KeyIcon } from '@/icons';
 
-import { useFormSubmission } from '@/hooks';
-import { useZodForm } from '@/hooks/useZodForm';
-import { ForgotPasswordSchema, ForgotPasswordValues } from '@/shared/validation/authSchemas';
+import { useForgotPassword, useFormSubmission, useToast } from '@/hooks';
+import { useForgotPasswordForm } from '@/hooks/forms';
 
 export default function ForgotPassword() {
 	const router = useRouter();
 
-	const form = useZodForm<ForgotPasswordValues>(ForgotPasswordSchema, { email: '' });
+	const form = useForgotPasswordForm();
+	const {
+		register,
+		formState: { errors, isValid },
+	} = form;
+
+	const forgotMutation = useForgotPassword();
+	const toast = useToast();
 
 	const { loading, handleSubmit } = useFormSubmission({
-		validate: () => form.validate(),
-		onSubmit: async () => {
-			const res = await axios.post('/api/auth/password/forgot', { email: form.values.email });
-
-			router.push('/auth/sign-in?reset=sent');
+		mutation: forgotMutation,
+		validate: () => isValid,
+		onSuccess: () => router.push('/auth/sign-in?reset=sent'),
+		onError: (err) => {
+			const message = (err as any)?.response?.data?.message ?? 'Failed to send reset e-mail.';
+			toast.showToast({ message, variant: 'error' });
 		},
-
-		errorMessage: 'Failed to send reset e-mail',
+		skipDefaultToast: true,
 	});
 
 	return (
@@ -56,47 +62,47 @@ export default function ForgotPassword() {
 				textAlign='center'>
 				No worries, we’ll send you reset instructions.
 			</Typography>
-
-			<Box
-				component='form'
-				onSubmit={handleSubmit}
-				noValidate
-				minWidth={400}
-				display='flex'
-				flexDirection='column'
-				gap={5}>
-				<FormInput
-					label='Email'
-					id='email'
-					type='email'
-					placeholder='Enter your email'
-					value={form.values.email}
-					onChange={form.handleChange}
-					onBlur={form.handleBlur}
-					errorMessage={form.getError('email')}
-				/>
-
+			<FormProvider {...form}>
 				<Box
-					mt={10}
+					component='form'
+					onSubmit={handleSubmit}
+					noValidate
+					minWidth={400}
 					display='flex'
-					justifyContent='center'
 					flexDirection='column'
-					alignItems='center'
-					gap={8}>
-					<LoadingButton
-						loading={loading}
-						buttonText='Reset password'
-						loadingText='Sending reset link...'
-						fullWidth
+					gap={5}>
+					<FormInput
+						label='Email'
+						type='email'
+						placeholder='Enter your email'
+						{...register('email')}
+						errorMessage={errors.email?.message}
 					/>
 
-					<NavLink
-						href='/auth/sign-in'
-						linkText='← Back to sign in'
-						prefetch
-					/>
+					<Box
+						mt={10}
+						display='flex'
+						justifyContent='center'
+						flexDirection='column'
+						alignItems='center'
+						gap={8}>
+						<LoadingButton
+							type='submit'
+							loading={loading}
+							disabled={!isValid}
+							buttonText='Reset password'
+							loadingText='Sending reset link…'
+							fullWidth
+						/>
+
+						<NavLink
+							href='/auth/sign-in'
+							linkText='← Back to sign in'
+							prefetch
+						/>
+					</Box>
 				</Box>
-			</Box>
+			</FormProvider>
 		</AuthFormWrapper>
 	);
 }

@@ -1,4 +1,8 @@
 export { default as useAuthQueryToasts } from './auth/useAuthQueryToasts';
+export { default as useSignIn } from './auth/useSignIn';
+export { default as useSignUp } from './auth/useSignUp';
+export { default as useForgotPassword } from './auth/useForgotPassword';
+export { default as useResetPassword } from './auth/useResetPassword';
 
 export { default as useFetchContacts } from './contacts/useFetchContacts';
 
@@ -24,4 +28,3 @@ export { useToast } from './useToast';
 export { useValidatedFormData } from './useValidatedFormData';
 export { default as useDocumentAccess } from './documentAccess/useDocumentAccess';
 export { default as useVisitorSubmission } from './documentAccess/useVisitorSubmission';
-export { useZodForm } from './useZodForm';

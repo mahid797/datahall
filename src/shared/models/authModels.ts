@@ -16,12 +16,12 @@ export interface SignUpResponse {
 export interface SignInRequest {
 	email: string;
 	password: string;
-	remember?: boolean;
+	remember: boolean;
 }
 export interface SignInResponse {
 	success: boolean;
 	message?: string;
-	token?: string;
+	url: string | null;
 }
 
 export interface ForgotPasswordRequest {

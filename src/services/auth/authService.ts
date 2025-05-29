@@ -65,7 +65,7 @@ export const authService = {
 	/**
 	 * @method authenticate
 	 * @description Ensure a Next.js API request is authenticated.
-	 * Throws if no user session; returns the local user_id.
+	 * Throws if no user session; returns the local userId.
 	 * @throws {Error} "Unauthorized" if session missing.
 	 * @returns {Promise<string>} The authenticated user's userId.
 	 */
