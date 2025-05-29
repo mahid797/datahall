@@ -23,7 +23,7 @@ const LinkIdPage = ({ params }: { params: Promise<{ linkId: string }> }) => {
 					justifyContent='center'
 					alignItems='center'
 					textAlign='center'
-					gap={40}>
+					gap={{ sm: 30, md: 35, lg: 40 }}>
 					<Box>
 						<Typography
 							mb={2}
@@ -35,9 +35,6 @@ const LinkIdPage = ({ params }: { params: Promise<{ linkId: string }> }) => {
 						</Typography>
 					</Box>
 					<Button
-						sx={{
-							minWidth: 360,
-						}}
 						variant='contained'
 						onClick={handleConfirmClick}>
 						Confirm

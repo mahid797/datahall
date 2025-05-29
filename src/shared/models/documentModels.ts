@@ -4,7 +4,7 @@ import { LinkDetail } from './linkModels';
 // =========== DOCUMENT TYPE ===========
 
 export interface DocumentType {
-	document_id: string; // The unique DB identifier (cuid)
+	documentId: string; // The unique DB identifier (cuid)
 	fileName: string;
 	filePath: string;
 	fileType: FileType;

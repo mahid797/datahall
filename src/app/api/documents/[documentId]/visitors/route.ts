@@ -1,5 +1,6 @@
-import { authService, DocumentService, createErrorResponse } from '@/app/api/_services';
 import { NextRequest, NextResponse } from 'next/server';
+
+import { authService, createErrorResponse, DocumentService } from '@/services';
 
 /**
  * GET /api/documents/[documentId]/visitors
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ documentI
 		const visitors = linkVisitors.map((visitor) => ({
 			id: visitor.id,
 			documentId: documentId,
-			name: `${visitor.first_name} ${visitor.last_name}`.trim(),
+			name: `${visitor.firstName} ${visitor.lastName}`.trim(),
 			email: visitor.email,
 			lastActivity: visitor.updatedAt,
 			downloads: 0,

@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import prisma from '@/lib/prisma';
 
 import {
 	Box,
@@ -10,8 +10,7 @@ import {
 	Typography,
 } from '@mui/material';
 
-import { fetchDocumentCount } from '@/servicesTemp_UntilTanstack/documentService';
-import { authService } from '@/app/api/_services/authService';
+import { authService } from '@/services';
 
 import { BackgroundIcon, CheckCircleIcon } from '@/icons';
 
@@ -23,10 +22,21 @@ export const dynamic = 'force-dynamic';
 export default async function DocumentsPage() {
 	let documentCount = 0;
 
+	// NEED TO REMOVE THIS
+	// This was a temporary solution.
+	// After Tanstack is implemented, we need to use the Tanstack query to fetch the document count.
 	try {
 		// Authenticate the user and fetch their document count, temporarily
 		const userId = await authService.authenticate();
-		documentCount = await fetchDocumentCount(userId);
+		try {
+			documentCount = await prisma.document.count({
+				where: {
+					userId,
+				},
+			});
+		} catch (error) {
+			console.error('Error fetching document count for user:', error);
+		}
 	} catch (error) {
 		console.error('Error fetching document count or authenticating user:', error);
 	}
@@ -86,7 +96,10 @@ export default async function DocumentsPage() {
 								</ListItem>
 							))}
 						</List>
-						<DragAndDropBox text='Drag and drop your first document here or click to upload' />
+						<DragAndDropBox
+							documentCount={documentCount}
+							text='Drag and drop your first document here or click to upload'
+						/>
 					</Box>
 				</>
 			) : (
@@ -104,7 +117,10 @@ export default async function DocumentsPage() {
 					<Box
 						mb={{ sm: 8, md: 10, lg: 12 }}
 						width='100%'>
-						<DragAndDropBox text='Drag and drop your document here or click to upload' />
+						<DragAndDropBox
+							documentCount={documentCount}
+							text='Drag and drop your document here or click to upload'
+						/>
 					</Box>
 
 					{/* 📊 Documents Table */}

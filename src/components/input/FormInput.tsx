@@ -1,81 +1,84 @@
-/**
- * FormInput.tsx
- * ----------------------------------------------------------------------------
- * A unified reusable input component built on top of MUI's TextField.
- *
- * NOTES:
- * - Supports all standard TextFieldProps (type, disabled, etc.).
- * - "label" is rendered above the TextField as a separate Typography element.
- * - "errorMessage" will display inline below the TextField if provided.
- * - "minWidth" is applied via sx props for basic styling.
- */
+import React, { forwardRef } from 'react';
 
-import React, { FC } from 'react';
-import { Box, TextField, Typography, TextFieldProps } from '@mui/material';
+import { Box, TextField, TextFieldProps, Typography } from '@mui/material';
 
-interface FormInputProps extends Omit<TextFieldProps, 'error' | 'helperText'> {
-	/** Optional label rendered above the TextField. */
+type RHFRegisterProps = {
+	name?: string;
+	onChange?: (...e: any[]) => void;
+	onBlur?: (...e: any[]) => void;
+	ref?: React.Ref<HTMLInputElement>;
+};
+
+interface FormInputProps
+	extends Omit<TextFieldProps, 'error' | 'helperText' | 'name' | 'onChange' | 'onBlur' | 'ref'>,
+		RHFRegisterProps {
+	/** Input label shown above the field */
 	label?: string;
-
-	/** The unique identifier for this field (used for id/name). */
-	id: string;
-
-	/** An inline error message displayed below the TextField if validation fails. */
+	/** Unique identifier for the input */
+	id?: string;
+	/** Error message to display below the input */
 	errorMessage?: string;
-
-	/** An optional custom minimum width for the TextField, in pixels. */
+	/** Minimum width of the input field */
 	minWidth?: number;
-
-	/** An optional custom minimum height for the TextField helpertext */
+	/** Minimum height of the error message area */
 	minHeight?: number;
 }
 
-const FormInput: FC<FormInputProps> = ({
-	label,
-	id,
-	errorMessage = '',
-	minWidth,
-	minHeight = '1.5em',
-	fullWidth = true,
-	size = 'small',
-	// Any other TextField props
-	...props
-}) => {
-	const displayError = Boolean(errorMessage);
+/**
+ * Reusable MUI text input that works with BOTH
+ * – controlled props (value / onChange)  *and*
+ * – react-hook-form’s register spread (name / onChange / ref).
+ */
+const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
+	(
+		{
+			label,
+			id,
+			errorMessage = '',
+			minWidth,
+			minHeight = '1.5em',
+			fullWidth = true,
+			size = 'small',
+			...props
+		},
+		ref,
+	) => {
+		const fieldName = props.name ?? id;
+		const showError = Boolean(errorMessage);
 
-	return (
-		<Box>
-			{/* Render a top label if provided */}
-			{label && (
-				<Typography
-					variant='h3'
-					mb={4}>
-					{label}
-				</Typography>
-			)}
+		return (
+			<Box>
+				{label && (
+					<Typography
+						variant='h3'
+						mb={4}>
+						{label}
+					</Typography>
+				)}
 
-			<TextField
-				{...props}
-				id={id}
-				name={id}
-				size={size}
-				fullWidth={fullWidth}
-				error={displayError}
-				{...(displayError && { helperText: errorMessage })}
-				slotProps={{
-					formHelperText: {
-						sx: {
-							minHeight: displayError ? minHeight : '0em',
+				<TextField
+					{...props}
+					id={id ?? fieldName}
+					name={fieldName}
+					size={size}
+					fullWidth={fullWidth}
+					inputRef={ref}
+					error={showError}
+					{...(showError && { helperText: errorMessage })}
+					slotProps={{
+						formHelperText: {
+							sx: { minHeight: showError ? minHeight : '0em' },
 						},
-					},
-				}}
-				sx={{
-					minWidth,
-					...props.sx,
-				}}
-			/>
-		</Box>
-	);
-};
+						input: {
+							autoComplete: props.type === 'password' ? 'new-password' : undefined,
+						},
+					}}
+					sx={{ minWidth, ...props.sx }}
+				/>
+			</Box>
+		);
+	},
+);
 
+FormInput.displayName = 'FormInput';
 export default FormInput;

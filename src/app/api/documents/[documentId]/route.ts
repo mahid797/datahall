@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authService, DocumentService, createErrorResponse } from '../../_services';
+import { authService, DocumentService, createErrorResponse } from '@/services';
 
 /**
  * GET /api/documents/[documentId]
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ documentI
 		const responsePayload = {
 			...doc,
 			uploader: {
-				name: `${doc.User.first_name} ${doc.User.last_name}`,
+				name: `${doc.user.firstName} ${doc.user.lastName}`,
 				avatar: null,
 			},
 			links: 0,

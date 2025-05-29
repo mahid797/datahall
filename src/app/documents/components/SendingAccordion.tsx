@@ -1,68 +1,126 @@
-import React from 'react';
+import { SyntheticEvent } from 'react';
 
-import { Box } from '@mui/material';
+import { Autocomplete, Box, Chip } from '@mui/material';
 
-import { CustomCheckbox, Dropdown, FormInput } from '@/components';
+import { CustomCheckbox, FormInput } from '@/components';
+import { useFetchContacts } from '@/hooks';
 
-interface SendingAccordionProps {
-	formValues: any;
-	handleCheckboxChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-}
+import { DocumentLinkFormValues } from '@/shared/validation/documentLinkSchemas';
+import { validateEmails } from '@/shared/validation/validationUtils';
+import { Controller, useFormContext } from 'react-hook-form';
 
-export default function SendingAccordion({
-	formValues,
-	handleCheckboxChange,
-}: SendingAccordionProps) {
+/**
+ * “Sending” section — choose recipients for the link e-mail.
+ * Reads and updates react-hook-form state directly via `useFormContext`.
+ */
+export default function SendingAccordion() {
+	const {
+		control,
+		register,
+		watch,
+		setValue,
+		formState: { errors },
+	} = useFormContext<DocumentLinkFormValues>();
+
+	const isPublicLink = watch('isPublic');
+	const selectFromContact = watch('selectFromContact');
+	const sendToOthers = watch('sendToOthers');
+
+	const { data: contacts = [] } = useFetchContacts();
+
+	const contactOptions = contacts
+		.filter((contact) => contact.email)
+		.map((contact, index) => ({
+			id: contact.id ?? index,
+			label: contact.email as string,
+		}));
+
+	const handleContactEmailsChange = (
+		event: SyntheticEvent,
+		newSelection: { id?: number; label: string }[],
+		onChange: (value: unknown) => void,
+	) => {
+		const uniqueSelection = Array.from(
+			new Map(newSelection.map((item) => [item.id, item])).values(),
+		);
+		onChange(uniqueSelection);
+	};
+
+	const sanitizeOtherEmails = (emails: string) => {
+		const { validEmails } = validateEmails(emails);
+		setValue('otherEmails', validEmails.join(', '), { shouldValidate: true });
+	};
+
 	return (
 		<Box py={4}>
 			<CustomCheckbox
-				checked={formValues.selectFromContact}
-				onChange={handleCheckboxChange}
-				name='selectFromContact'
 				label='Select from the contact list'
+				disabled={isPublicLink}
+				{...register('selectFromContact')}
 			/>
 			<Box
-				mt={2}
-				mb={4}
+				mt={3}
+				mb={8}
 				ml={13}>
-				<Dropdown
-					options={[
-						{ value: 'search', label: 'Search' },
-						{ value: 'contact1', label: 'John Doe' },
-						{ value: 'contact2', label: 'Jane Doe' },
-					]}
-					initialValue='search'
-					variant='outlined'
-					minWidth={300}
-					px={7}
-					py={4}
+				<Controller
+					control={control}
+					name='contactEmails'
+					render={({ field: { value, onChange } }) => (
+						<Autocomplete
+							multiple
+							disablePortal
+							options={contactOptions.filter(
+								(option) => !value.some((selected) => selected.id === option.id),
+							)}
+							value={value}
+							getOptionLabel={(option) => option.label}
+							disabled={!selectFromContact || isPublicLink}
+							onChange={(event, newValue) => handleContactEmailsChange(event, newValue, onChange)}
+							renderTags={(tagValue, getTagProps) =>
+								tagValue.map((option, index) => {
+									const { key, ...restProps } = getTagProps({ index });
+									return (
+										<Chip
+											key={key}
+											label={option.label}
+											{...restProps}
+											size='small'
+										/>
+									);
+								})
+							}
+							renderInput={(params) => (
+								<FormInput
+									{...params}
+									id='searchContactEmails'
+									placeholder='Search contacts'
+									autoComplete='off'
+									slotProps={{ input: { autoComplete: 'new-password' } }}
+								/>
+							)}
+						/>
+					)}
 				/>
 			</Box>
 
 			<CustomCheckbox
-				checked={formValues.sendToOthers}
-				onChange={handleCheckboxChange}
-				name='sendToOthers'
-				label='Send someone not in the contact list. Separate with commas.'
+				label='Send to e-mails not in the contact list'
+				disabled={isPublicLink}
+				{...register('sendToOthers')}
 			/>
+
 			<Box
-				mt={2}
-				mb={4}
+				my={3}
 				ml={13}>
 				<FormInput
 					id='otherEmails'
-					value={formValues.otherEmails}
-					onChange={(e) =>
-						handleCheckboxChange({
-							target: {
-								name: 'otherEmails',
-								value: e.target.value,
-							},
-						} as any)
-					}
-					placeholder='Enter emails, separated by commas'
-					type='email'
-					minWidth={430}
+					type='text'
+					placeholder='Enter e-mails, separated by commas'
+					fullWidth
+					disabled={!sendToOthers || isPublicLink}
+					{...register('otherEmails')}
+					errorMessage={errors.otherEmails?.message as string}
+					onBlur={(event) => sanitizeOtherEmails(event.target.value)}
 				/>
 			</Box>
 		</Box>

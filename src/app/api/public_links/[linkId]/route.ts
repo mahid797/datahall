@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { LinkService, createErrorResponse } from '@/app/api/_services';
+import { LinkService, createErrorResponse } from '@/services';
 
 /**
  * GET /api/public_links/[linkId]
@@ -26,14 +26,14 @@ export async function GET(req: NextRequest, props: { params: Promise<{ linkId: s
 
 		// If link is public, we see if it requires user details or password
 		const isPasswordProtected = !!link.password;
-		const needsUserDetails = !!link.requiredUserDetailsOption;
+		const visitorFields = link.visitorFields;
 
 		return NextResponse.json(
 			{
 				message: 'Link is valid',
 				data: {
 					isPasswordProtected,
-					needsUserDetails,
+					visitorFields,
 				},
 			},
 			{ status: 200 },

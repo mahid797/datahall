@@ -1,26 +1,60 @@
 // =========== LINK TYPE ===========
 
+export interface LinkType {
+	id: number;
+	documentLinkId: string;
+	documentId: string;
+	createdByUserId: string;
+	alias?: string;
+	linkUrl: string;
+	isPublic: boolean;
+	visitorFields?: string[];
+	expirationTime?: string;
+	password?: string;
+	updatedAt: string;
+	createdAt: string;
+}
+
+// =========== LINK FORM VALUES ===========
+
 export interface LinkFormValues {
 	password?: string;
 	isPublic: boolean;
-	otherEmails: string;
-	friendlyName?: string;
+	alias?: string;
 	expirationTime?: string;
 	requirePassword: boolean;
 	expirationEnabled: boolean;
 	requireUserDetails: boolean;
-	requiredUserDetailsOption: number;
+	visitorFields?: string[];
+	contactEmails?: { label: string; id: number }[];
+	selectFromContact: boolean;
+	otherEmails?: string;
+	sendToOthers: boolean;
 }
 
-// =========== LINK DETAIL ===========
+// =========== LINK PAYLOAD ===========
 
-export interface LinkDetail {
-	linkId: string; // unique string
-	friendlyName: string; // The links's friendly name
-	document_id: string; // The document_id from DB
-	createdLink: string; // The linkUrl from DB
-	lastActivity: Date; // The link's updatedAt
-	linkViews: number; // If you track actual link views, you can use a real value
+export interface CreateDocumentLinkPayload {
+	documentId: string;
+	alias?: string; // Alias for the link
+	isPublic: boolean;
+	expirationTime?: string; // ISO string format
+	expirationEnabled?: boolean;
+	requirePassword?: boolean;
+	password?: string;
+	requireUserDetails?: boolean;
+	visitorFields?: string[]; // Array of required visitor details
+	contactEmails?: { label: string; id: number }[];
+	selectFromContact: boolean;
+	otherEmails?: string;
+	sendToOthers: boolean;
+}
+
+// =========== INVITE RECIPIENTS PAYLOAD ===========
+
+export interface InviteRecipientsPayload {
+	linkUrl: string;
+	recipients: string[];
 }
 
 // =========== LINK DATA ===========
@@ -31,4 +65,15 @@ export interface LinkData {
 	signedUrl?: string;
 	fileName?: string;
 	size?: number;
+}
+
+// =========== LINK DETAIL ===========
+
+export interface LinkDetail {
+	documentLinkId: string; // unique string
+	alias: string; // The links's friendly name
+	documentId: string; // The documentId from DB
+	createdLink: string; // The linkUrl from DB
+	lastActivity: Date; // The link's updatedAt
+	linkViews: number; // If you track actual link views, you can use a real value
 }

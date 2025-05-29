@@ -7,7 +7,7 @@ import EnvironmentBadge from '@/components/common/EnvironmentBadge';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-	title: 'Blw-Datahall',
+	title: 'Datahall',
 	description: 'Share documents safely with your team and customers',
 };
 

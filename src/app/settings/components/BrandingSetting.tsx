@@ -13,7 +13,7 @@ import { useModalContext } from '@/providers/modal/ModalProvider';
 import ColorPickerBox from './ColorPickerBox';
 
 import { PencilIcon } from '@/icons';
-
+import AvatarActions from '@/components/common/AvatarCard';
 /**
  * NOTE FOR DEVELOPERS:
  * =====================
@@ -145,96 +145,12 @@ export default function BrandingSetting() {
 							<Typography variant='h4'>Logo</Typography>
 						</Grid>
 						<Grid size={7}>
-							<Box
-								display='flex'
-								alignItems='center'>
-								{/* Edit Icon on hover */}
-								<Box
-									sx={{
-										position: 'relative',
-										width: 86,
-										height: 86,
-										mr: 9,
-										borderRadius: '50%',
-										overflow: 'hidden',
-										'&:hover .avatar-edit-icon': {
-											opacity: 1,
-										},
-									}}>
-									<Avatar
-										sx={{
-											width: '100%',
-											height: '100%',
-											bgcolor: '#EDEEF1',
-											color: 'text.brand',
-											fontSize: 47,
-											fontWeight: 600,
-											cursor: 'pointer',
-										}}>
-										BU
-									</Avatar>
-
-									<Box
-										className='avatar-edit-icon'
-										sx={{
-											position: 'absolute',
-											top: 0,
-											left: 0,
-											width: '100%',
-											height: '100%',
-											display: 'flex',
-											alignItems: 'center',
-											justifyContent: 'center',
-											bgcolor: 'rgba(0, 0, 0, 0.15)',
-											opacity: 0,
-											transition: 'opacity 0.3s',
-											cursor: 'pointer',
-										}}
-										onClick={handleUpload} // Old approach: onClick={uploadModal.openModal}
-									>
-										<PencilIcon
-											width={25}
-											height={25}
-											color='white'
-										/>
-									</Box>
-								</Box>
-								{/* ============== OLD Approach (Commented Out) ============== */}
-								{/*
-                  <Link
-                    href='#'
-                    underline='hover'
-                    sx={{ px: 4, color: 'text.secondary' }}
-                    onClick={deleteModal.openModal}
-                  >
-                    Delete
-                  </Link>
-                  <Link
-                    href='#'
-                    underline='hover'
-                    sx={{ px: 4, color: 'text.brand' }}
-                    onClick={uploadModal.openModal}
-                  >
-                    Update
-                  </Link>
-                */}
-
-								{/* ============== NEW Approach: Modals V2 ============== */}
-								<Link
-									href='#'
-									underline='hover'
-									sx={{ px: 4, color: 'text.secondary' }}
-									onClick={handleDelete}>
-									Delete
-								</Link>
-								<Link
-									href='#'
-									underline='hover'
-									sx={{ px: 4, color: 'text.brand' }}
-									onClick={handleUpload}>
-									Update
-								</Link>
-							</Box>
+							<AvatarActions
+								initials='BU'
+								size={86}
+								onDelete={deleteModal.openModal}
+								onUpdate={uploadModal.openModal}
+							/>
 						</Grid>
 
 						{/* Background color */}

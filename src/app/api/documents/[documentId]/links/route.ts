@@ -1,5 +1,7 @@
-import { authService, createErrorResponse, LinkService } from '@/app/api/_services';
 import { NextRequest, NextResponse } from 'next/server';
+
+import { authService, createErrorResponse, LinkService } from '@/services';
+import { buildLinkUrl } from '@/shared/utils/urlBuilder';
 
 /**
  * GET /api/documents/[documentId]/links
@@ -17,9 +19,9 @@ export async function GET(req: NextRequest, props: { params: Promise<{ documentI
 		const result = links.map((link) => ({
 			id: link.id,
 			documentId: link.documentId,
-			linkId: link.linkId,
-			friendlyName: link.friendlyName,
-			createdLink: link.linkUrl,
+			linkId: link.documentLinkId,
+			alias: link.alias,
+			createdLink: buildLinkUrl(link.documentLinkId),
 			lastViewed: link.updatedAt,
 			linkViews: 0,
 		}));
@@ -56,8 +58,11 @@ export async function POST(req: NextRequest, props: { params: Promise<{ document
 			if (createErr instanceof Error && createErr.message === 'EXPIRATION_PAST') {
 				return createErrorResponse('Expiration time cannot be in the past.', 400);
 			}
-			if (createErr instanceof Error && createErr.message === 'FRIENDLY_NAME_CONFLICT') {
-				return createErrorResponse('Friendly name is already taken.', 409);
+			if (createErr instanceof Error && createErr.message === 'LINK_ALIAS_CONFLICT') {
+				return createErrorResponse(
+					'This alias is already in use. Please choose a different link alias.',
+					409,
+				);
 			}
 			throw createErr; // rethrow
 		}

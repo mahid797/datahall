@@ -1,15 +1,15 @@
 import React, { FC, SVGProps } from 'react';
 
 interface BlueWaveLogoProps extends SVGProps<SVGSVGElement> {
-	width?: number;
-	height?: number;
+	width?: number | string;
+	height?: number | string;
 }
 
 /**
  * A reusable SVG logo component for rendering a logo.
  *
- * @param {number} [width=191] - The width of the logo in pixels. Optional.
- * @param {number} [height=24] - The height of the logo in pixels. Optional.
+ * @param {number | string} [width=191] - The width of the logo in pixels or as a percentage (e.g., '100%'). Optional.
+ * @param {number | string} [height=24] - The height of the logo in pixels or as a keyword (e.g., 'auto'). Optional.
  * @param {SVGProps<SVGSVGElement>} props - Additional SVG props such as `className`, `style`, or custom attributes.
  *
  * @returns {JSX.Element} A scalable vector graphic (SVG) element representing the logo.

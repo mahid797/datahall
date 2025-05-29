@@ -1,7 +1,8 @@
 // =========== USER TYPE ===========
 
+// This is not the same as the User type in next-auth.d.ts. Needs to be the same as the DB type (currently unused).
 export interface User {
-	user_id: number;
+	userId: number;
 	name: string;
 	email: string;
 	role: 'Administrator' | 'Member';
@@ -15,7 +16,7 @@ export interface Contact {
 	id: number;
 	name: string; // Combined first + last name
 	email: string; // If LinkVisitors has an email field
-	document_id: string; // The document_id from DB
+	documentId: string; // The documentId from DB
 	lastActivity: Date; //The date/time of their last activity
 	lastViewedLink: string; //The last link or friendly name they viewed
 	totalVisits: number; //Total visits for that email across the user's links

@@ -1,16 +1,10 @@
 import React from 'react';
 
-import { styled } from '@mui/material/styles';
 import { Typography, Box, Button } from '@mui/material';
 
 import { useToast } from '@/hooks';
 
 import { formatFileSize } from '@/shared/utils';
-
-const ActionButton = styled(Button)({
-	width: 250,
-	fontWeight: 600,
-});
 
 interface FilePageProps {
 	signedUrl: string;
@@ -56,7 +50,7 @@ const FileDisplay: React.FC<FilePageProps> = ({ signedUrl, fileName, size }) => 
 			<Box
 				display='flex'
 				justifyContent='center'
-				my={20}
+				mt={{ sm: 15, md: 18, lg: 20 }}
 				mx={0}
 				gap={2}>
 				<Typography variant='subtitle2'>Document:</Typography>
@@ -68,20 +62,21 @@ const FileDisplay: React.FC<FilePageProps> = ({ signedUrl, fileName, size }) => 
 			</Box>
 			<Box
 				display='flex'
-				justifyContent='space-between'
-				gap={40}>
-				<ActionButton
+				justifyContent='center'
+				gap={{ sm: 30, md: 35, lg: 40 }}
+				mt={{ sm: 30, md: 35, lg: 40 }}>
+				<Button
 					variant='contained'
 					onClick={() => {
 						window.open(signedUrl, '_blank');
 					}}>
 					View file
-				</ActionButton>
-				<ActionButton
+				</Button>
+				<Button
 					variant='contained'
 					onClick={handleDownload}>
 					Download file
-				</ActionButton>
+				</Button>
 			</Box>
 		</Box>
 	);

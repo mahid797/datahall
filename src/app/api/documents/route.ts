@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authService, DocumentService, createErrorResponse } from '../_services';
-import { uploadFile } from '../_services/storageService';
+
+import { authService, createErrorResponse, DocumentService, uploadFile } from '@/services';
+import { buildLinkUrl } from '@/shared/utils/urlBuilder';
 
 /**
  * GET /api/documents
@@ -12,19 +13,19 @@ export async function GET(req: NextRequest) {
 		const documents = await DocumentService.getUserDocuments(userId);
 
 		const result = documents.map((doc) => {
-			const linkCount = doc.Link.length;
-			const visitorCount = doc.Link.reduce((acc, l) => acc + l.LinkVisitors.length, 0);
+			const linkCount = doc.documentLinks.length;
+			const visitorCount = doc.documentLinks.reduce((acc, l) => acc + l.visitors.length, 0);
 			const totalViews = 0; // placeholder
 
-			const createdLinks = doc.Link.map((lnk) => ({
-				linkId: lnk.linkId,
-				createdLink: lnk.linkUrl,
-				lastViewed: lnk.updatedAt,
+			const createdLinks = doc.documentLinks.map((link) => ({
+				linkId: link.documentLinkId,
+				createdLink: buildLinkUrl(link.documentLinkId),
+				lastViewed: link.updatedAt,
 				linkViews: 0,
 			}));
 
 			return {
-				document_id: doc.document_id,
+				documentId: doc.documentId,
 				fileName: doc.fileName,
 				filePath: doc.filePath,
 				fileType: doc.fileType,
@@ -32,7 +33,7 @@ export async function GET(req: NextRequest) {
 				createdAt: doc.createdAt.toISOString(),
 				updatedAt: doc.updatedAt.toISOString(),
 				uploader: {
-					name: `${doc.User.first_name} ${doc.User.last_name}`,
+					name: `${doc.user.firstName} ${doc.user.lastName}`,
 					avatar: null,
 				},
 				links: linkCount,
