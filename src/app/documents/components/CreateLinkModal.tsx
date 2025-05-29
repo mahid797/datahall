@@ -1,17 +1,18 @@
-import axios from 'axios';
-import React, { SyntheticEvent, useState } from 'react';
+import { SyntheticEvent, useState } from 'react';
+import { FormProvider } from 'react-hook-form';
 
 import { Box, Chip, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
 
-import { LoadingButton } from '@/components';
 import CustomAccordion from './CustomAccordion';
-import LinkDetailsAccordion from './LinkDetailsAccordion';
+import SendingAccordion from './SendingAccordion';
 import SharingOptionsAccordion from './SharingOptionsAccordion';
 
-import { useDocumentDetail, useFormSubmission, useValidatedFormData } from '@/hooks';
+import { CustomCheckbox, FormInput, LoadingButton } from '@/components';
 
-import { LinkFormValues } from '@/shared/models';
-import { computeExpirationDays, minLengthRule } from '@/shared/utils';
+import { useDocumentDetail, useFormSubmission } from '@/hooks';
+
+import { useCreateLinkMutation } from '@/hooks/documents/useCreateLinkMutation';
+import { useCreateLinkForm } from '@/hooks/forms/useCreateLinkForm';
 
 interface CreateLinkModalProps {
 	documentId: string;
@@ -24,213 +25,115 @@ export default function CreateLinkModal({
 	onLinkGenerated,
 	closeModal,
 }: CreateLinkModalProps) {
-	const [expanded, setExpanded] = useState<string | false>('');
-	const [expirationType, setExpirationType] = useState('days');
-	const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-
-	// Validation for password length
-	const validationRules = {
-		password: [minLengthRule(5, 'Password must be at least 5 characters long.')],
-	};
-
-	const initialFormValues: LinkFormValues = {
-		friendlyName: '',
-		isPublic: true,
-		otherEmails: '',
-		expirationTime: '',
-		requirePassword: false,
-		expirationEnabled: false,
-		requireUserDetails: false,
-		requiredUserDetailsOption: 1,
-	};
-
-	const { values, setValues, validateAll, getError, handleBlur } =
-		useValidatedFormData<LinkFormValues>({
-			initialValues: initialFormValues,
-			validationRules,
-		});
-
 	const document = useDocumentDetail(documentId);
+	const createLink = useCreateLinkMutation();
+	const form = useCreateLinkForm();
 
-	const handleInputChange = React.useCallback(
-		(event: React.ChangeEvent<HTMLInputElement>) => {
-			const { name, value, type, checked } = event.target;
+	const {
+		register,
+		formState: { errors, isValid },
+		getPayload,
+		toggleIsPublic,
+	} = form;
 
-			// If user sets expirationDays
-			if (name === 'expirationDays') {
-				const days = parseInt(value, 10);
-				if (!isNaN(days)) {
-					const date = new Date();
-					date.setUTCDate(date.getUTCDate() + days);
-					setValues((prev) => ({
-						...prev,
-						expirationTime: date.toISOString(),
-						expirationDays: days.toString(),
-					}));
-				} else {
-					setValues((prev) => ({ ...prev, expirationDays: '' }));
-				}
-				return;
-			}
+	const { loading, handleSubmit, toast } = useFormSubmission({
+		validate: () => isValid,
+		onSubmit: async () => {
+			const { link } = await createLink.mutateAsync({
+				documentId,
+				payload: getPayload(),
+			});
 
-			// If user sets expirationDate
-			if (name === 'expirationDate') {
-				const date = new Date(value);
-				setValues((prev) => ({
-					...prev,
-					expirationTime: date.toISOString(),
-					expirationDate: value,
-				}));
-				return;
-			}
-
-			if (name === 'isPublic') {
-				const newVal = type === 'checkbox' ? checked : value === 'true';
-				if (newVal) {
-					setValues((prev) => ({
-						...prev,
-						isPublic: true,
-						requireUserDetails: false,
-						requiredUserDetailsOption: 1,
-						requirePassword: false,
-					}));
-				} else {
-					setValues((prev) => ({
-						...prev,
-						isPublic: false,
-					}));
-				}
-				return;
-			}
-
-			setValues((prev) => ({
-				...prev,
-				[name]: type === 'checkbox' ? checked : value,
-			}));
+			onLinkGenerated?.(link.linkUrl);
+			closeModal();
 		},
-		[setValues],
-	);
+		successMessage: 'Link created successfully!',
+		onError: (error) => {
+			const message =
+				(error as any)?.response?.data?.message || 'Failed to create link. Please try again.';
+			toast.showToast({
+				message,
+				variant: 'error',
+			});
+		},
+		skipDefaultToast: true,
+	});
 
+	const [expanded, setExpanded] = useState<string | false>('');
 	const handleChange = (panel: string) => (event: SyntheticEvent, newExpanded: boolean) => {
 		setExpanded(newExpanded ? panel : false);
 	};
 
-	React.useEffect(() => {
-		if (values.expirationTime) {
-			const diffDays = computeExpirationDays(values.expirationTime);
-			setValues((prev) => ({
-				...prev,
-				expirationDays: diffDays.toString(),
-			}));
-		}
-	}, [values.expirationTime, setValues]);
-
-	const handleExpirationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setExpirationType(e.target.value);
-	};
-
-	function buildRequestPayload(): Record<string, any> {
-		const payload: Record<string, any> = {
-			documentId,
-			isPublic: values.isPublic,
-			friendlyName: values.friendlyName,
-		};
-		if (values.requireUserDetails) {
-			payload.requiredUserDetailsOption = values.requiredUserDetailsOption;
-		}
-		if (values.requirePassword) {
-			payload.password = values.password;
-		}
-		if (values.expirationEnabled) {
-			payload.expirationTime = values.expirationTime;
-		}
-		return payload;
-	}
-
-	const { loading, handleSubmit, toast } = useFormSubmission({
-		onSubmit: async () => {
-			const hasError = validateAll();
-			if (hasError) {
-				throw new Error('Please correct any errors before generating a link.');
-			}
-
-			const payload = buildRequestPayload();
-			const response = await axios.post(`/api/documents/${documentId}/links`, payload);
-
-			if (!response.data?.link?.linkUrl) {
-				throw new Error(response.data?.error || 'No link returned by server.');
-			}
-
-			onLinkGenerated?.(response.data.link.linkUrl);
-			closeModal();
-		},
-		onSuccess: () => {
-			toast.showToast({
-				message: 'Shareable link created successfully!',
-				variant: 'success',
-			});
-		},
-		onError: (errMsg) => {
-			console.error('Create link error:', errMsg);
-		},
-	});
-
 	return (
 		<>
 			<DialogTitle variant='h2'>
-				Create shareable link
+				Create new link
 				<Typography
 					my={4}
 					component='div'
 					variant='body2'>
-					Selected Document:{' '}
+					Selected document:{' '}
 					<Chip
+						size='small'
+						label={document.document?.fileName}
 						sx={{
 							backgroundColor: 'alert.info',
 							borderRadius: 50,
 							verticalAlign: 'baseline',
 						}}
-						size='small'
-						label={document.document?.fileName}
 					/>
 				</Typography>
 			</DialogTitle>
 
-			<DialogContent sx={{ overflowY: 'auto' }}>
-				<Box
-					component='form'
-					onSubmit={handleSubmit}
-					sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-					<LinkDetailsAccordion
-						formValues={values}
-						handleInputChange={handleInputChange}
-					/>
+			<FormProvider {...form}>
+				<DialogContent sx={{ overflowY: 'auto' }}>
+					<Box
+						display='flex'
+						flexDirection='column'
+						gap={2}>
+						<Box>
+							<FormInput
+								label='Link alias'
+								minWidth={460}
+								{...register('alias')}
+								errorMessage={errors.alias?.message as string}
+								placeholder='Enter alias'
+							/>
 
-					<CustomAccordion
-						title='Sharing Options'
-						expanded={expanded === 'sharing-options'}
-						onChange={handleChange('sharing-options')}>
-						<SharingOptionsAccordion
-							getError={getError}
-							formValues={values}
-							handleBlur={handleBlur}
-							handleInputChange={handleInputChange}
-							isPasswordVisible={isPasswordVisible}
-							setIsPasswordVisible={setIsPasswordVisible}
-							expirationType={expirationType}
-							handleExpirationChange={handleExpirationChange}
-						/>
-					</CustomAccordion>
-				</Box>
-			</DialogContent>
+							<CustomCheckbox
+								sx={{ mt: 6, ml: 2 }}
+								label='Allow anyone with this link to preview and download'
+								{...register('isPublic')}
+								onChange={(e) => toggleIsPublic(e.target.checked)}
+							/>
+						</Box>
+
+						{/* Accordions */}
+						<CustomAccordion
+							title='Sharing options'
+							expanded={expanded === 'sharing-options'}
+							onChange={handleChange('sharing-options')}>
+							<SharingOptionsAccordion />
+						</CustomAccordion>
+
+						<CustomAccordion
+							title='Sending'
+							expanded={expanded === 'sending'}
+							onChange={handleChange('sending')}>
+							<SendingAccordion />
+						</CustomAccordion>
+					</Box>
+				</DialogContent>
+			</FormProvider>
 
 			<DialogActions sx={{ p: 16 }}>
 				<LoadingButton
-					loading={loading}
-					buttonText='Generate'
-					loadingText='Generating...'
-					fullWidth
 					type='submit'
+					fullWidth
+					loading={loading}
+					disabled={!isValid}
+					buttonText='Generate'
+					loadingText='Generating…'
 				/>
 			</DialogActions>
 		</>

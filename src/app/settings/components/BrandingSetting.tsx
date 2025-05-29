@@ -145,12 +145,28 @@ export default function BrandingSetting() {
 							<Typography variant='h4'>Logo</Typography>
 						</Grid>
 						<Grid size={7}>
-							<AvatarActions
+							{/* ============== NEW COMPONENT: Moved the Avatar Code ============== */}
+							{/* <AvatarActions
 								initials='BU'
 								size={86}
-								onDelete={deleteModal.openModal}
-								onUpdate={uploadModal.openModal}
-							/>
+								onDelete={handleDelete}
+								onUpdate={handleUpload}
+							/> */}
+							{/* ============== NEW Approach: Modals V2 ============== */}
+							<Link
+								href='#'
+								underline='hover'
+								sx={{ px: 4, color: 'text.secondary' }}
+								onClick={handleDelete}>
+								Delete
+							</Link>
+							<Link
+								href='#'
+								underline='hover'
+								sx={{ px: 4, color: 'text.brand' }}
+								onClick={handleUpload}>
+								Update
+							</Link>
 						</Grid>
 
 						{/* Background color */}

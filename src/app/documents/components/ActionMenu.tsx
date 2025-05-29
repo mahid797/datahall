@@ -28,9 +28,10 @@ export default function ActionMenu({
 	const updateModal = useModal();
 
 	const { openModal } = useModalContext();
-	// Store the newly created link to show in NewLinkDialog
-	const [newLinkUrl, setNewLinkUrl] = useState('');
-	const [createLinkOpen, setCreateLinkOpen] = useState(false);
+
+	// Outdated code for opening a create link dialog
+	// const [newLinkUrl, setNewLinkUrl] = useState('');
+	// const [createLinkOpen, setCreateLinkOpen] = useState(false);
 
 	function handleOpenCreateLink() {
 		openModal({
@@ -68,18 +69,19 @@ export default function ActionMenu({
 				</MenuItem>
 			</Menu>
 
+			{/* Uncomment the following lines to enable the OLD CreateLink and ShareLinkDialog components */}
 			{/* CREATE LINK DIALOG */}
-			<CreateLink
+			{/* <CreateLink
 				open={createLinkOpen}
 				documentId={documentId}
 				onClose={handleCloseCreateLink}
-			/>
+			/> */}
 
 			{/* SHAREABLE LINK DIALOG */}
-			<ShareLinkDialog
+			{/* <ShareLinkDialog
 				linkUrl={newLinkUrl}
 				onClose={() => setNewLinkUrl('')} // hide the dialog
-			/>
+			/> */}
 
 			{/* DELETE CONFIRMATION MODAL */}
 			<ModalWrapper

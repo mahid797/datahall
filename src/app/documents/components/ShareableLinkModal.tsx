@@ -1,15 +1,9 @@
 'use client';
-import React, { useState } from 'react';
-import {
-	DialogTitle,
-	DialogContent,
-	DialogActions,
-	Chip,
-	IconButton,
-	Box,
-	Typography,
-} from '@mui/material';
-import { CopyIcon, CheckIcon, LinkIcon } from '@/icons';
+import { useState } from 'react';
+
+import { Chip, DialogActions, DialogContent, DialogTitle, IconButton } from '@mui/material';
+
+import { CheckIcon, CopyIcon, LinkIcon } from '@/icons';
 
 interface ShareableLinkModalProps {
 	linkUrl: string;
