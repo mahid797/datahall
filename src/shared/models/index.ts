@@ -44,3 +44,5 @@ export type {
 	UpdatePasswordResponse,
 } from './profileModels';
 export * from './profileModels';
+
+export type { LinkVisitor } from './userModels';
