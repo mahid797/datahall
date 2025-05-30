@@ -29,3 +29,8 @@ export { useModal } from './useModal';
 export { useSort } from './useSort';
 export { useToast } from './useToast';
 export { useValidatedFormData } from './useValidatedFormData';
+
+export { default as useDocumentAccess } from './documentAccess/useDocumentAccess';
+export { default as useVisitorSubmission } from './documentAccess/useVisitorSubmission';
+export { default as useFetchDocumentAnalytics } from './analytics/useFetchDocumentAnalytics';
+export { default as useCreateDocumentAnalytics } from './analytics/useCreateDocumentAnalytics';

@@ -96,8 +96,9 @@ model Document {
   createdAt  DateTime @default(now()) @db.Timestamptz(6)
   updatedAt  DateTime @updatedAt @db.Timestamptz(6)
 
-  user          User           @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  documentLinks DocumentLink[]
+  user              User                @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  documentLinks     DocumentLink[]
+  DocumentAnalytics DocumentAnalytics[]
 
   @@index([userId])
 }
@@ -120,9 +121,10 @@ model DocumentLink {
   updatedAt       DateTime  @updatedAt @db.Timestamptz(6)
 
   // relations
-  document Document              @relation(fields: [documentId], references: [documentId], onDelete: Cascade)
-  creator  User                  @relation(fields: [createdByUserId], references: [userId], onDelete: Cascade)
-  visitors DocumentLinkVisitor[]
+  document          Document              @relation(fields: [documentId], references: [documentId], onDelete: Cascade)
+  creator           User                  @relation(fields: [createdByUserId], references: [userId], onDelete: Cascade)
+  visitors          DocumentLinkVisitor[]
+  DocumentAnalytics DocumentAnalytics[]
 
   //    constraints & indexes
   @@unique([documentId, alias], name: "document_alias_unique") // Composite uniqueness: alias must be unique only within its document
@@ -140,7 +142,28 @@ model DocumentLinkVisitor {
   visitedAt       DateTime @default(now()) @db.Timestamptz(6)
   updatedAt       DateTime @updatedAt @db.Timestamptz(6)
 
-  documentLink DocumentLink @relation(fields: [documentLinkId], references: [documentLinkId], onDelete: Cascade)
+  documentLink      DocumentLink        @relation(fields: [documentLinkId], references: [documentLinkId], onDelete: Cascade)
+  DocumentAnalytics DocumentAnalytics[]
 
   @@index([documentLinkId, visitedAt])
+}
+
+model DocumentAnalytics {
+  id             Int                @id @default(autoincrement())
+  visitorId      Int? // FK to DocumentLinkVisitor (optional)
+  documentId     String
+  documentLinkId String
+  eventType      AnalyticsEventType
+  meta           Json?
+  timestamp      DateTime           @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  DocumentLinkVisitor DocumentLinkVisitor? @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  Document            Document             @relation(fields: [documentId], references: [documentId], onDelete: Cascade)
+  DocumentLink        DocumentLink         @relation(fields: [documentLinkId], references: [documentLinkId], onDelete: Cascade)
+}
+
+enum AnalyticsEventType {
+  VIEW
+  DOWNLOAD
 }

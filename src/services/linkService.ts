@@ -156,6 +156,7 @@ export class LinkService {
 		signedUrl: string;
 		fileName: string;
 		size: number;
+		fileType: string;
 	}> {
 		const link = await prisma.documentLink.findUnique({
 			where: { documentLinkId: linkId },
@@ -175,6 +176,7 @@ export class LinkService {
 			signedUrl,
 			fileName: link.document.fileName,
 			size: link.document.size,
+			fileType: link.document.fileType,
 		};
 	}
 }
