@@ -10,19 +10,11 @@ import { ChevronRightIcon } from '@/icons';
 
 interface CustomAccordionProps extends AccordionProps {
 	title: string;
-	defaultExpanded?: boolean;
 }
 
-const CustomAccordion = ({
-	title,
-	defaultExpanded = false,
-	children,
-	...props
-}: CustomAccordionProps) => {
+const CustomAccordion = ({ title, children, ...props }: CustomAccordionProps) => {
 	return (
 		<Accordion
-			defaultExpanded={defaultExpanded}
-			disableGutters
 			slotProps={{ transition: { unmountOnExit: true } }}
 			{...props}>
 			<AccordionSummary

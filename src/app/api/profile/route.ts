@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-
-import { authService } from '@/services';
+import { authService } from '../_services/authService';
 import prisma from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
 	try {
@@ -10,11 +9,11 @@ export async function GET(req: NextRequest) {
 
 		// Get the user’s info from the database
 		const user = await prisma.user.findUnique({
-			where: { userId },
+			where: { user_id: userId },
 			select: {
 				email: true,
-				firstName: true,
-				lastName: true,
+				first_name: true,
+				last_name: true,
 			},
 		});
 
@@ -26,8 +25,8 @@ export async function GET(req: NextRequest) {
 		return NextResponse.json(
 			{
 				email: user.email,
-				firstName: user.firstName,
-				lastName: user.lastName,
+				firstName: user.first_name,
+				lastName: user.last_name,
 			},
 			{ status: 200 },
 		);

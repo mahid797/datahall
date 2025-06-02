@@ -1,42 +1,90 @@
 'use client';
 
 import { Box, Typography } from '@mui/material';
+import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import { FormProvider } from 'react-hook-form';
 
 import { BlueWaveLogo, FormInput, LoadingButton, NavLink, PasswordValidation } from '@/components';
 import AuthFormWrapper from '../components/AuthFormWrapper';
 
-import { useFormSubmission, useSignUp } from '@/hooks';
-import { useSignUpForm } from '@/hooks/forms';
+import { useFormSubmission, useValidatedFormData } from '@/hooks';
+import { passwordValidationRule, requiredFieldRule, validEmailRule } from '@/shared/utils';
 
 export default function SignUp() {
 	const router = useRouter();
-	const registerMutation = useSignUp();
-	const form = useSignUpForm();
 
-	/* ------------------------------ form state ----------------------------- */
-	const {
-		register,
-		watch,
-		formState: { errors, isValid, touchedFields },
-	} = form;
+	const { values, touched, handleChange, handleBlur, getError, validateAll } = useValidatedFormData(
+		{
+			initialValues: {
+				firstName: '',
+				lastName: '',
+				email: '',
+				password: '',
+				confirmPassword: '',
+			},
+			validationRules: {
+				firstName: [requiredFieldRule('First name is required')],
+				lastName: [requiredFieldRule('Last name is required')],
+				email: [requiredFieldRule('Email is required'), validEmailRule],
+				password: [
+					requiredFieldRule('Password is required'),
+					passwordValidationRule(8, true, true),
+				],
+				confirmPassword: [requiredFieldRule('Please confirm your password')],
+			},
+		},
+	);
 
 	const { loading, handleSubmit, toast } = useFormSubmission({
-		mutation: registerMutation,
-		validate: () => isValid,
-		successMessage: 'Verification e-mail sent — check your inbox!',
-		onSuccess: () => {
-			const msg = registerMutation.data?.message ?? 'Verification e-mail sent. Check your inbox.';
-			toast.showToast({ message: msg, variant: 'success' });
-			router.push('/auth/sign-in?emailSent=true');
-		},
+		onSubmit: async () => {
+			// 1) Basic client checks
+			const hasError = validateAll();
+			if (hasError) {
+				throw new Error('Please correct the highlighted fields.');
+			}
 
-		onError: (err) => {
-			const message = (err as any)?.response?.data?.message ?? 'Unable to create account';
-			toast.showToast({ message, variant: 'error' });
+			if (values.password !== values.confirmPassword) {
+				if (values.confirmPassword) {
+					toast.showToast({
+						message: 'Password and confirmation password do not match.',
+						variant: 'warning',
+					});
+				}
+				return;
+			}
+
+			// 2) Attempt server call
+			const res = await axios.post('/api/auth/register', {
+				firstName: values.firstName,
+				lastName: values.lastName,
+				email: values.email,
+				password: values.password,
+			});
+
+			if (res.data.success) {
+				// Partial success
+				if (res.data.emailFail) {
+					toast.showToast({
+						message:
+							res.data.message ||
+							'Account created, Email sending is disabled in development. Contact admin.',
+						variant: 'warning',
+					});
+					return router.push(`/auth/account-created?userId=${res.data.userId}`);
+				}
+
+				if (res.data.token) {
+					router.push(`/auth/account-created?token=${res.data.token}`);
+				} else {
+					toast.showToast({ message: res.data.message, variant: 'success' });
+				}
+			} else {
+				toast.showToast({
+					message: res.data.message || 'Unknown server error',
+					variant: 'error',
+				});
+			}
 		},
-		skipDefaultToast: true,
 	});
 
 	return (
@@ -53,73 +101,85 @@ export default function SignUp() {
 				mb={{ sm: 10, md: 11, lg: 12 }}>
 				Create an account
 			</Typography>
-			<FormProvider {...form}>
+
+			<Box
+				component='form'
+				onSubmit={handleSubmit}
+				noValidate
+				minWidth={400}
+				display='flex'
+				flexDirection='column'
+				gap={8}>
 				<Box
-					component='form'
-					onSubmit={handleSubmit}
-					noValidate
-					minWidth={400}
 					display='flex'
-					flexDirection='column'
-					gap={8}>
-					<Box
-						display='flex'
-						gap={{ sm: 8, md: 9, lg: 10 }}
-						flexDirection='column'>
-						<FormInput
-							label='First name'
-							placeholder='Enter your first name'
-							{...register('firstName')}
-							errorMessage={errors.firstName?.message}
-						/>
-
-						<FormInput
-							label='Last name'
-							placeholder='Enter your last name'
-							{...register('lastName')}
-							errorMessage={errors.lastName?.message}
-						/>
-
-						<FormInput
-							label='Email'
-							type='email'
-							placeholder='your_email@bluewave.ca'
-							{...register('email')}
-							errorMessage={errors.email?.message}
-						/>
-
-						<FormInput
-							label='Password'
-							type='password'
-							placeholder='Create a password'
-							{...register('password')}
-							errorMessage={errors.password?.message}
-						/>
-
-						<FormInput
-							label='Confirm password'
-							type='password'
-							placeholder='Confirm your password'
-							{...register('confirmPassword')}
-							errorMessage={errors.confirmPassword?.message}
-						/>
-					</Box>
-
-					{/* Real-time password strength feedback */}
-					<PasswordValidation
-						passwordValue={watch('password')}
-						isBlur={!!touchedFields.password}
+					gap={{ sm: 8, md: 9, lg: 10 }}
+					flexDirection='column'>
+					<FormInput
+						label='First name'
+						id='firstName'
+						placeholder='Enter your first name'
+						value={values.firstName}
+						onChange={handleChange}
+						onBlur={handleBlur}
+						errorMessage={getError('firstName')}
 					/>
 
-					<LoadingButton
-						type='submit'
-						loading={loading}
-						disabled={!isValid}
-						buttonText='Get started'
-						loadingText='Creating account...'
+					<FormInput
+						label='Last name'
+						id='lastName'
+						placeholder='Enter your last name'
+						value={values.lastName}
+						onChange={handleChange}
+						onBlur={handleBlur}
+						errorMessage={getError('lastName')}
+					/>
+
+					<FormInput
+						label='Email'
+						id='email'
+						type='email'
+						placeholder='your_email@bluewave.ca'
+						value={values.email}
+						onChange={handleChange}
+						onBlur={handleBlur}
+						errorMessage={getError('email')}
+					/>
+
+					<FormInput
+						label='Password'
+						id='password'
+						type='password'
+						placeholder='Create a password'
+						value={values.password}
+						onChange={handleChange}
+						onBlur={handleBlur}
+						errorMessage={getError('password')}
+					/>
+
+					<FormInput
+						label='Confirm password'
+						id='confirmPassword'
+						type='password'
+						placeholder='Confirm your password'
+						value={values.confirmPassword}
+						onChange={handleChange}
+						onBlur={handleBlur}
+						errorMessage={getError('confirmPassword')}
 					/>
 				</Box>
-			</FormProvider>
+
+				{/* Real-time password strength feedback */}
+				<PasswordValidation
+					passwordValue={values.password}
+					isBlur={touched.password}
+				/>
+
+				<LoadingButton
+					loading={loading}
+					buttonText='Get started'
+					loadingText='Creating Account ...'
+				/>
+			</Box>
 
 			<Box
 				mt={25}

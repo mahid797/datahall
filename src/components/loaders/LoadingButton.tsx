@@ -1,8 +1,8 @@
 // components/LoadingButton.tsx
-import { Button, CircularProgress, ButtonProps } from '@mui/material';
+import { Button, CircularProgress } from '@mui/material';
 import { FormEvent } from 'react';
 
-interface LoadingButtonProps extends ButtonProps {
+interface LoadingButtonProps {
 	loading: boolean;
 	buttonText: string;
 	loadingText?: string;
@@ -22,7 +22,6 @@ const LoadingButton = ({
 	type = 'submit',
 	variant = 'contained',
 	color = 'primary',
-	...props
 }: LoadingButtonProps) => {
 	return (
 		<Button
@@ -39,8 +38,7 @@ const LoadingButton = ({
 						color='inherit'
 					/>
 				) : null
-			}
-			{...props}>
+			}>
 			{loading ? loadingText : buttonText}
 		</Button>
 	);

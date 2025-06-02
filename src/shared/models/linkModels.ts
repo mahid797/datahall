@@ -1,66 +1,35 @@
 // =========== LINK TYPE ===========
 
-export interface DocumentLink {
+export interface LinkType {
 	id: number;
-	documentLinkId: string;
+	linkId: string;
 	documentId: string;
-	createdByUserId: string;
-	alias: string | null;
+	userId: string;
+	alias?: string;
+	linkUrl: string;
 	isPublic: boolean;
-	expirationTime: string | null; // ISO 8601
-	password: string | null; // hashed in DB – never sent to client
-	visitorFields: string[]; // e.g. ["name","email"]
-	linkUrl: string; // convenience field (built server-side)
-	createdAt: string; // ISO 8601
-	updatedAt: string; // ISO 8601
+	visitorFields?: string[];
+	expirationTime?: string;
+	password?: string;
+	updatedAt: string;
+	createdAt: string;
 }
 
 // =========== LINK FORM VALUES ===========
 
 export interface LinkFormValues {
-	/* basic */
-	isPublic: boolean;
-	alias?: string;
-	/* password protection */
-	requirePassword: boolean;
 	password?: string;
-	/* expiry */
-	expirationEnabled: boolean;
-	expirationTime?: string; // ISO 8601
-	/* visitor info */
-	requireUserDetails: boolean;
-	visitorFields: string[];
-	/* sending options */
-	selectFromContact: boolean;
-	contactEmails?: { label: string; id: number }[];
-	sendToOthers: boolean;
-	otherEmails?: string;
-}
-
-export interface CreateDocumentLinkPayload {
-	alias?: string;
 	isPublic: boolean;
+	alias?: string;
 	expirationTime?: string;
-	password?: string;
+	requirePassword: boolean;
+	expirationEnabled: boolean;
+	requireUserDetails: boolean;
 	visitorFields?: string[];
-	/* emailing */
 	contactEmails?: { label: string; id: number }[];
+	selectFromContact: boolean;
 	otherEmails?: string;
-}
-
-export interface PublicLinkMeta {
-	isPasswordProtected: boolean;
-	visitorFields: string[]; // required visitor inputs
-	signedUrl?: string; // only present when link is truly public
-}
-
-export interface FileAccessPayload {
-	signedUrl: string;
-	fileName: string;
-	size: number; // bytes
-	fileType: string; // MIME
-	documentId: string;
-	documentLinkId?: string;
+	sendToOthers: boolean;
 }
 
 // =========== LINK PAYLOAD ===========
@@ -88,14 +57,14 @@ export interface InviteRecipientsPayload {
 	recipients: string[];
 }
 
-// =========== LINK DETAIL ===========
-export interface LinkDetailRow {
-	linkId: string;
-	alias: string | null;
-	documentId: string;
-	createdLink: string; // same as linkUrl
-	lastActivity: string; // ISO date
-	linkViews: number; // aggregated analytics
+// =========== LINK DATA ===========
+
+export interface LinkData {
+	isPasswordProtected?: boolean;
+	requiredUserDetailsOption?: number;
+	signedUrl?: string;
+	fileName?: string;
+	size?: number;
 }
 
 // =========== LINK DETAIL ===========

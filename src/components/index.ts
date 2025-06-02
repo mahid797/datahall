@@ -1,6 +1,4 @@
-export { default as AvatarCard } from './common/AvatarCard';
 export { default as Breadcrumb } from './common/Breadcrumb';
-export { default as EnvironmentBadge } from './common/EnvironmentBadge';
 export { default as Toast } from './common/Toast';
 
 export { default as CustomUploader } from './fileHandling/CustomUploader';

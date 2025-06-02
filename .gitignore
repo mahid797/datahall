@@ -11,20 +11,18 @@
 /out/
 
 # Ignore settings.json files
-vscode/
-vscode/settings.json
+/.vscode
+.vscode/settings.json
 
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Ignore all real .env files
-env/
+# Ignore all .env files.env
 .env
 .env.local
-.env.production
-.env.development
+.env.prod
 
 # vercel
 .vercel
@@ -40,3 +38,4 @@ next-env.d.ts
 
 # Ignore the entire migrations folder temporarily
 prisma/migrations/
+

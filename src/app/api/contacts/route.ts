@@ -1,8 +1,6 @@
 import prisma from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
-
-import { authService } from '@/services';
-import { buildLinkUrl } from '@/shared/utils';
+import { authService } from '../_services/authService';
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
 	try {
@@ -37,7 +35,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 					where: {
 						email: visitor.email,
 						documentLinkId: { in: linkIds },
-						OR: [{ firstName: { not: '' } }, { lastName: { not: '' } }],
 					},
 					orderBy: { updatedAt: 'desc' },
 					include: {
@@ -58,17 +55,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 					id: lastVisit.id,
 					name: fullName,
 					email: visitor.email || null,
-					lastViewedLink:
-						lastVisit.documentLink?.alias ||
-						buildLinkUrl(lastVisit.documentLink?.documentLinkId) ||
-						null,
+					lastViewedLink: lastVisit.documentLink?.alias || lastVisit.documentLink?.linkUrl || null,
 					lastActivity: lastVisit.updatedAt || null,
 					totalVisits: visitor._count.email || 0,
 				};
 			}),
 		);
 
-		const contacts = visitorDetails.filter((visitor) => visitor && visitor.email && visitor.name);
+		const contacts = visitorDetails.filter(Boolean);
 
 		return NextResponse.json({ data: contacts }, { status: 200 });
 	} catch (error) {

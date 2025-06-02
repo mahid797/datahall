@@ -1,4 +1,3 @@
-import { MIDDLEWARE_MATCHER_PATTERN } from '@/shared/config/routesConfig';
 import { withAuth } from 'next-auth/middleware';
 
 export default withAuth({
@@ -8,5 +7,7 @@ export default withAuth({
 });
 
 export const config = {
-	matcher: [MIDDLEWARE_MATCHER_PATTERN],
+	matcher: [
+		'/((?!register|auth/sign-up|auth/forgot-password|auth/account-created|auth/password-reset-confirm|auth/check-email|auth/reset-password|documentAccess/[a-f0-9-]{36})/.*.*|auth/reset-password/.*)',
+	],
 };

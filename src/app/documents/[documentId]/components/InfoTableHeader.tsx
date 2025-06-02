@@ -1,6 +1,6 @@
 import { TableCell, TableRow, TableSortLabel } from '@mui/material';
 
-import { Contact, LinkDetailRow } from '@/shared/models';
+import { Contact, LinkDetail } from '@/shared/models';
 
 import { ChevronDownIcon, ChevronSelectorVerticalIcon } from '@/icons';
 
@@ -8,7 +8,7 @@ type SortableKeys = 'lastActivity';
 
 interface InfoTableHeaderProps {
 	variant?: 'linkTable' | 'visitorTable';
-	orderBy?: keyof LinkDetailRow | Contact | undefined;
+	orderBy?: keyof LinkDetail | Contact | undefined;
 	orderDirection?: 'asc' | 'desc' | undefined;
 	onSort?: (property: SortableKeys) => void;
 }
@@ -30,7 +30,7 @@ export default function InfoTableHeader({
 	if (variant === 'linkTable') {
 		return (
 			<TableRow>
-				<TableCell sx={{ width: '45%', pl: '2.5rem' }}>LINK</TableCell>
+				<TableCell sx={{ width: '45%', pl: 20 }}>LINK</TableCell>
 				<TableCell sx={{ width: '20%', textAlign: 'center' }}>
 					<TableSortLabel
 						active={orderBy === 'lastActivity'}
@@ -41,9 +41,8 @@ export default function InfoTableHeader({
 						LAST VIEWED
 					</TableSortLabel>
 				</TableCell>
-				<TableCell sx={{ width: '10%', textAlign: 'center' }}>VIEWS</TableCell>
+				<TableCell sx={{ width: '25%', textAlign: 'center' }}>VIEWS</TableCell>
 				<TableCell sx={{ width: '10%', textAlign: 'center' }}>ACTION</TableCell>
-				<TableCell sx={{ width: '15%', textAlign: 'center' }}></TableCell>
 			</TableRow>
 		);
 	}
@@ -51,7 +50,7 @@ export default function InfoTableHeader({
 	// visitorTable
 	return (
 		<TableRow>
-			<TableCell sx={{ width: '30%', pl: '2.5rem' }}>VISITOR</TableCell>
+			<TableCell sx={{ width: '30%', pl: 20 }}>VISITOR</TableCell>
 			<TableCell sx={{ width: '25%', textAlign: 'center' }}>
 				<TableSortLabel
 					active={orderBy === 'lastActivity'}

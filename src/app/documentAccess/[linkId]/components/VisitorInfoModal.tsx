@@ -18,9 +18,8 @@ import { FormInput, LoadingButton } from '@/components';
 import { useFormSubmission, useValidatedFormData, useVisitorSubmission } from '@/hooks';
 
 import { EyeIcon, EyeOffIcon, FileDownloadIcon } from '@/icons';
-import { visitorFieldsConfigByKey } from '@/shared/config/visitorFieldsConfig';
-import { FileAccessPayload } from '@/shared/models';
 import { requiredFieldRule, splitName, validEmailRule } from '@/shared/utils';
+import { visitorFieldsConfigByKey } from '@/shared/config/visitorFieldsConfig';
 
 function getFormConfig(passwordRequired: boolean, visitorFields: string[]) {
 	const formConfig: {
@@ -54,7 +53,7 @@ interface VisitorInfoModalProps {
 	linkId: string;
 	passwordRequired: boolean;
 	visitorFields: string[];
-	onVisitorInfoModalSubmit: (data: FileAccessPayload) => void;
+	onVisitorInfoModalSubmit: (data: Record<string, any>) => void;
 }
 
 export default function VisitorInfoModal({
@@ -70,8 +69,7 @@ export default function VisitorInfoModal({
 		initialValues: formConfig.initialValues,
 		validationRules: formConfig.validationRules,
 	});
-
-	const { mutateAsync: submitVisitorData, isPending } = useVisitorSubmission();
+	const submitVisitorData = useVisitorSubmission();
 
 	const { loading, handleSubmit, toast } = useFormSubmission({
 		onSubmit: async () => {
@@ -80,35 +78,21 @@ export default function VisitorInfoModal({
 				throw new Error('Please correct the highlighted fields.');
 			}
 
-			// HOTFIX: Untouched empty fields weren't being validated on first submit
-			// Additional validation to catch empty required fields even if untouched
-			// This is a temporary fix until we can refactor the validation logic with Zod
-			const requiredFields = visitorFields.filter((field) =>
-				formConfig.validationRules[field]?.some((rule) => rule.message.includes('required')),
-			);
-
-			const emptyFields = requiredFields.filter(
-				(field) => !values[field] || values[field].trim() === '',
-			);
-
-			if (emptyFields.length > 0) {
-				throw new Error('Please fill in all required fields.');
-			}
-
 			const splittedName = splitName(values.name);
+
 			const payload = {
 				linkId,
-				firstName: splittedName.firstName,
-				lastName: splittedName.lastName,
+				firstName: splittedName.first_name,
+				lastName: splittedName.last_name,
 				email: values.email || '',
 				password: values.password || '',
 				visitorMetaData: null, // This will be populated to add any additional user information, Implementation from API endpoint as well.
 			};
 
-			const response = await submitVisitorData({ linkId, payload });
+			const response = await submitVisitorData.mutateAsync({ linkId, payload });
 
 			if (!response.data) {
-				throw new Error('No file data returned.');
+				throw new Error(response.data.message || 'No file data returned.');
 			}
 
 			onVisitorInfoModalSubmit(response.data);
@@ -122,8 +106,7 @@ export default function VisitorInfoModal({
 			open
 			onClose={() => {}}
 			component='form'
-			onSubmit={handleSubmit}
-			fullWidth>
+			onSubmit={handleSubmit}>
 			{/* Header */}
 			<Box
 				display='flex'
@@ -145,7 +128,7 @@ export default function VisitorInfoModal({
 			<Divider />
 
 			{/* Form Fields */}
-			<DialogContent sx={{ m: 4 }}>
+			<DialogContent sx={{ m: 8 }}>
 				<Grid
 					container
 					rowSpacing={14}
@@ -183,11 +166,9 @@ export default function VisitorInfoModal({
 					{passwordRequired && (
 						<>
 							{/* Divider */}
-							{visitorFields.length > 0 && (
-								<Grid size={12}>
-									<Divider sx={{ borderBottomWidth: 2 }} />
-								</Grid>
-							)}
+							<Grid size={12}>
+								<Divider sx={{ mt: 5 }} />
+							</Grid>
 
 							{/* Password */}
 							<Grid
@@ -226,8 +207,7 @@ export default function VisitorInfoModal({
 			{/* Submit Button */}
 			<DialogActions sx={{ p: 0, m: 12 }}>
 				<LoadingButton
-					loading={loading || isPending}
-					disabled={loading || isPending}
+					loading={loading}
 					buttonText='Confirm'
 					loadingText='Confirming...'
 					fullWidth

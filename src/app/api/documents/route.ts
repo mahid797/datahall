@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-import { authService, createErrorResponse, documentService, uploadFile } from '@/services';
-import { buildLinkUrl } from '@/shared/utils';
+import { authService, DocumentService, createErrorResponse } from '../_services';
+import { uploadFile } from '../_services/storageService';
 
 /**
  * GET /api/documents
@@ -10,22 +9,25 @@ import { buildLinkUrl } from '@/shared/utils';
 export async function GET(req: NextRequest) {
 	try {
 		const userId = await authService.authenticate();
-		const documents = await documentService.getUserDocuments(userId);
+		const documents = await DocumentService.getUserDocuments(userId);
 
 		const result = documents.map((doc) => {
-			const linkCount = doc.documentLinks.length;
-			const visitorCount = doc.documentLinks.reduce((acc, l) => acc + l.visitors.length, 0);
+			const linkCount = doc.documentLink.length;
+			const visitorCount = doc.documentLink.reduce(
+				(acc, l) => acc + l.documentLinkVisitors.length,
+				0,
+			);
 			const totalViews = 0; // placeholder
 
-			const createdLinks = doc.documentLinks.map((link) => ({
-				linkId: link.documentLinkId,
-				createdLink: buildLinkUrl(link.documentLinkId),
-				lastViewed: link.updatedAt,
+			const createdLinks = doc.documentLink.map((lnk) => ({
+				linkId: lnk.documentLinkId,
+				createdLink: lnk.linkUrl,
+				lastViewed: lnk.updatedAt,
 				linkViews: 0,
 			}));
 
 			return {
-				documentId: doc.documentId,
+				document_id: doc.document_id,
 				fileName: doc.fileName,
 				filePath: doc.filePath,
 				fileType: doc.fileType,
@@ -33,7 +35,7 @@ export async function GET(req: NextRequest) {
 				createdAt: doc.createdAt.toISOString(),
 				updatedAt: doc.updatedAt.toISOString(),
 				uploader: {
-					name: `${doc.user.firstName} ${doc.user.lastName}`,
+					name: `${doc.User.first_name} ${doc.User.last_name}`,
 					avatar: null,
 				},
 				links: linkCount,
@@ -65,7 +67,7 @@ export async function POST(req: NextRequest) {
 
 		// Validate file with environment constraints
 		try {
-			documentService.validateUploadFile(file);
+			DocumentService.validateUploadFile(file);
 		} catch (err) {
 			if (err instanceof Error) {
 				if (err.message === 'INVALID_FILE_TYPE') {
@@ -90,7 +92,7 @@ export async function POST(req: NextRequest) {
 			return createErrorResponse('File upload failed.', 500);
 		}
 
-		const document = await documentService.createDocument({
+		const document = await DocumentService.createDocument({
 			userId,
 			fileName: file.name,
 			filePath: uploadResult,

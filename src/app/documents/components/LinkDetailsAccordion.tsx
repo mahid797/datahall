@@ -39,14 +39,14 @@ const LinkDetailsAccordion = ({ formValues, handleInputChange }: Props) => {
 				flexDirection='column'
 				my={2}
 				gap={2}>
-				<Typography>Link Alias</Typography>
+				<Typography>Link name</Typography>
 				<FormInput
 					id='alias'
 					minWidth={460}
 					type='text'
 					value={formValues.alias}
 					onChange={handleInputChange}
-					placeholder='Enter an alias for the link'
+					placeholder='Enter a friendly name for the link'
 				/>
 
 				<CustomCheckbox

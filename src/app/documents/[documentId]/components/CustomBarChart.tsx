@@ -20,7 +20,7 @@ export default function CustomBarChart({ data }: CustomBarChartProps) {
 				{
 					scaleType: 'band',
 					dataKey: 'month',
-					categoryGapRatio: 0.7,
+					...({ categoryGapRatio: 0.7 } as any),
 					barGapRatio: 0.4,
 				},
 			]}
@@ -30,9 +30,10 @@ export default function CustomBarChart({ data }: CustomBarChartProps) {
 			]}
 			slotProps={{
 				legend: {
-					direction: 'horizontal',
-					position: { vertical: 'bottom', horizontal: 'center' },
-					sx: { p: -5, gap: 20 },
+					itemMarkWidth: 12,
+					itemMarkHeight: 12,
+					itemGap: 20,
+					padding: -5,
 				},
 			}}
 		/>

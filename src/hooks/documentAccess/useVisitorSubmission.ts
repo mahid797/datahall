@@ -1,41 +1,20 @@
 import axios from 'axios';
 import { useMutation } from '@tanstack/react-query';
 
-import { PublicLinkAccessPayload } from '@/shared/validation/publicLinkSchemas';
-import { FileAccessPayload } from '@/shared/models';
+const submitVisitorDetails = async ({ linkId, payload }: { linkId: string; payload: any }) => {
+	const response = await axios.post(`/api/public_links/${linkId}/access`, payload);
 
-interface VisitorSubmissionResponse {
-	message: string;
-	data: FileAccessPayload;
-}
-
-const submitVisitorDetails = async ({
-	linkId,
-	payload,
-}: {
-	linkId: string;
-	payload: PublicLinkAccessPayload;
-}) => {
-	const { data } = await axios.post<VisitorSubmissionResponse>(
-		`/api/public_links/${linkId}/access`,
-		payload,
-	);
-	return data;
+	return response.data;
 };
 
 const useVisitorSubmission = () => {
-	const mutation = useMutation({
-		mutationFn: submitVisitorDetails,
+	return useMutation({
+		mutationFn: async (variables: { linkId: string; payload: any }) =>
+			submitVisitorDetails(variables),
 		onError: (error) => {
-			console.error('Error submitting visitor details: ', error);
+			console.error('Error adding document: ', error);
 		},
 	});
-
-	return {
-		mutateAsync: mutation.mutateAsync,
-		isPending: mutation.isPending,
-		error: mutation.error,
-	};
 };
 
 export default useVisitorSubmission;

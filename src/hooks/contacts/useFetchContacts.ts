@@ -1,8 +1,6 @@
-import axios from 'axios';
-import { useQuery } from '@tanstack/react-query';
-
 import { Contact } from '@/shared/models';
-import { queryKeys } from '@/shared/queryKeys';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
 
 export default function useFetchContacts() {
 	const fetchContacts = async (): Promise<Contact[]> => {
@@ -11,7 +9,7 @@ export default function useFetchContacts() {
 	};
 
 	return useQuery({
-		queryKey: queryKeys.contacts.base, // Caching key
+		queryKey: ['contacts'], // Caching key
 		queryFn: fetchContacts, // Function to fetch data
 		staleTime: 1000 * 30, // Data stays fresh for 30 seconds before being marked stale
 		refetchInterval: 1000 * 60, // Background refetch every 60 seconds

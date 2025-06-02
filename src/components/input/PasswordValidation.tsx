@@ -1,38 +1,18 @@
-// ──────────────────────────────────────────────────────────────────────────────
-// PasswordValidation.tsx
-// ----------------------------------------------------------------------------
-// Live “strength” feedback shown below a password field.
-// Relies on getPasswordChecks() so the regexes remain DRY.
-// ----------------------------------------------------------------------------
-
 import { FC } from 'react';
+
 import { Box, Typography } from '@mui/material';
 
 import { CheckCircleIcon, XCircleIcon } from '@/icons';
-import { getPasswordChecks } from '@/shared/validation/validationUtils';
+
+import { getPasswordChecks } from '@/shared/utils';
 
 interface PasswordValidationProps {
-	/** Current password text from the parent form */
 	passwordValue: string;
-	/** Show red cross icons only after the field has lost focus */
 	isBlur?: boolean;
 }
 
-const PasswordValidation: FC<PasswordValidationProps> = ({ passwordValue, isBlur = false }) => {
-	const { isLengthValid, hasUppercase, hasSymbol } = getPasswordChecks(passwordValue);
-
-	/**
-	 * Returns the appropriate icon for each rule.
-	 * – While the user is typing (not blurred yet), we show grey “disabled”
-	 *   circles to avoid scaring them.
-	 * – After blur, failing rules show a red X.
-	 */
-	const renderIcon = (rulePassed: boolean) =>
-		passwordValue && !rulePassed && isBlur ? (
-			<XCircleIcon color='error' />
-		) : (
-			<CheckCircleIcon color={rulePassed ? 'success' : 'disabled'} />
-		);
+const PasswordValidation: FC<PasswordValidationProps> = ({ passwordValue, isBlur }) => {
+	const { isLengthValid, hasUppercaseLetter, hasSymbol } = getPasswordChecks(passwordValue);
 
 	return (
 		<Box
@@ -40,31 +20,43 @@ const PasswordValidation: FC<PasswordValidationProps> = ({ passwordValue, isBlur
 			flexDirection='column'
 			gap={6}
 			mb={3}>
-			{/* ≥ 8 chars ----------------------------------------------------------- */}
+			{/* Has at least 8 characters */}
 			<Box
 				display='flex'
 				alignItems='center'
 				gap={5}>
-				{renderIcon(isLengthValid)}
+				{passwordValue && !isLengthValid && isBlur ? (
+					<XCircleIcon color='error' />
+				) : (
+					<CheckCircleIcon color={isLengthValid ? 'success' : 'disabled'} />
+				)}
 				<Typography variant='body2'>Must be at least 8 characters</Typography>
 			</Box>
 
-			{/* uppercase ---------------------------------------------------------- */}
+			{/* Has at least one uppercase letter */}
 			<Box
 				display='flex'
 				alignItems='center'
 				gap={5}>
-				{renderIcon(hasUppercase)}
-				<Typography variant='body2'>Must contain at least one uppercase letter</Typography>
+				{passwordValue && !hasUppercaseLetter && isBlur ? (
+					<XCircleIcon color='error' />
+				) : (
+					<CheckCircleIcon color={hasUppercaseLetter ? 'success' : 'disabled'} />
+				)}
+				<Typography variant='body2'>Must contain at least one uppercase letter.</Typography>
 			</Box>
 
-			{/* symbol ------------------------------------------------------------- */}
+			{/* Has at least one symbol */}
 			<Box
 				display='flex'
 				alignItems='center'
 				gap={5}>
-				{renderIcon(hasSymbol)}
-				<Typography variant='body2'>Must include at least one symbol</Typography>
+				{passwordValue && !hasSymbol && isBlur ? (
+					<XCircleIcon color='error' />
+				) : (
+					<CheckCircleIcon color={hasSymbol ? 'success' : 'disabled'} />
+				)}
+				<Typography variant='body2'>Must Include at least one symbol.</Typography>
 			</Box>
 		</Box>
 	);

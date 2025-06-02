@@ -1,5 +1,5 @@
 import { Alert, Box, IconButton, Slide, SlideProps, Snackbar } from '@mui/material';
-import { forwardRef, ReactNode } from 'react';
+import { ReactNode } from 'react';
 import NavLink from '../navigation/NavLink';
 import { ToastVariant } from '@/providers/toast/toastTypes';
 import { XCloseIcon } from '@/icons';
@@ -26,15 +26,14 @@ type ToastWithChildren = BaseToastProps & {
 
 type ToastProps = ToastWithMessage | ToastWithChildren;
 
-const SlideTransition = forwardRef(function SlideTransition(props: SlideProps, ref) {
+const SlideTransition = (props: SlideProps) => {
 	return (
 		<Slide
-			ref={ref}
 			{...props}
 			direction='left'
 		/>
 	);
-});
+};
 
 export default function Toast({
 	variant = 'info',
@@ -60,13 +59,10 @@ export default function Toast({
 				anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
 				autoHideDuration={autoHide ? 4000 : null}
 				onClose={hideToast}
-				slots={{ transition: SlideTransition }}
-				slotProps={{
-					transition: {
-						appear: true,
-						style: {
-							transitionDelay: `${index * 300}ms`,
-						},
+				TransitionComponent={SlideTransition}
+				TransitionProps={{
+					style: {
+						transitionDelay: `${index * 300}ms`,
 					},
 				}}
 				action={action}

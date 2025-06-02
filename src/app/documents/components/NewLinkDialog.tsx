@@ -1,37 +1,30 @@
-import { useState } from 'react';
+import React from 'react';
 
 import { Box, Chip, Dialog, DialogContent, DialogTitle, IconButton } from '@mui/material';
 
 import { CheckIcon, CopyIcon, LinkIcon } from '@/icons';
 
-<<<<<<<< HEAD:src/app/documents/components/NewLinkDialog.tsx
 interface NewLinkDialogProps {
-========
-interface ShareLinkDialogProps {
->>>>>>>> dev:src/app/documents/components/ShareLinkDialog.tsx
 	linkUrl: string;
 	onClose: () => void;
 }
 
-<<<<<<<< HEAD:src/app/documents/components/NewLinkDialog.tsx
 export default function NewLinkDialog({ linkUrl, onClose }: NewLinkDialogProps) {
 	const [isLinkCopied, setIsLinkCopied] = React.useState(false);
-========
-export default function ShareLinkDialog({ linkUrl, onClose }: ShareLinkDialogProps) {
-	const [copied, setCopied] = useState(false);
->>>>>>>> dev:src/app/documents/components/ShareLinkDialog.tsx
 
-	function handleCopy() {
-		navigator.clipboard.writeText(linkUrl);
-		setCopied(true);
-		setTimeout(() => setCopied(false), 3000);
+	function handleLinkCopy() {
+		if (linkUrl) {
+			navigator.clipboard.writeText(linkUrl);
+			setIsLinkCopied(true);
+			setTimeout(() => setIsLinkCopied(false), 3000);
+		}
 	}
 
-	const showDialog = Boolean(linkUrl);
+	const open = Boolean(linkUrl);
 
 	return (
 		<Dialog
-			open={showDialog}
+			open={open}
 			onClose={onClose}
 			fullWidth
 			maxWidth='sm'>
@@ -66,9 +59,9 @@ export default function ShareLinkDialog({ linkUrl, onClose }: ShareLinkDialogPro
 				/>
 
 				<IconButton
-					onClick={handleCopy}
+					onClick={handleLinkCopy}
 					sx={{ transition: '0.2s' }}>
-					{copied ? (
+					{isLinkCopied ? (
 						<CheckIcon
 							width={15}
 							height={15}

@@ -1,23 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authService } from '@/services';
+import { authService } from '@/app/api/_services/authService';
 
-/** GET /api/auth/verify?token=abc */
+/**
+ * GET /api/auth/verify?token=... or userId=...
+ */
 export async function GET(req: NextRequest) {
-	if (!authService.verifyUser) {
-		/* Auth0 mode: this endpoint is unused */
-		return NextResponse.json({ message: 'Not found' }, { status: 404 });
+	try {
+		const { searchParams } = new URL(req.url);
+		const token = searchParams.get('token') || undefined;
+		const userId = searchParams.get('userId') || undefined;
+
+		const result = await authService.verifyUser(token, userId);
+
+		return NextResponse.json({ message: result.message }, { status: result.statusCode });
+	} catch (err) {
+		console.error('[verify] Error verifying email:', err);
+		return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
 	}
-
-	const token = new URL(req.url).searchParams.get('token') ?? undefined;
-	const result = await authService.verifyUser({ token });
-
-	const redirectUrl = new URL(`${process.env.NEXT_PUBLIC_APP_URL}/auth/sign-in`);
-
-	if (result.success) {
-		redirectUrl.searchParams.set('verified', 'true');
-	} else {
-		redirectUrl.searchParams.set('error', result.message);
-	}
-
-	return NextResponse.redirect(redirectUrl, 302);
 }

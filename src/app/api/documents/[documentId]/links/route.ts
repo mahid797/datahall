@@ -1,7 +1,5 @@
+import { authService, createErrorResponse, LinkService } from '@/app/api/_services';
 import { NextRequest, NextResponse } from 'next/server';
-
-import { authService, createErrorResponse, linkService } from '@/services';
-import { buildLinkUrl } from '@/shared/utils/urlBuilder';
 
 /**
  * GET /api/documents/[documentId]/links
@@ -11,7 +9,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ documentI
 	try {
 		const userId = await authService.authenticate();
 		const { documentId } = await props.params;
-		const links = await linkService.getDocumentLinks(userId, documentId);
+		const links = await LinkService.getDocumentLinks(userId, documentId);
 		if (links === null) {
 			return createErrorResponse('Document not found or access denied.', 404);
 		}
@@ -21,7 +19,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ documentI
 			documentId: link.documentId,
 			linkId: link.documentLinkId,
 			alias: link.alias,
-			createdLink: buildLinkUrl(link.documentLinkId),
+			createdLink: link.linkUrl,
 			lastViewed: link.updatedAt,
 			linkViews: 0,
 		}));
@@ -44,7 +42,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ document
 
 		// Attempt creation
 		try {
-			const newLink = await linkService.createLinkForDocument(userId, params.documentId, body);
+			const newLink = await LinkService.createLinkForDocument(userId, params.documentId, body);
 
 			if (!newLink) {
 				return createErrorResponse('Document not found or access denied.', 404);
@@ -58,11 +56,8 @@ export async function POST(req: NextRequest, props: { params: Promise<{ document
 			if (createErr instanceof Error && createErr.message === 'EXPIRATION_PAST') {
 				return createErrorResponse('Expiration time cannot be in the past.', 400);
 			}
-			if (createErr instanceof Error && createErr.message === 'LINK_ALIAS_CONFLICT') {
-				return createErrorResponse(
-					'This alias is already in use. Please choose a different link alias.',
-					409,
-				);
+			if (createErr instanceof Error && createErr.message === 'FRIENDLY_NAME_CONFLICT') {
+				return createErrorResponse('Friendly name is already taken.', 409);
 			}
 			throw createErr; // rethrow
 		}

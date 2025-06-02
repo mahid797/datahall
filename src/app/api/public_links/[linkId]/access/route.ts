@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { createErrorResponse, linkService } from '@/services';
-import { PublicLinkAccessSchema } from '@/shared/validation/publicLinkSchemas';
+import { createErrorResponse, LinkService } from '@/app/api/_services';
 
 /**
  * POST /api/public_links/[linkId]/access
@@ -9,23 +8,34 @@ import { PublicLinkAccessSchema } from '@/shared/validation/publicLinkSchemas';
 export async function POST(req: NextRequest, props: { params: Promise<{ linkId: string }> }) {
 	try {
 		const { linkId } = await props.params;
-		const { firstName, lastName, email, password } = PublicLinkAccessSchema.parse(await req.json());
+		const { firstName, lastName, email, password } = await req.json();
 
 		// 1) Retrieve link
-		const link = await linkService.validateLinkAccess(linkId, password);
-
-		// 2) Log visitor
-		if (!link.isPublic) {
-			await linkService.logVisitor(linkId, firstName, lastName, email);
+		const link = await LinkService.getPublicLink(linkId);
+		if (!link) {
+			return createErrorResponse('Link not found', 404);
 		}
 
-		// 3) Get a signed URL for the doc
+		// 2) Check expiration
+		if (link.expirationTime && new Date(link.expirationTime) <= new Date()) {
+			return createErrorResponse('Link is expired', 410);
+		}
+
+		// 3) If password is required, verify
+		const passwordOk = await LinkService.verifyLinkPassword(link, password);
+		if (!passwordOk) {
+			return createErrorResponse('Invalid password', 401);
+		}
+
+		// 4) Log visitor.
+		await LinkService.logVisitor(linkId, firstName, lastName, email);
+
+		// 5) Get a signed URL for the doc
 		try {
-			const { fileName, signedUrl, size, fileType } =
-				await linkService.getSignedFileFromLink(linkId);
+			const { fileName, signedUrl, size } = await LinkService.getSignedFileFromLink(linkId);
 			return NextResponse.json({
 				message: 'File access granted',
-				data: { signedUrl, fileName, size, documentId: link.documentId, fileType },
+				data: { signedUrl, fileName, size },
 			});
 		} catch (err) {
 			return createErrorResponse('Error retrieving file', 400, err);

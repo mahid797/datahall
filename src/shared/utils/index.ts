@@ -5,7 +5,6 @@ export { computeExpirationDays } from './dateUtils';
 export type { FormatFileSizeOptions } from './fileUtils';
 export { formatFileSize } from './fileUtils';
 export { parseFileSize } from './fileUtils';
-export { isViewableFileType } from './fileUtils';
 
 export { splitName } from './stringUtils';
 export { convertTransparencyToHex } from './stringUtils';
@@ -21,5 +20,3 @@ export { hasSpecialCharRule } from './validators';
 export { passwordValidationRule } from './validators';
 export { confirmPasswordRule } from './validators';
 export { getPasswordChecks } from './validators';
-
-export { buildLinkUrl } from './urlBuilder';

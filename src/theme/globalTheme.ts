@@ -19,7 +19,6 @@ const background = {
 	fill: '#FFFFFF',
 	error: '#DB504A',
 	secondary: '#F9FAFB',
-	secondaryButton: '#e2e8f0',
 };
 
 const disabled = {
@@ -340,7 +339,7 @@ const globalTheme = createTheme({
 					},
 					'@media (min-width:1200px)': {
 						padding: '0.4rem 1.5rem',
-						fontSize: '1rem',
+						fontSize: '0.87rem',
 					},
 				},
 				sizeMedium: {
@@ -368,7 +367,7 @@ const globalTheme = createTheme({
 					'@media (min-width:1200px)': {
 						padding: '0.3rem 0.8rem',
 						minWidth: '7rem',
-						fontSize: '0.8rem',
+						fontSize: '0.75rem',
 					},
 				},
 				containedPrimary: {
@@ -446,8 +445,10 @@ const globalTheme = createTheme({
 		},
 		MuiChip: {
 			styleOverrides: {
+				root: {
+					borderRadius: 2,
+				},
 				colorSecondary: {
-					// borderRadius: 2,
 					backgroundColor: background.secondary,
 					color: text.primary,
 					border: '1.5px solid #EAECF0',
@@ -567,11 +568,8 @@ const globalTheme = createTheme({
 					backgroundColor: 'inherit',
 					color: text.secondary,
 					minWidth: 100,
-					'&:hover': {
+					'&:hover, &.Mui-selected, &.Mui-selected:hover, &.Mui-selected.Mui-focusVisible': {
 						backgroundColor: hover.tertiary,
-					},
-					'&.Mui-selected:hover': {
-						backgroundColor: `${hover.primary} !important`,
 					},
 					'@media (min-width:600px)': {
 						fontSize: '0.7rem',

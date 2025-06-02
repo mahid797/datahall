@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import { ModalWrapper } from '@/components';
 import CreateLink from './CreateLink';
-import ShareLinkDialog from './ShareLinkDialog';
+import NewLinkDialog from './NewLinkDialog';
 
 import { useModal } from '@/hooks';
 
@@ -71,7 +71,7 @@ export default function ActionMenu({
 			/>
 
 			{/* SHAREABLE LINK DIALOG */}
-			<ShareLinkDialog
+			<NewLinkDialog
 				linkUrl={newLinkUrl}
 				onClose={() => setNewLinkUrl('')} // hide the dialog
 			/>

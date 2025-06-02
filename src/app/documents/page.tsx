@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import { NextRequest } from 'next/server';
 
 import {
 	Box,
@@ -10,7 +10,8 @@ import {
 	Typography,
 } from '@mui/material';
 
-import { authService } from '@/services';
+import { fetchDocumentCount } from '@/servicesTemp_UntilTanstack/documentService';
+import { authService } from '@/app/api/_services/authService';
 
 import { BackgroundIcon, CheckCircleIcon } from '@/icons';
 
@@ -22,21 +23,10 @@ export const dynamic = 'force-dynamic';
 export default async function DocumentsPage() {
 	let documentCount = 0;
 
-	// NEED TO REMOVE THIS
-	// This was a temporary solution.
-	// After Tanstack is implemented, we need to use the Tanstack query to fetch the document count.
 	try {
 		// Authenticate the user and fetch their document count, temporarily
 		const userId = await authService.authenticate();
-		try {
-			documentCount = await prisma.document.count({
-				where: {
-					userId,
-				},
-			});
-		} catch (error) {
-			console.error('Error fetching document count for user:', error);
-		}
+		documentCount = await fetchDocumentCount(userId);
 	} catch (error) {
 		console.error('Error fetching document count or authenticating user:', error);
 	}
