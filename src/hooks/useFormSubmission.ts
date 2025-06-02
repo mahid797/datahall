@@ -1,146 +1,146 @@
 /**
- * useFormSubmission.ts
- * -----------------------------------------------------------------------------
- * A generic hook for managing async form submissions with minimal boilerplate.
- * -----------------------------------------------------------------------------
+ * @deprecated (partial) – The legacy `onSubmit` fallback is deprecated.
+ * Prefer the **adapter mode** using a `mutation`, which offers better integration with React Query DevTools,
+ * error boundaries, and loading state handling.
  *
- * HOW IT WORKS:
- * 1) Provide an async `onSubmit` function that implements your form's logic
- *    (e.g., sending a POST request).
- * 2) This hook exposes a `handleSubmit` function that you set on your form’s
- *    `onSubmit` or button’s `onClick`. The hook prevents default, runs `onSubmit`,
- *    and handles any thrown errors or success messages.
- * 3) The hook automatically shows error/success toasts via `useToast`,
- *    so you don’t have to write your own toast logic repeatedly.
- * 4) If you want to do something else on success/failure, pass optional callbacks
- *    `onSuccess` or `onError`.
+ * This hook itself is still supported for compatibility.
+ * =============================================================================
+ * A unified form‐submission hook that supports:
  *
- * USAGE (In a React component):
+ * 1️⃣ **Adapter mode** (preferred):
+ *    – Pass a React-Query `mutation` (UseMutationResult).
+ *    – `loading` and `error` mirror `mutation.isPending` / `mutation.error`.
+ *    – You do **not** call `mutation.mutateAsync()` yourself.
+ *    – Ideal for simple forms whose values map directly to the API payload.
  *
- * const { loading, error, handleSubmit } = useFormSubmission({
+ * 2️⃣ **Legacy mode** (fallback):
+ *    – Omit `mutation` and supply `onSubmit: async () => { … }`.
+ *    – Hook manages its own `loading` / `error` via internal state.
+ *    – Use when you need to transform values, set per-field errors,
+ *      or chain multiple API calls before the final toast.
+ *
+ * **Example: CreateLink (legacy mode)**
+ * ```ts
+ * // needs payload transform + server-side alias conflict handling
+ * const { loading, handleSubmit } = useFormSubmission({
+ *   validate: () => isValid,
  *   onSubmit: async () => {
- *     // Perform your async logic here (e.g. axios.post...)
+ *     try {
+ *       const payload = getPayload();
+ *       await createLink.mutateAsync({ documentId, payload });
+ *     } catch (e) {
+ *       // set field‐level errors, then rethrow for generic toast
+ *       form.setError('alias', { message: e.message });
+ *       throw e;
+ *     }
  *   },
- *   onSuccess: () => { ... },        // optional callback
- *   onError: (msg) => { ... },       // optional callback
- *   successMessage: 'Form submitted!', // message shown on successful submit
- *   errorMessage: 'Something went wrong', // fallback error message
+ *   successMessage: 'Link created!',
+ *   errorMessage: 'Failed to create link.',
  * });
+ * ```
  *
- * <form onSubmit={handleSubmit}>
- *   // ...
- *   <button type="submit" disabled={loading}>Submit</button>
- * </form>
+ * **Example: PasswordFormModal (adapter mode)**
+ * ```ts
+ * // form values pass straight through to the mutation
+ * const { loading, handleSubmit } = useFormSubmission({
+ *   mutation: changePassword,
+ *   validate: () => isValid,
+ *   successMessage: 'Password updated!',
+ *   onError: (msg) => toast.showToast({ message: msg, variant: 'error' }),
+ *   skipDefaultToast: true,
+ * });
+ * ```
  *
- * ADDITIONAL NOTES:
- * - `loading` can be used to display a spinner or disable the submit button.
- * - `error` stores the most recent error message, if you want to show an inline alert.
- * - If you throw an Error in `onSubmit`, the hook will catch it, show a toast, and set `error`.
+ * @param mutation       A TanStack Query `UseMutationResult`. When provided, the hook wires `loading` / `error` directly.
+ * @param onSubmit       Fallback async callback (ignored if `mutation` is set).
+ * @param validate       Optional synchronous predicate. Return `false` to abort.
+ * @param onSuccess      Optional callback after a successful submit.
+ * @param onError        Optional callback on error (receives error message).
+ * @param successMessage Optional toast text on success (unless `skipDefaultToast`).
+ * @param errorMessage   Optional fallback toast text if the error is unstructured.
+ * @param skipDefaultToast When `true`, the hook will not show automatic toasts.
+ *
+ * @returns `{ loading, error, handleSubmit, toast }`
+ *  – `loading`: boolean
+ *  – `error`: string
+ *  – `handleSubmit`: attach to your `<form onSubmit={handleSubmit}>`
+ *  – `toast`: the `useToast` instance for any additional notifications
+ * =============================================================================
  */
 import { FormEvent, useState } from 'react';
+import type { UseMutationResult } from '@tanstack/react-query';
+import { useToast } from '@/hooks/useToast';
 
-import { useToast } from '@/hooks';
-
-// Hook config interface
 interface UseFormSubmissionProps {
+	/** TanStack Query mutation; enables adapter mode when supplied. */
+	mutation?: UseMutationResult<any, unknown, any, unknown>;
 	/**
-	 * The async function that runs your form's primary logic:
-	 * e.g., axios requests, DB updates, etc.
+	 * @deprecated Legacy fallback; avoid using this unless mutation cannot be used.
+	 * Prefer passing a TanStack `mutation` instead.
 	 */
-	onSubmit: () => Promise<void>;
-
-	/**
-	 * Callback called only if `onSubmit` completes successfully (no errors thrown).
-	 * Optional if you just want to show a success toast.
-	 */
+	onSubmit?: () => Promise<void>;
+	/** Client-side validator – return `true` to proceed. */
+	validate?: () => boolean;
 	onSuccess?: () => void;
-
-	/**
-	 * Callback called if an error is thrown in `onSubmit`.
-	 * Receives the error string for custom handling.
-	 */
-	onError?: (error: string) => void;
-
-	/**
-	 * If provided, shows a success toast with this message upon successful submit.
-	 */
+	onError?: (message: string) => void;
+	/** Pre-canned toast messages on success/failure. */
 	successMessage?: string;
-
-	/**
-	 * If provided, used as a fallback error in the toast.
-	 * Otherwise, the hook attempts to parse the error from `err?.response?.data?.message`.
-	 */
 	errorMessage?: string;
+	/** Disable automatic toasts if you handle them manually. */
+	skipDefaultToast?: boolean;
 }
 
-/**
- * A lightweight, reusable hook for form submission in React components.
- * Manages:
- * - loading state
- * - optional inline error
- * - success/error toasts
- */
 export const useFormSubmission = ({
+	mutation,
 	onSubmit,
+	validate,
 	onSuccess,
 	onError,
 	successMessage,
 	errorMessage,
+	skipDefaultToast = false,
 }: UseFormSubmissionProps) => {
-	// indicates the form is processing
-	const [loading, setLoading] = useState(false);
-
-	// optional local error if you want to display an inline message in the component
-	const [error, setError] = useState('');
-
-	// toast hook for success/error notifications
+	const [localLoading, setLocalLoading] = useState(false);
+	const [localError, setLocalError] = useState('');
 	const toast = useToast();
 
-	/**
-	 * The function you assign to your form's onSubmit or button's onClick handler.
-	 * It prevents the default, sets loading=true, tries `onSubmit`, and handles any errors.
-	 */
-	const handleSubmit = async (event: FormEvent) => {
-		event.preventDefault(); // avoid default page reload
-		setError(''); // clear old errors
-		setLoading(true);
+	const loading = mutation ? mutation.isPending : localLoading;
+	const error = mutation ? ((mutation.error as any)?.message ?? '') : localError;
+
+	const handleSubmit = async (e: FormEvent) => {
+		e.preventDefault();
+		if (validate && !validate()) return;
 
 		try {
-			// 1) run your custom logic
-			await onSubmit();
-
-			// 2) show success toast if applicable
-			if (successMessage) {
-				toast.showToast({
-					message: successMessage,
-					variant: 'success',
-				});
+			if (mutation) {
+				/* ---------- adapter mode (tanstack-query) ---------- */
+				await mutation.mutateAsync(undefined);
+			} else if (onSubmit) {
+				/** @deprecated Legacy fallback mode */
+				setLocalLoading(true);
+				await onSubmit();
 			}
-			// 3) optional onSuccess callback
+
+			if (successMessage && !skipDefaultToast) {
+				toast.showToast({ message: successMessage, variant: 'success' });
+			}
 			onSuccess?.();
 		} catch (err: any) {
-			// Attempt to parse an error message from server or fallback to a generic
 			const message =
 				err?.response?.data?.message || err?.message || 'An unexpected error occurred.';
-			setError(message);
+			if (!skipDefaultToast) {
+				toast.showToast({
+					message: `Error: ${errorMessage || message}`,
+					variant: 'error',
+				});
+			}
 
-			// Show toast using errorMessage or fallback to the parsed message
-			toast.showToast({
-				message: `Error: ${errorMessage || message}`,
-				variant: 'error',
-			});
-
-			// optional onError callback
+			if (!mutation) setLocalError(message); // mutation already exposes its own error
 			onError?.(message);
 		} finally {
-			setLoading(false);
+			if (!mutation) setLocalLoading(false);
 		}
 	};
 
-	return {
-		loading, // can be used to disable buttons or show spinners
-		error, // optional inline error if you want to display in your component
-		handleSubmit,
-		toast, // direct access if you want to show additional custom toasts
-	};
+	return { loading, error, handleSubmit, toast };
 };

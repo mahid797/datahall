@@ -33,7 +33,7 @@ const DocumentsTableRow = ({ document, onDelete }: Props) => {
 	};
 
 	const routetoDocument = () => {
-		router.push(`/documents/${document.document_id}`);
+		router.push(`/documents/${document.documentId}`);
 	};
 	const linkToCopy = () => {
 		const totalLinks = document.createdLinks?.length ?? 0;
@@ -64,7 +64,7 @@ const DocumentsTableRow = ({ document, onDelete }: Props) => {
 					alignItems='center'>
 					<Box>
 						<NavLink
-							href={`/documents/${document.document_id}`}
+							href={`/documents/${document.documentId}`}
 							linkText={document.fileName}
 							color='text.primary'
 							prefetch={true}
@@ -141,7 +141,7 @@ const DocumentsTableRow = ({ document, onDelete }: Props) => {
 						open={open}
 						anchorEl={anchorEl}
 						onDelete={onDelete}
-						documentId={document.document_id}
+						documentId={document.documentId}
 						onClose={handleMenuClose}
 						onAnalytics={routetoDocument}
 					/>

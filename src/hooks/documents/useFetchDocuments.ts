@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
+
 import { DocumentType } from '@/shared/models';
+import { queryKeys } from '@/shared/queryKeys';
 
 interface DocumentResponse {
 	documents: DocumentType[];
@@ -14,7 +16,7 @@ const fetchDocuments = async (): Promise<DocumentResponse> => {
 
 const useFetchDocuments = () => {
 	return useQuery({
-		queryKey: ['documents'],
+		queryKey: queryKeys.documents.all,
 		queryFn: fetchDocuments,
 	});
 };

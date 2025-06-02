@@ -1,11 +1,21 @@
+/**
+ * @deprecated
+ * Superseded by `react-hook-form` + `Zod` + `validationUtils`. Will be removed.
+ */
+
 type MessageType = string | ((value: string) => string);
 
+/**
+ * @deprecated
+ */
 export interface ValidationRule {
 	rule: (value: string) => boolean;
 	message: MessageType;
 }
 
 /**
+ * @deprecated
+ * @description Use Zod's `min(1)` or `nonempty()` instead.
  * Reusable rule for "non-empty" fields.
  * By default, message = "This field is required."
  */
@@ -17,6 +27,8 @@ export function requiredFieldRule(message = 'This field is required.'): Validati
 }
 
 /**
+ * @deprecated
+ * @description Use Zod's `.email()` instead.
  * Basic check for email format.
  */
 export const validEmailRule: ValidationRule = {
@@ -25,6 +37,8 @@ export const validEmailRule: ValidationRule = {
 };
 
 /**
+ * @deprecated
+ * @description Move to validationUtils or use Zod transform.
  * Validates a comma-separated list of email addresses.
  */
 export const validateEmails = (emails: string) => {
@@ -46,6 +60,8 @@ export const validateEmails = (emails: string) => {
 };
 
 /**
+ * @deprecated
+ * @description Prefer custom Zod transform/refinement. Use Zod's `.array(z.string().email())` for arrays of emails.
  * Provides a validation rule for multiple email addresses.
  */
 export const validateEmailsRule = (): ValidationRule => {
@@ -56,8 +72,10 @@ export const validateEmailsRule = (): ValidationRule => {
 };
 
 /**
+ * @deprecated
+ * @description Use Zod’s `.min(length)` + `.refine()` for passwords.
  * Example for min length (e.g., passwords).
- */
+ * */
 export function minLengthRule(
 	length: number,
 	message = `Must be at least ${length} characters long.`,
@@ -69,6 +87,8 @@ export function minLengthRule(
 }
 
 /**
+ * @deprecated
+ * @description Use Zod `.regex()` for password strength.
  * Check for at least one special character (e.g., for password).
  */
 export const hasSpecialCharRule: ValidationRule = {
@@ -77,6 +97,8 @@ export const hasSpecialCharRule: ValidationRule = {
 };
 
 /**
+ * @deprecated
+ * @description Superseded by Zod refinements + `getPasswordChecks()` logic.
  * Check for min length, at least one uppercase letter and one symbol (e.g., for password).
  */
 export function passwordValidationRule(
@@ -104,6 +126,8 @@ export function passwordValidationRule(
 }
 
 /**
+ * @deprecated
+ * @description Use `z.custom()` + `.refine()` or field-level validation.
  * Check the equality of the password and confirm password.
  */
 export function confirmPasswordRule(password: string): ValidationRule {
@@ -114,6 +138,8 @@ export function confirmPasswordRule(password: string): ValidationRule {
 }
 
 /**
+ * @deprecated
+ * @description Moved to `ValidationUtils.ts.`
  * For displaying "strength" feedback in PasswordValidation.tsx.
  * You can adapt these checks to match your actual password policy.
  */

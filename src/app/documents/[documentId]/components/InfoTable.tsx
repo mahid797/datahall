@@ -16,9 +16,9 @@ import {
 
 import InfoTableHeader from './InfoTableHeader';
 import InfoTableRow from './InfoTableRow';
-import { Paginator } from '@/components';
+import { EmptyState, Paginator } from '@/components';
 
-import { Contact, LinkDetail } from '@/shared/models';
+import { Contact, LinkDetailRow } from '@/shared/models';
 import { useDocumentData, useSort } from '@/hooks';
 
 interface InfoTableProps {
@@ -36,9 +36,9 @@ export default function InfoTable({ variant, documentId }: InfoTableProps) {
 	const { data, loading, error } = useDocumentData(documentId, variant);
 
 	// 2) Sort the data (the updated useSort hook can handle Date automatically if we sort by "lastViewed")
-	const { sortedData, orderDirection, orderBy, handleSortRequest } = useSort<LinkDetail | Contact>(
-		data,
-	);
+	const { sortedData, orderDirection, orderBy, handleSortRequest } = useSort<
+		LinkDetailRow | Contact
+	>(data);
 
 	// 3) If still loading or error
 	if (loading) {
@@ -91,7 +91,7 @@ export default function InfoTable({ variant, documentId }: InfoTableProps) {
 						{isLinkTableEmpty && (
 							<TableRow>
 								<TableCell
-									colSpan={4}
+									colSpan={5}
 									sx={{ textAlign: 'center', py: { sm: '0.5rem', md: '0.7rem', lg: '0.9rem' } }}>
 									<Button
 										variant='contained'
@@ -108,7 +108,7 @@ export default function InfoTable({ variant, documentId }: InfoTableProps) {
 								<TableCell
 									colSpan={5}
 									sx={{ textAlign: 'center', py: { sm: '0.5rem', md: '0.7rem', lg: '0.9rem' } }}>
-									<Typography>No visitor data found.</Typography>
+									<EmptyState message='No visitor data found.' />
 								</TableCell>
 							</TableRow>
 						)}
