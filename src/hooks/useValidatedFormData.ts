@@ -1,27 +1,32 @@
+/**
+ * @deprecated Superseded by `react-hook-form` + `Zod` integration. Use `useFormWithSchema()` instead.
+ * This hook will be removed in future commits.
+ */
 import { ChangeEvent, FocusEvent, useState } from 'react';
-
 import { ValidationRule } from '@/shared/utils';
 
-/** Shape for the config you pass into useValidatedFormData */
+/**
+ * @deprecated
+ * @description Use RHF form state instead.
+ * Shape for the config you pass into useValidatedFormData
+ */
 interface UseValidatedFormDataProps<T extends object> {
-	/** Initial form field values (e.g. { email: '', password: '', remember: false }) */
 	initialValues: T;
-	/** A map of field -> array of validation rules */
 	validationRules?: {
 		[K in keyof T]?: ValidationRule[];
 	};
 }
 
 /** Generic type for an object of strings, keyed by the fields in T */
-type ErrorMap<T> = {
-	[K in keyof T]: string;
-};
-
+/** @deprecated */
+type ErrorMap<T> = { [K in keyof T]: string };
 /** Generic type for a touched map (which fields the user has interacted with) */
-type TouchedMap<T> = {
-	[K in keyof T]: boolean;
-};
+/** @deprecated */
+type TouchedMap<T> = { [K in keyof T]: boolean };
 
+/**
+ * @deprecated Superseded by `react-hook-form` + `Zod`. Use `useFormWithSchema()` instead.
+ */
 export function useValidatedFormData<T extends object>({
 	initialValues,
 	validationRules = {},
@@ -86,6 +91,9 @@ export function useValidatedFormData<T extends object>({
 	 * Returns true if there's ANY failing rule in the entire form.
 	 */
 	const validateAll = (): boolean => {
+		setTouched((prev) => Object.fromEntries(Object.keys(prev).map((k) => [k, true])) as any);
+		setShowAllErrors(true);
+
 		let hasError = false;
 		for (const key in validationRules) {
 			const errorMsg = getError(key as keyof T);
@@ -118,5 +126,6 @@ export function useValidatedFormData<T extends object>({
 		setShowAllErrors,
 		setValues,
 		setTouched,
+		hasErrors: Object.values(validationRules).some((_rules, k) => !!getError(k as keyof T)),
 	};
 }

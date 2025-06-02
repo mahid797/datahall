@@ -1,128 +1,126 @@
-import React, { ChangeEvent, FocusEvent, SyntheticEvent } from 'react';
+import { SyntheticEvent } from 'react';
 
 import { Autocomplete, Box, Chip } from '@mui/material';
 
 import { CustomCheckbox, FormInput } from '@/components';
 import { useFetchContacts } from '@/hooks';
 
-import { LinkFormValues } from '@/shared/models';
+import { DocumentLinkFormValues } from '@/shared/validation/documentLinkSchemas';
+import { validateEmails } from '@/shared/validation/validationUtils';
+import { Controller, useFormContext } from 'react-hook-form';
 
-interface SendingAccordionProps {
-	formValues: LinkFormValues;
-	handleInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
-	handleBlur: (event: FocusEvent<HTMLInputElement>) => void;
-	getError: (fieldName: keyof LinkFormValues) => string;
-}
+/**
+ * “Sending” section — choose recipients for the link e-mail.
+ * Reads and updates react-hook-form state directly via `useFormContext`.
+ */
+export default function SendingAccordion() {
+	const {
+		control,
+		register,
+		watch,
+		setValue,
+		formState: { errors },
+	} = useFormContext<DocumentLinkFormValues>();
 
-export default function SendingAccordion({
-	formValues,
-	handleInputChange,
-	handleBlur,
-	getError,
-}: SendingAccordionProps) {
-	const { data } = useFetchContacts();
+	const isPublicLink = watch('isPublic');
+	const selectFromContact = watch('selectFromContact');
+	const sendToOthers = watch('sendToOthers');
+
+	const { data: contacts = [] } = useFetchContacts();
+
+	const contactOptions = contacts
+		.filter((contact) => contact.email)
+		.map((contact, index) => ({
+			id: contact.id ?? index,
+			label: contact.email as string,
+		}));
 
 	const handleContactEmailsChange = (
 		event: SyntheticEvent,
-		newValue: { id: number; label: string }[],
+		newSelection: { id?: number; label: string }[],
+		onChange: (value: unknown) => void,
 	) => {
-		// Remove duplicates by converting to a Map (ensures unique IDs)
-		const uniqueEmails = Array.from(new Map(newValue.map((item) => [item.id, item])).values());
-
-		// Update formValues.contactEmails
-		handleInputChange({
-			target: {
-				name: 'contactEmails',
-				value: uniqueEmails,
-			},
-		} as unknown as ChangeEvent<HTMLInputElement>);
+		const uniqueSelection = Array.from(
+			new Map(newSelection.map((item) => [item.id, item])).values(),
+		);
+		onChange(uniqueSelection);
 	};
 
-	//Get filtered contact emails.
-	const contactEmails =
-		data
-			?.filter((contact) => !!contact.email) // Exclude contacts without email
-			.map((contact, index) => ({
-				label: contact.email!,
-				id: contact.id ?? index,
-			}))
-			// Remove any contacts that are already selected in the form
-			.filter((email) => !formValues.contactEmails?.some((selected) => selected.id === email.id)) ??
-		[];
-
-	const disabled = formValues.isPublic;
-	// If link is public => disable all these additional security checkboxes
+	const sanitizeOtherEmails = (emails: string) => {
+		const { validEmails } = validateEmails(emails);
+		setValue('otherEmails', validEmails.join(', '), { shouldValidate: true });
+	};
 
 	return (
 		<Box py={4}>
 			<CustomCheckbox
-				checked={formValues.selectFromContact}
-				onChange={handleInputChange}
-				name='selectFromContact'
 				label='Select from the contact list'
-				disabled={disabled}
+				disabled={isPublicLink}
+				{...register('selectFromContact')}
 			/>
 			<Box
 				mt={3}
 				mb={8}
 				ml={13}>
-				<Autocomplete
-					multiple
-					disablePortal
-					id='contactEmails'
-					options={contactEmails}
-					value={formValues.contactEmails}
-					getOptionLabel={(option) => option.label}
-					onChange={handleContactEmailsChange}
-					disabled={!formValues.selectFromContact}
-					renderTags={(value, getTagProps) =>
-						value.map((option, index) => {
-							const { key, ...restProps } = getTagProps({ index });
-							return (
-								<Chip
-									key={key}
-									label={option.label}
-									{...restProps}
-									size='small'
+				<Controller
+					control={control}
+					name='contactEmails'
+					render={({ field: { value, onChange } }) => (
+						<Autocomplete
+							multiple
+							disablePortal
+							options={contactOptions.filter(
+								(option) => !value.some((selected) => selected.id === option.id),
+							)}
+							value={value}
+							getOptionLabel={(option) => option.label}
+							disabled={!selectFromContact || isPublicLink}
+							onChange={(event, newValue) => handleContactEmailsChange(event, newValue, onChange)}
+							renderTags={(tagValue, getTagProps) =>
+								tagValue.map((option, index) => {
+									const { key, ...restProps } = getTagProps({ index });
+									return (
+										<Chip
+											key={key}
+											label={option.label}
+											{...restProps}
+											size='small'
+										/>
+									);
+								})
+							}
+							renderInput={(params) => (
+								<FormInput
+									{...params}
+									id='searchContactEmails'
+									placeholder='Search contacts'
+									autoComplete='off'
+									slotProps={{ input: { autoComplete: 'new-password' } }}
 								/>
-							);
-						})
-					}
-					renderInput={(params) => (
-						<FormInput
-							{...params}
-							id='searchContactEmails'
-							placeholder='Search'
-							autoComplete='off'
-							inputProps={{
-								...params.inputProps, // Keep MUI's default input props
-								autoComplete: 'new-password', // Trick the browser to disable autofill
-							}}
+							)}
 						/>
 					)}
 				/>
 			</Box>
 
 			<CustomCheckbox
-				checked={formValues.sendToOthers}
-				onChange={handleInputChange}
-				name='sendToOthers'
-				label='Send someone not in the contact list. Separate with commas.'
-				disabled={disabled}
+				label='Send to e-mails not in the contact list'
+				disabled={isPublicLink}
+				{...register('sendToOthers')}
 			/>
+
 			<Box
 				my={3}
 				ml={13}>
 				<FormInput
 					id='otherEmails'
 					type='text'
-					value={formValues.otherEmails}
-					placeholder='Enter emails, separated by commas'
-					onChange={handleInputChange}
-					onBlur={handleBlur}
-					errorMessage={formValues.otherEmails ? getError('otherEmails') : undefined}
-					disabled={!formValues.sendToOthers}
+					placeholder='Enter e-mails, separated by commas'
 					fullWidth
+					disabled={!sendToOthers || isPublicLink}
+					{...register('otherEmails')}
+					errorMessage={errors.otherEmails?.message as string}
+					onBlur={(event) => sanitizeOtherEmails(event.target.value)}
 				/>
 			</Box>
 		</Box>

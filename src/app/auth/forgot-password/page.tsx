@@ -1,53 +1,38 @@
 'use client';
 
 import { Box, Typography } from '@mui/material';
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import { FormProvider } from 'react-hook-form';
 
 import { FormInput, LoadingButton, NavLink } from '@/components';
 import AuthFormWrapper from '../components/AuthFormWrapper';
 
 import { KeyIcon } from '@/icons';
 
-import { useFormSubmission, useToast, useValidatedFormData } from '@/hooks';
-import { requiredFieldRule, validEmailRule } from '@/shared/utils';
+import { useForgotPassword, useFormSubmission, useToast } from '@/hooks';
+import { useForgotPasswordForm } from '@/hooks/forms';
 
 export default function ForgotPassword() {
 	const router = useRouter();
-	const { showToast } = useToast();
 
-	const { values, handleChange, handleBlur, getError, validateAll } = useValidatedFormData({
-		initialValues: {
-			email: '',
-		},
-		validationRules: {
-			email: [requiredFieldRule('Email is required'), validEmailRule],
-		},
-	});
+	const form = useForgotPasswordForm();
+	const {
+		register,
+		formState: { errors, isValid },
+	} = form;
+
+	const forgotMutation = useForgotPassword();
+	const toast = useToast();
 
 	const { loading, handleSubmit } = useFormSubmission({
-		onSubmit: async () => {
-			const hasError = validateAll();
-			if (hasError) {
-				throw new Error('Please correct the highlighted fields.');
-			}
-
-			const response = await axios.post('/api/auth/password/forgot', {
-				email: values.email,
-			});
-
-			router.push(response.data.url);
+		mutation: forgotMutation,
+		validate: () => isValid,
+		onSuccess: () => router.push('/auth/sign-in?reset=sent'),
+		onError: (err) => {
+			const message = (err as any)?.response?.data?.message ?? 'Failed to send reset e-mail.';
+			toast.showToast({ message, variant: 'error' });
 		},
-
-		successMessage: '',
-		onError: (message) => {
-			if (message.includes('Email not found')) {
-				showToast({
-					message: 'Email not found. Please try again or sign up.',
-					variant: 'error',
-				});
-			}
-		},
+		skipDefaultToast: true,
 	});
 
 	return (
@@ -77,47 +62,47 @@ export default function ForgotPassword() {
 				textAlign='center'>
 				No worries, we’ll send you reset instructions.
 			</Typography>
-
-			<Box
-				component='form'
-				onSubmit={handleSubmit}
-				noValidate
-				minWidth={400}
-				display='flex'
-				flexDirection='column'
-				gap={5}>
-				<FormInput
-					label='Email'
-					id='email'
-					type='email'
-					placeholder='Enter your email'
-					value={values.email}
-					onChange={handleChange}
-					onBlur={handleBlur}
-					errorMessage={getError('email')}
-				/>
-
+			<FormProvider {...form}>
 				<Box
-					mt={10}
+					component='form'
+					onSubmit={handleSubmit}
+					noValidate
+					minWidth={400}
 					display='flex'
-					justifyContent='center'
 					flexDirection='column'
-					alignItems='center'
-					gap={8}>
-					<LoadingButton
-						loading={loading}
-						buttonText='Reset password'
-						loadingText='Verifying Email...'
-						fullWidth
+					gap={5}>
+					<FormInput
+						label='Email'
+						type='email'
+						placeholder='Enter your email'
+						{...register('email')}
+						errorMessage={errors.email?.message}
 					/>
 
-					<NavLink
-						href='/auth/sign-in'
-						linkText='← Back to sign in'
-						prefetch
-					/>
+					<Box
+						mt={10}
+						display='flex'
+						justifyContent='center'
+						flexDirection='column'
+						alignItems='center'
+						gap={8}>
+						<LoadingButton
+							type='submit'
+							loading={loading}
+							disabled={!isValid}
+							buttonText='Reset password'
+							loadingText='Sending reset link…'
+							fullWidth
+						/>
+
+						<NavLink
+							href='/auth/sign-in'
+							linkText='← Back to sign in'
+							prefetch
+						/>
+					</Box>
 				</Box>
-			</Box>
+			</FormProvider>
 		</AuthFormWrapper>
 	);
 }

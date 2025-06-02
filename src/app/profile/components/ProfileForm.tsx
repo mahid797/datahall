@@ -1,124 +1,65 @@
-import axios from 'axios';
-import { useSession } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+'use client';
 
-import { Avatar, Box, Button, Divider, Link, Tooltip, Typography } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { FormProvider } from 'react-hook-form';
+
+import { Box, Button, Divider, Link, Typography } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 
 import { FormInput, LoadingButton, LoadingSpinner, ModalWrapper } from '@/components';
 
-import { PencilIcon } from '@/icons';
+import { useFormSubmission, useModal, useProfile, useToast, useUpdateName } from '@/hooks';
 
-import { useFormSubmission, useModal, useToast, useValidatedFormData } from '@/hooks';
-import { requiredFieldRule } from '@/shared/utils';
+import { useProfileForm } from '@/hooks/forms/useProfileForm';
+import PasswordFormModal from './PasswordFormModal';
+import AvatarActions from '@/components/common/AvatarCard';
 
 export default function ProfileForm() {
-	const [fetchLoading, setFetchLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
+	const { data, isLoading: fetchLoading, error } = useProfile();
+	const updateName = useUpdateName();
 
+	const [isEditing, setIsEditing] = useState(false);
+
+	const passwordFormModal = useModal();
 	const deleteAccountModal = useModal();
 	const deletePhotoModal = useModal();
 	const uploadModal = useModal();
 
 	const { showToast } = useToast();
-	const { data: session } = useSession();
 
-	const { values, setValues, handleChange, getError, validateAll } = useValidatedFormData({
-		initialValues: {
-			firstName: '',
-			lastName: '',
-			email: '',
-			// image: '',
-		},
-		validationRules: {
-			firstName: [requiredFieldRule('First name is required')],
-			lastName: [requiredFieldRule('Last name is required')],
-		},
-	});
+	const form = useProfileForm(data); // NEW helper
+	const {
+		register,
+		reset,
+		formState: { errors, isValid },
+	} = form;
 
-	// Fetch data
 	useEffect(() => {
-		const fetchProfileData = async () => {
-			setFetchLoading(true);
-			try {
-				const response = await axios.get('/api/profile');
-				setValues(response.data);
-			} catch (error) {
-				console.error('Error loading profile data:', error);
-				setError('Failed to load profile data! Please try again later.');
-			} finally {
-				setFetchLoading(false);
-			}
-		};
-
-		fetchProfileData();
-	}, [setValues]);
+		if (data) reset(data);
+	}, [data, reset]);
 
 	// Submit data
 	const { loading, handleSubmit, toast } = useFormSubmission({
-		onSubmit: async () => {
-			// Basic client checks
-			const hasError = validateAll();
-			if (hasError) {
-				throw new Error('Please correct the highlighted fields.');
-			}
-
-			if (values.firstName && values.lastName) {
-				try {
-					// Make the POST request
-					const response = await axios.post('/api/profile/changeName', {
-						email: session?.user.email,
-						firstName: values.firstName,
-						lastName: values.lastName,
-						// image: values.image,
-					});
-					// Handle success
-					if (response.status === 200) {
-						toast.showToast({
-							message: 'Profile updated successfully!',
-							variant: 'success',
-						});
-					}
-				} catch (error: unknown) {
-					// Narrowing down the type of `error`
-					if (axios.isAxiosError(error)) {
-						// Axios-specific error handling
-						if (error.response) {
-							// Server responded with an error
-							toast.showToast({
-								message: `Error: ${error.response.data.error}!`,
-								variant: 'error',
-							});
-						} else if (error.request) {
-							// No response received
-							toast.showToast({
-								message: 'Error: No response from server! Please try again later.',
-								variant: 'error',
-							});
-						} else {
-							// Other Axios error
-							toast.showToast({
-								message: `Error: ${error.message}!`,
-								variant: 'error',
-							});
-						}
-					} else if (error instanceof Error) {
-						// Generic error handling
-						toast.showToast({
-							message: `Error: ${error.message}!`,
-							variant: 'error',
-						});
-					} else {
-						// Fallback for unknown error types
-						toast.showToast({
-							message: 'An unexpected error occurred!',
-							variant: 'error',
-						});
-					}
-				}
-			}
-		},
+		validate: () => isValid,
+		mutation: updateName,
+		successMessage: 'Profile updated!',
+		onSuccess: () => setIsEditing(false),
+		onError: (err: any) =>
+			toast.showToast({
+				message: `Error: ${err instanceof Error ? err.message : 'Unknown error'}`,
+				variant: 'error',
+			}),
+		skipDefaultToast: true,
 	});
+
+	const handleEditProfileInfo = () => {
+		setIsEditing(true);
+	};
+
+	const handleCancelEditing = () => {
+		reset();
+		setIsEditing(false);
+	};
 
 	const handleDeleteAccount = () => {
 		console.log('Account deleted!');
@@ -155,186 +96,214 @@ export default function ProfileForm() {
 				justifyContent='center'
 				alignItems='center'
 				minHeight='50vh'>
-				<Typography color='error'>{error}</Typography>
+				<Typography color='error'>
+					{error instanceof Error ? error.message : 'Failed to load profile'}
+				</Typography>
 			</Box>
 		);
 	}
 
 	return (
 		<>
-			<Box
-				component='form'
-				onSubmit={handleSubmit}
-				noValidate
-				autoComplete='off'>
-				<Grid
-					container
-					rowSpacing={14}
-					columnSpacing={{ xs: 1, sm: 2, md: 3 }}
-					alignItems='center'>
-					{/* First Name */}
-					<Grid size={6}>
-						<Typography variant='h4'>First name</Typography>
-					</Grid>
-					<Grid size={6}>
-						<FormInput
-							id='firstName'
-							value={values.firstName}
-							onChange={handleChange}
-							errorMessage={getError('firstName')}
-						/>
+			<FormProvider {...form}>
+				<Box
+					component='form'
+					onSubmit={handleSubmit}
+					noValidate
+					autoComplete='off'>
+					<Grid
+						container
+						columnSpacing={{ xs: 1, sm: 2, md: 3 }}
+						alignItems='center'>
+						{/* Profile title */}
+						<Grid size={6}>
+							<Typography
+								variant='h1'
+								color='textPrimary'>
+								Profile
+							</Typography>
+						</Grid>
+						<Grid size={6}>
+							{/* Edit, Save and Cancel buttons */}
+							<Box
+								display='flex'
+								mb={5}
+								mt={3}
+								justifyContent='flex-end'>
+								{isEditing ? (
+									<Box
+										display={'flex'}
+										gap={4}>
+										<Button
+											variant='outlined'
+											color='secondary'
+											size='small'
+											onClick={handleCancelEditing}>
+											Cancel
+										</Button>
+										<LoadingButton
+											loading={loading}
+											size='small'
+											buttonText='Save'
+											loadingText='Saving...'
+											fullWidth={false}
+										/>
+									</Box>
+								) : (
+									<Button
+										variant='contained'
+										size='small'
+										onClick={handleEditProfileInfo}>
+										Edit
+									</Button>
+								)}
+							</Box>
+						</Grid>
+
+						{/* Divider */}
+						<Grid size={12}>
+							<Divider />
+						</Grid>
 					</Grid>
 
-					{/* Last Name */}
-					<Grid size={6}>
-						<Typography variant='h4'>Last name</Typography>
-					</Grid>
-					<Grid size={6}>
-						<FormInput
-							id='lastName'
-							value={values.lastName}
-							onChange={handleChange}
-							errorMessage={getError('lastName')}
-						/>
-					</Grid>
+					<Grid
+						container
+						my={10}
+						rowSpacing={14}
+						columnSpacing={{ xs: 1, sm: 2, md: 3 }}
+						alignItems='center'>
+						{/* First Name */}
+						<Grid size={6}>
+							<Typography variant='h4'>First name</Typography>
+						</Grid>
+						<Grid size={6}>
+							<FormInput
+								{...register('firstName')}
+								errorMessage={errors.firstName?.message}
+								disabled={!isEditing}
+							/>
+						</Grid>
 
-					{/* Email */}
-					<Grid size={6}>
-						<Typography variant='h4'>Email</Typography>
-						<Typography variant='subtitle1'>
-							This is your current email address — it cannot be changed.
-						</Typography>
-					</Grid>
-					<Grid size={6}>
-						<FormInput
-							id='email'
-							type='email'
-							value={values.email}
-							onChange={handleChange}
-							disabled={true}
-						/>
-					</Grid>
+						{/* Last Name */}
+						<Grid size={6}>
+							<Typography variant='h4'>Last name</Typography>
+						</Grid>
+						<Grid size={6}>
+							<FormInput
+								{...register('lastName')}
+								errorMessage={errors.lastName?.message}
+								disabled={!isEditing}
+							/>
+						</Grid>
 
-					{/* Photo */}
-					<Grid size={6}>
+						{/* Email */}
+						<Grid size={6}>
+							<Typography variant='h4'>Email</Typography>
+							<Typography variant='subtitle1'>
+								This is your current email address — it cannot be changed.
+							</Typography>
+						</Grid>
+						<Grid size={6}>
+							<FormInput
+								id='email'
+								type='email'
+								value={data?.email}
+								disabled
+							/>
+						</Grid>
+
+						{/* TODO: Avatar upload UI temporarily removed */}
+
+						{/* Photo */}
+						{/* <Grid size={6}>
 						<Typography variant='h4'>Your photo</Typography>
 						<Typography variant='subtitle1'>
 							This photo will be displayed on your profile page.
 						</Typography>
 					</Grid>
 					<Grid size={6}>
-						<Box
-							display='flex'
-							alignItems='center'>
-							<Box
-								sx={{
-									position: 'relative',
-									width: 64,
-									height: 64,
-									borderRadius: '50%',
-									overflow: 'hidden',
-									'&:hover .avatar-edit-icon': {
-										opacity: 1,
-									},
-								}}>
-								<Avatar
-									alt='Profile picture'
-									src='https://picsum.photos/200/200'
-									// src={values.image}
-									sx={{ width: 64, height: 64, mr: 7 }}
-								/>
+						<AvatarActions
+							src='https://picsum.photos/200/200'
+							initials='U'
+							size={64}
+							onDelete={deletePhotoModal.openModal}
+							onUpdate={uploadModal.openModal}
+							disabled={!isEditing}
+						/>
+					</Grid> */}
 
-								<Box
-									className='avatar-edit-icon'
-									sx={{
-										position: 'absolute',
-										top: 0,
-										left: 0,
-										width: '100%',
-										height: '100%',
-										display: 'flex',
-										alignItems: 'center',
-										justifyContent: 'center',
-										bgcolor: 'rgba(0, 0, 0, 0.15)',
-										opacity: 0,
-										transition: 'opacity 0.3s',
-										cursor: 'pointer',
-									}}
-									onClick={uploadModal.openModal}>
-									<PencilIcon
-										width={20}
-										height={20}
-										color='white'
-									/>
-								</Box>
-							</Box>
-							<Link
-								href='#'
-								underline='hover'
-								pl={10}
-								color='text.secondary'
-								onClick={deletePhotoModal.openModal}>
-								Delete
-							</Link>
-							<Link
-								href='#'
-								underline='hover'
-								px={8}
-								onClick={uploadModal.openModal}>
-								Update
-							</Link>
-						</Box>
+						{/* Password */}
+						<Grid
+							size={6}
+							mt={10}>
+							<Typography variant='h4'>Password</Typography>
+						</Grid>
+						<Grid
+							size={6}
+							mt={10}>
+							<Button
+								variant='contained'
+								// fullWidth
+								size='medium'
+								onClick={passwordFormModal.openModal}
+								disabled={!isEditing}>
+								Change password
+							</Button>
+						</Grid>
 					</Grid>
-				</Grid>
 
-				{/* Save Button */}
-				<Box
-					display='flex'
-					justifyContent='flex-end'
-					mt={40}>
-					<LoadingButton
-						loading={loading}
-						buttonText='Save'
-						loadingText='Saving...'
-						fullWidth={false}
-					/>
-				</Box>
+					<Divider sx={{ mb: 10, mt: 20 }} />
 
-				<Divider sx={{ mb: 7, mt: 14 }} />
+					{/* Delete Account Section */}
+					<Box
+						display='flex'
+						flexDirection='column'
+						mb={4}
+						rowGap={2}>
+						<Typography variant='h4'>Delete account</Typography>
+						<Typography variant='subtitle1'>
+							Note that deleting your account will remove all data from our system. This is
+							permanent and non-recoverable.
+						</Typography>
+						<Typography
+							variant='subtitle1'
+							my={5}>
+							To Delete your account, please email us at{' '}
+							<Link
+								href='mailto:dev.datahall@gmail.com'
+								underline='hover'
+								color='primary'>
+								dev.datahall@gmail.com
+							</Link>
+							.
+						</Typography>
 
-				{/* Delete Account Section */}
-				<Box
-					display='flex'
-					flexDirection='column'
-					mb={4}
-					rowGap={6}>
-					<Typography variant='h4'>Delete account</Typography>
-					<Typography
-						variant='subtitle1'
-						mb={2}>
-						Note that deleting your account will remove all data from our system. This is permanent
-						and non-recoverable.
-					</Typography>
+						{/* Delete Account Button */}
 
-					{/* Delete Account Button */}
-
-					<Tooltip
+						{/* <Tooltip
 						title='Account deletion is disabled in Development'
 						placement='bottom-start'>
 						<Box width='9rem'>
 							<Button
 								variant='contained'
 								color='error'
+								size='medium'
 								onClick={deleteAccountModal.openModal}
 								disabled={true}>
 								Delete account
 							</Button>
 						</Box>
-					</Tooltip>
+					</Tooltip> */}
+					</Box>
 				</Box>
-			</Box>
+			</FormProvider>
+			{/* Password form modal */}
+			<PasswordFormModal
+				open={passwordFormModal.isOpen}
+				toggleModal={passwordFormModal.closeModal}
+			/>
 
-			{/* Delete Photo Modal */}
+			{/* Delete photo modal */}
 			<ModalWrapper
 				variant='delete'
 				title='Really delete this photo?'
@@ -345,7 +314,7 @@ export default function ProfileForm() {
 				toggleModal={deletePhotoModal.closeModal}
 			/>
 
-			{/* Upload Photo Modal */}
+			{/* Upload photo modal */}
 			<ModalWrapper
 				variant='upload'
 				title='Upload profile image'
@@ -356,7 +325,8 @@ export default function ProfileForm() {
 				fileFormats='JPG, PNG'
 				toggleModal={uploadModal.closeModal}
 			/>
-			{/* Delete Account Modal */}
+
+			{/* Delete account modal */}
 			<ModalWrapper
 				variant='delete'
 				title='Really delete this account?'
