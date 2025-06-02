@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { authService, createErrorResponse, LinkService } from '@/services';
+import { authService, createErrorResponse, linkService } from '@/services';
 import { buildLinkUrl } from '@/shared/utils/urlBuilder';
 
 /**
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ documentI
 	try {
 		const userId = await authService.authenticate();
 		const { documentId } = await props.params;
-		const links = await LinkService.getDocumentLinks(userId, documentId);
+		const links = await linkService.getDocumentLinks(userId, documentId);
 		if (links === null) {
 			return createErrorResponse('Document not found or access denied.', 404);
 		}
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ document
 
 		// Attempt creation
 		try {
-			const newLink = await LinkService.createLinkForDocument(userId, params.documentId, body);
+			const newLink = await linkService.createLinkForDocument(userId, params.documentId, body);
 
 			if (!newLink) {
 				return createErrorResponse('Document not found or access denied.', 404);

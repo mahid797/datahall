@@ -8,14 +8,14 @@ import { CheckIcon, CopyIcon, TrashIcon } from '@/icons';
 import { ModalWrapper } from '@/components';
 
 import { useModal, useToast } from '@/hooks';
-import { Contact, LinkDetail } from '@/shared/models';
+import { Contact, LinkDetailRow } from '@/shared/models';
 import { formatDateTime } from '@/shared/utils';
 
 import LinkVisitorModal from './LinkVisitorModal';
 
 interface InfoTableRowProps {
 	variant?: 'linkTable' | 'visitorTable';
-	documentDetail: LinkDetail | Contact;
+	documentDetail: LinkDetailRow | Contact;
 }
 
 export default function InfoTableRow({ documentDetail, variant }: InfoTableRowProps) {
@@ -24,10 +24,10 @@ export default function InfoTableRow({ documentDetail, variant }: InfoTableRowPr
 	const { showToast } = useToast();
 	const deleteModal = useModal();
 
-	const isLinkDetail = (d: LinkDetail | Contact): d is LinkDetail =>
-		(d as LinkDetail).createdLink !== undefined;
+	const isLinkDetail = (d: LinkDetailRow | Contact): d is LinkDetailRow =>
+		(d as LinkDetailRow).createdLink !== undefined;
 
-	const isVisitorDetail = (d: LinkDetail | Contact): d is Contact =>
+	const isVisitorDetail = (d: LinkDetailRow | Contact): d is Contact =>
 		(d as Contact).name !== undefined;
 
 	const handleOpenLinkVisitorModal = () => {
@@ -40,7 +40,7 @@ export default function InfoTableRow({ documentDetail, variant }: InfoTableRowPr
 
 	const handleDeleteLink = async () => {
 		try {
-			const link = documentDetail as LinkDetail;
+			const link = documentDetail as LinkDetailRow;
 			await axios.delete(`/api/documents/${link.documentId}/links/${link.linkId}`);
 
 			showToast({ message: 'Link deleted!', variant: 'success' });

@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-import { StorageProvider, FileMetadata, UploadResult } from '@/services';
+import { FileMetadata, ServiceError, StorageProvider, UploadResult } from '@/services';
 
 export class SupabaseProvider implements StorageProvider {
 	private supabase;
@@ -30,7 +30,7 @@ export class SupabaseProvider implements StorageProvider {
 
 		if (error) {
 			console.error('Supabase upload error:', error);
-			throw new Error('File upload failed.');
+			throw new ServiceError('File upload failed.', 500);
 		}
 
 		// Return the file path (to be stored in the database)
@@ -48,7 +48,7 @@ export class SupabaseProvider implements StorageProvider {
 
 		if (error) {
 			console.error('Supabase delete error:', error);
-			throw new Error('File deletion failed.');
+			throw new ServiceError('File deletion failed.', 500);
 		}
 	}
 
@@ -69,7 +69,7 @@ export class SupabaseProvider implements StorageProvider {
 			.createSignedUrl(filePath, expiresIn);
 
 		if (error) {
-			throw new Error(`Error generating signed URL: ${error.message}`);
+			throw new ServiceError(`Error generating signed URL: ${error.message}`, 500);
 		}
 
 		return data.signedUrl;

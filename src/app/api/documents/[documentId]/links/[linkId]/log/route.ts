@@ -1,5 +1,6 @@
-import { authService, createErrorResponse, LinkService } from '@/services';
 import { NextRequest, NextResponse } from 'next/server';
+
+import { authService, createErrorResponse, linkService } from '@/services';
 
 /**
  * GET /api/documents/[documentId]/links/[linkId]/log
@@ -13,7 +14,7 @@ export async function GET(
 		const userId = await authService.authenticate();
 
 		const { documentId, linkId } = await props.params;
-		const linkVisitors = await LinkService.getDocumentLinkVisitors(userId, documentId, linkId);
+		const linkVisitors = await linkService.getDocumentLinkVisitors(userId, documentId, linkId);
 
 		if (linkVisitors === null) {
 			return NextResponse.json({ error: 'Link not found or access denied.' }, { status: 404 });

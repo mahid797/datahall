@@ -18,8 +18,9 @@ import { FormInput, LoadingButton } from '@/components';
 import { useFormSubmission, useValidatedFormData, useVisitorSubmission } from '@/hooks';
 
 import { EyeIcon, EyeOffIcon, FileDownloadIcon } from '@/icons';
-import { requiredFieldRule, splitName, validEmailRule } from '@/shared/utils';
 import { visitorFieldsConfigByKey } from '@/shared/config/visitorFieldsConfig';
+import { FileAccessPayload } from '@/shared/models';
+import { requiredFieldRule, splitName, validEmailRule } from '@/shared/utils';
 
 function getFormConfig(passwordRequired: boolean, visitorFields: string[]) {
 	const formConfig: {
@@ -53,7 +54,7 @@ interface VisitorInfoModalProps {
 	linkId: string;
 	passwordRequired: boolean;
 	visitorFields: string[];
-	onVisitorInfoModalSubmit: (data: Record<string, any>) => void;
+	onVisitorInfoModalSubmit: (data: FileAccessPayload) => void;
 }
 
 export default function VisitorInfoModal({
@@ -107,7 +108,7 @@ export default function VisitorInfoModal({
 			const response = await submitVisitorData({ linkId, payload });
 
 			if (!response.data) {
-				throw new Error(response.data.message || 'No file data returned.');
+				throw new Error('No file data returned.');
 			}
 
 			onVisitorInfoModalSubmit(response.data);

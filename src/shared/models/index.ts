@@ -24,12 +24,13 @@ export type { DocumentType, BarDataItem } from './documentModels';
 export * from './documentModels';
 
 export type {
-	LinkType,
+	DocumentLink,
+	PublicLinkMeta,
+	FileAccessPayload,
 	LinkFormValues,
 	CreateDocumentLinkPayload,
 	InviteRecipientsPayload,
-	LinkData,
-	LinkDetail,
+	LinkDetailRow,
 } from './linkModels';
 export * from './linkModels';
 

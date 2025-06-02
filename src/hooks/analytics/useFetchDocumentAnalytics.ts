@@ -1,27 +1,30 @@
-import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
 
-interface DocumentAnalyticsResponse {}
+import { queryKeys } from '@/shared/queryKeys';
 
-const fetchDocumentAnalytics = async (
-	documentId: string,
-	documentLinkId?: string,
-): Promise<DocumentAnalyticsResponse> => {
-	let url = `/api/documents/${documentId}/analytics`;
+interface DocumentAnalyticsSummary {
+	totalViews: number;
+	totalDownloads: number;
+	lastAccessed: string | null;
+	links: Array<{
+		linkId: string;
+		lastViewed: string | null;
+		lastDownloaded: string | null;
+	}>;
+}
 
-	if (documentLinkId) {
-		url = `/api/documents/${documentId}/links/${documentLinkId}/analytics`;
-	}
-
-	const response = await axios.get(url);
-
-	return response.data;
+const fetchDocumentAnalytics = async (documentId: string): Promise<DocumentAnalyticsSummary> => {
+	const { data } = await axios.get<DocumentAnalyticsSummary>(
+		`/api/documents/${documentId}/analytics`,
+	);
+	return data;
 };
 
 const useFetchDocumentAnalytics = (documentId: string, documentLinkId?: string) => {
 	return useQuery({
-		queryKey: ['documentAnalytics', documentId, documentLinkId],
-		queryFn: () => fetchDocumentAnalytics(documentId, documentLinkId),
+		queryKey: queryKeys.documents.analytics(documentId),
+		queryFn: () => fetchDocumentAnalytics(documentId),
 	});
 };
 

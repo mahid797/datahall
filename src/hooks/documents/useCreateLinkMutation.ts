@@ -21,7 +21,7 @@ interface Response {
 export function useCreateLinkMutation() {
 	const queryClient = useQueryClient();
 
-	return useMutation<Response, unknown, Params>({
+	return useMutation<Response, Error, Params>({
 		mutationFn: async ({ documentId, payload }) => {
 			const res = await axios.post<Response>(`/api/documents/${documentId}/links`, payload);
 			return res.data;

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { authService, createErrorResponse, LinkService } from '@/services';
+import { authService, createErrorResponse, linkService } from '@/services';
 
 /**
  * DELETE /api/documents/[documentId]/links/[documentLinkId]
@@ -13,7 +13,7 @@ export async function DELETE(
 	try {
 		const userId = await authService.authenticate();
 		const { documentLinkId } = await props.params;
-		const deleted = await LinkService.deleteLink(userId, documentLinkId);
+		const deleted = await linkService.deleteLink(userId, documentLinkId);
 
 		if (!deleted) {
 			return createErrorResponse('Link not found or access denied.', 404);

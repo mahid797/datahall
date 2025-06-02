@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { authService, createErrorResponse, DocumentService } from '@/services';
+import { authService, createErrorResponse, documentService } from '@/services';
 
 /**
  * GET /api/documents/[documentId]/visitors
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ documentI
 	try {
 		const userId = await authService.authenticate();
 		const { documentId } = await props.params;
-		const linkVisitors = await DocumentService.getDocumentVisitors(userId, documentId);
+		const linkVisitors = await documentService.getDocumentVisitors(userId, documentId);
 		if (linkVisitors === null) {
 			return createErrorResponse('Document not found or access denied.', 404);
 		}

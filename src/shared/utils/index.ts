@@ -21,3 +21,5 @@ export { hasSpecialCharRule } from './validators';
 export { passwordValidationRule } from './validators';
 export { confirmPasswordRule } from './validators';
 export { getPasswordChecks } from './validators';
+
+export { buildLinkUrl } from './urlBuilder';

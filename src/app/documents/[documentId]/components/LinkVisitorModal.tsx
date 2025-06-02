@@ -1,7 +1,3 @@
-import { EmptyState } from '@/components';
-import { useFetchLinkVisitors } from '@/hooks';
-import { formatDateTime } from '@/shared/utils';
-
 import {
 	Box,
 	CircularProgress,
@@ -16,6 +12,12 @@ import {
 	TableHead,
 	TableRow,
 } from '@mui/material';
+
+import { EmptyState } from '@/components';
+import { useFetchLinkVisitors } from '@/hooks';
+
+import { LinkVisitor } from '@/shared/models';
+import { formatDateTime } from '@/shared/utils';
 
 interface LinkVisitorModalProps {
 	open: boolean;
@@ -86,7 +88,7 @@ export default function LinkVisitorModal({
 									</TableCell>
 								</TableRow>
 							) : (
-								data?.map((visitor) => (
+								data?.map((visitor: LinkVisitor) => (
 									<TableRow key={visitor.id}>
 										<TableCell
 											sx={{

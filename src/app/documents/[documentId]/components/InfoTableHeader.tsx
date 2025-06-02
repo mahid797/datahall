@@ -1,6 +1,6 @@
 import { TableCell, TableRow, TableSortLabel } from '@mui/material';
 
-import { Contact, LinkDetail } from '@/shared/models';
+import { Contact, LinkDetailRow } from '@/shared/models';
 
 import { ChevronDownIcon, ChevronSelectorVerticalIcon } from '@/icons';
 
@@ -8,7 +8,7 @@ type SortableKeys = 'lastActivity';
 
 interface InfoTableHeaderProps {
 	variant?: 'linkTable' | 'visitorTable';
-	orderBy?: keyof LinkDetail | Contact | undefined;
+	orderBy?: keyof LinkDetailRow | Contact | undefined;
 	orderDirection?: 'asc' | 'desc' | undefined;
 	onSort?: (property: SortableKeys) => void;
 }

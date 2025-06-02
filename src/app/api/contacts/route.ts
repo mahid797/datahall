@@ -1,7 +1,8 @@
 import prisma from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
+
 import { authService } from '@/services';
-import { buildLinkUrl } from '@/shared/utils/urlBuilder';
+import { buildLinkUrl } from '@/shared/utils';
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
 	try {
