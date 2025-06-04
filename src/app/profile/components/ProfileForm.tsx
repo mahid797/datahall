@@ -40,8 +40,9 @@ export default function ProfileForm() {
 
 	// Submit data
 	const { loading, handleSubmit, toast } = useFormSubmission({
-		validate: () => isValid,
 		mutation: updateName,
+		getVariables: () => form.getValues(),
+		validate: () => isValid,
 		successMessage: 'Profile updated!',
 		onSuccess: () => setIsEditing(false),
 		onError: (err: any) =>

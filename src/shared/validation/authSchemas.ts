@@ -121,6 +121,12 @@ export const ResetPasswordFormSchema = z
 		}
 	});
 
+/* ───────────────────────────── Default values ────────────────────────────── */
+/** Blank defaults for RHF – *not* for validation */
+export const signInDefaults: z.infer<typeof SignInSchema> = SignInSchema.safeParse({}).success
+	? SignInSchema.parse({})
+	: { email: '', password: '', remember: false };
+
 /* -------------------------------------------------------------------------- */
 /*  Derived helper types                                                      */
 /* -------------------------------------------------------------------------- */
@@ -130,4 +136,5 @@ export type SignUpValues = z.infer<typeof SignUpSchema>;
 export type ForgotPasswordValues = z.infer<typeof ForgotPasswordSchema>;
 export type ResetPasswordValues = z.infer<typeof ResetPasswordSchema>;
 export type ResetPasswordFormValues = z.infer<typeof ResetPasswordFormSchema>;
+
 export { email as EmailField, password as PasswordField };

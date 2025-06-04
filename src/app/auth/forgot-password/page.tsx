@@ -26,6 +26,7 @@ export default function ForgotPassword() {
 
 	const { loading, handleSubmit } = useFormSubmission({
 		mutation: forgotMutation,
+		getVariables: () => form.getValues(),
 		validate: () => isValid,
 		onSuccess: () => router.push('/auth/sign-in?reset=sent'),
 		onError: (err) => {

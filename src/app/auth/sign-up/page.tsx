@@ -24,6 +24,7 @@ export default function SignUp() {
 
 	const { loading, handleSubmit, toast } = useFormSubmission({
 		mutation: registerMutation,
+		getVariables: () => form.getValues(),
 		validate: () => isValid,
 		successMessage: 'Verification e-mail sent — check your inbox!',
 		onSuccess: () => {

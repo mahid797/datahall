@@ -54,6 +54,7 @@
  * @param mutation       A TanStack Query `UseMutationResult`. When provided, the hook wires `loading` / `error` directly.
  * @param onSubmit       Fallback async callback (ignored if `mutation` is set).
  * @param validate       Optional synchronous predicate. Return `false` to abort.
+ * @param getVariables   Optional function to retrieve variables for the mutation (if needed).
  * @param onSuccess      Optional callback after a successful submit.
  * @param onError        Optional callback on error (receives error message).
  * @param successMessage Optional toast text on success (unless `skipDefaultToast`).
@@ -81,6 +82,7 @@ interface UseFormSubmissionProps {
 	onSubmit?: () => Promise<void>;
 	/** Client-side validator – return `true` to proceed. */
 	validate?: () => boolean;
+	getVariables?: () => any;
 	onSuccess?: () => void;
 	onError?: (message: string) => void;
 	/** Pre-canned toast messages on success/failure. */
@@ -93,6 +95,7 @@ interface UseFormSubmissionProps {
 export const useFormSubmission = ({
 	mutation,
 	onSubmit,
+	getVariables,
 	validate,
 	onSuccess,
 	onError,
@@ -114,7 +117,8 @@ export const useFormSubmission = ({
 		try {
 			if (mutation) {
 				/* ---------- adapter mode (tanstack-query) ---------- */
-				await mutation.mutateAsync(undefined);
+				const variables = getVariables ? getVariables() : undefined;
+				await mutation.mutateAsync(variables);
 			} else if (onSubmit) {
 				/** @deprecated Legacy fallback mode */
 				setLocalLoading(true);

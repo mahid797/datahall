@@ -44,6 +44,7 @@ export default function PasswordFormModal({ open, toggleModal }: PasswordFormMod
 	// Submit data
 	const { loading, handleSubmit, toast } = useFormSubmission({
 		mutation: changePassword,
+		getVariables: () => form.getValues(),
 		validate: () => isValid,
 		successMessage: 'Password updated!',
 		onSuccess: () => {

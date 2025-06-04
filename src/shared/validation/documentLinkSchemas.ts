@@ -13,7 +13,12 @@ const ContactEmail = z.object({
 });
 
 export const DocumentLinkFormSchema = z.object({
-	alias: z.string().trim().min(1, 'Alias is required').default(''),
+	alias: z
+		.string()
+		.trim()
+		.max(255, 'Max 255 characters') // alias is *optional*
+		.optional()
+		.default(''),
 	isPublic: z.boolean().default(true),
 
 	/* visitor info */
@@ -40,7 +45,9 @@ export const DocumentLinkFormSchema = z.object({
 /*  Defaults – direct RHF `defaultValues`                                     */
 /* -------------------------------------------------------------------------- */
 export const documentLinkDefaults: z.infer<typeof DocumentLinkFormSchema> =
-	DocumentLinkFormSchema.parse({});
+	DocumentLinkFormSchema.safeParse({}).success
+		? (DocumentLinkFormSchema.parse({}) as any)
+		: ({} as any);
 
 /* -------------------------------------------------------------------------- */
 /*  Payload schema sent to backend                                            */

@@ -10,7 +10,7 @@ export const PUBLIC_ROUTE_PATTERNS: readonly RegExp[] = [
 	/^\/auth\/forgot-password$/,
 	/^\/auth\/reset-password(\/.*)?$/,
 	/^\/api\/auth\/.*/,
-	/^\/links\/[0-9a-fA-F-]{36}$/,
+	/^\/documentAccess\/[0-9a-fA-F-]{36}$/,
 	/^\/_next\/.*/,
 	/^\/favicon\.ico$/,
 ];

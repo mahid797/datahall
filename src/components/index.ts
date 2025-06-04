@@ -4,7 +4,6 @@ export { default as EnvironmentBadge } from './common/EnvironmentBadge';
 export { default as Toast } from './common/Toast';
 
 export { default as CustomUploader } from './fileHandling/CustomUploader';
-export { default as PDFViewer } from './fileHandling/PDFViewer';
 
 export { default as CustomCheckbox } from './input/CustomCheckbox';
 export { default as Dropdown } from './input/Dropdown';

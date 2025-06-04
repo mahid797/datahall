@@ -25,6 +25,7 @@ export default function SignIn() {
 
 	const { loading, handleSubmit } = useFormSubmission({
 		mutation: signInMutation,
+		getVariables: () => form.getValues(),
 		validate: () => isValid,
 		successMessage: 'Successfully signed in! Redirecting…',
 		onSuccess: () => router.push('/documents'),
