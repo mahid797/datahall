@@ -8,7 +8,10 @@ import { Prisma } from '@prisma/client';
 export const PublicLinkAccessSchema = z.object({
 	firstName: z.string().trim().default(''),
 	lastName: z.string().trim().default(''),
-	email: z.string().trim().email().default(''),
+	email: z.preprocess(
+		(v) => (v === '' ? undefined : v),
+		z.string().email('Invalid email').optional(),
+	),
 	password: z.string().optional(),
 });
 

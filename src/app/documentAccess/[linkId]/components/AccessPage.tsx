@@ -1,7 +1,7 @@
 'use client';
 
 import { Container, Skeleton } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import AccessError from './AccessError';
 import FileAccess from './FileDisplay';
@@ -18,6 +18,7 @@ export default function AccessPage({ linkId }: Props) {
 	const [linkData, setLinkData] = useState<FileAccessPayload>({} as FileAccessPayload);
 	const [fetchLinkError, setFetchLinkError] = useState('');
 	const [hasInitialized, setHasInitialized] = useState(false); // This flag blocks the rendering of visitorInfoModal till the useEffect finishes to check whether a link url is truly public or not.
+	const autoRequestSent = useRef(false);
 
 	const { error, data, isLoading } = useDocumentAccess(linkId);
 	const linkInfo = {
@@ -42,7 +43,6 @@ export default function AccessPage({ linkId }: Props) {
 				linkId,
 				firstName: '',
 				lastName: '',
-				email: '',
 				password: '',
 			};
 
@@ -57,8 +57,7 @@ export default function AccessPage({ linkId }: Props) {
 				documentId: file.documentId,
 			});
 		},
-
-		successMessage: 'File accessed successfully!',
+		successMessage: 'File accessed successfully....!',
 		errorMessage: 'Error accessing the link. Please try again later.',
 		onError: (errMsg) => {
 			setFetchLinkError(errMsg);
@@ -70,8 +69,11 @@ export default function AccessPage({ linkId }: Props) {
 			const { isPasswordProtected, visitorFields, signedUrl } = linkInfo;
 			const isTrulyPublic = !isPasswordProtected && visitorFields.length === 0;
 
-			if (isTrulyPublic && !signedUrl) {
-				handleSubmit({ preventDefault: () => {} } as any).finally(() => setHasInitialized(true));
+			if (isTrulyPublic && !signedUrl && !autoRequestSent.current) {
+				autoRequestSent.current = true;
+				handleSubmit({ preventDefault: () => {} } as any).finally(() => {
+					setHasInitialized(true);
+				});
 			} else {
 				setHasInitialized(true);
 			}

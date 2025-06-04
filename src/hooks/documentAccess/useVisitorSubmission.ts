@@ -26,6 +26,7 @@ const submitVisitorDetails = async ({
 const useVisitorSubmission = () => {
 	const mutation = useMutation({
 		mutationFn: submitVisitorDetails,
+		retry: false,
 		onError: (error) => {
 			console.error('Error submitting visitor details: ', error);
 		},

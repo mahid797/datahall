@@ -100,7 +100,7 @@ export default function VisitorInfoModal({
 				linkId,
 				firstName: splittedName.firstName,
 				lastName: splittedName.lastName,
-				email: values.email || '',
+				email: values.email || undefined,
 				password: values.password || '',
 				visitorMetaData: null, // This will be populated to add any additional user information, Implementation from API endpoint as well.
 			};

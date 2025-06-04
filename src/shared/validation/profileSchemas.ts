@@ -23,5 +23,17 @@ export const ChangePasswordSchema = z
 		}
 	});
 
+/* ───────────────────────────── Default values ────────────────────────────── */
+export const ChangeNameDefaults = {
+	firstName: '',
+	lastName: '',
+	email: '',
+};
+export const ChangePasswordDefaults = {
+	currentPassword: '',
+	newPassword: '',
+	confirmPassword: '',
+};
+
 export type ChangeNameValues = z.infer<typeof ChangeNameSchema>;
 export type ChangePasswordValues = z.infer<typeof ChangePasswordSchema>;

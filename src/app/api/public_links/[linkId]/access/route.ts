@@ -9,7 +9,16 @@ import { PublicLinkAccessSchema } from '@/shared/validation/publicLinkSchemas';
 export async function POST(req: NextRequest, props: { params: Promise<{ linkId: string }> }) {
 	try {
 		const { linkId } = await props.params;
-		const { firstName, lastName, email, password } = PublicLinkAccessSchema.parse(await req.json());
+		if (!linkId) {
+			return createErrorResponse('Link ID is required.', 400);
+		}
+
+		const safeJson = await req.text();
+		if (!safeJson) return createErrorResponse('Empty request body', 400);
+
+		const parsedBody = safeJson ? JSON.parse(safeJson) : {};
+
+		const { firstName, lastName, email, password } = PublicLinkAccessSchema.parse(parsedBody);
 
 		// 1) Retrieve link
 		const link = await linkService.validateLinkAccess(linkId, password);
