@@ -5,12 +5,12 @@
  */
 
 import { useWatch } from 'react-hook-form';
-import { SignUpSchema } from '@/shared/validation/authSchemas';
+import { signUpDefaults, SignUpSchema } from '@/shared/validation/authSchemas';
 import { useFormWithSchema } from '@/hooks/forms/useFormWithSchema';
 import type { z } from 'zod';
 
 export function useSignUpForm(mode: 'onBlur' | 'onChange' | 'onSubmit' = 'onBlur') {
-	const form = useFormWithSchema(SignUpSchema, SignUpSchema.parse({}), mode);
+	const form = useFormWithSchema(SignUpSchema, signUpDefaults, mode);
 
 	/* Derive helpers consumed by PasswordValidation component */
 	const watchPassword = useWatch({ control: form.control, name: 'password' });

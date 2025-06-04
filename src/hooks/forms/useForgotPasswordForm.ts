@@ -3,12 +3,12 @@
  * ---------------------------------------------------------------------------
  * Thin RHF+Zod wrapper for the “Forgot password” screen.
  */
-import { ForgotPasswordSchema } from '@/shared/validation/authSchemas';
+import { forgotPasswordDefaults, ForgotPasswordSchema } from '@/shared/validation/authSchemas';
 import { useFormWithSchema } from '@/hooks/forms/useFormWithSchema';
 import type { z } from 'zod';
 
 export function useForgotPasswordForm(mode: 'onBlur' | 'onChange' | 'onSubmit' = 'onBlur') {
-	return useFormWithSchema(ForgotPasswordSchema, ForgotPasswordSchema.parse({}), mode);
+	return useFormWithSchema(ForgotPasswordSchema, forgotPasswordDefaults, mode);
 }
 
 /* Derived type (handy for unit tests etc.) */
