@@ -1,44 +1,32 @@
-import axios from 'axios';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
 
-const createAnalytics = async ({
-	documentId,
-	documentLinkId,
-	payload,
-}: {
+import { AnalyticsEventType } from '@/shared/enums';
+import { queryKeys } from '@/shared/queryKeys';
+
+interface CreateAnalyticsArgs {
 	documentId: string;
 	documentLinkId: string;
-	payload: any; // JSON object
-}) => {
-	const response = await axios.post(
-		`/api/documents/${documentId}/links/${documentLinkId}/analytics`,
-		payload,
-	);
+	eventType: AnalyticsEventType;
+	meta?: unknown;
+	visitorId?: number;
+}
 
-	return response.data;
+const createAnalytics = async ({ documentLinkId, ...rest }: CreateAnalyticsArgs) => {
+	const { data } = await axios.post(`/api/public_links/${documentLinkId}/analytics`, rest);
+
+	return data;
 };
 
 const useCreateDocumentAnalytics = () => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: async ({
-			documentId,
-			documentLinkId,
-			payload,
-		}: {
-			documentId: string;
-			documentLinkId: string;
-			payload: any; // JSON object
-		}) => {
-			return createAnalytics({
-				documentId,
-				documentLinkId,
-				payload,
+		mutationFn: createAnalytics,
+		onSuccess: (data, variables) => {
+			queryClient.invalidateQueries({
+				queryKey: queryKeys.links.analytics(variables.documentLinkId),
 			});
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['documentAnalytics'] });
 		},
 		onError: (error) => {
 			console.error('Error adding analytics: ', error);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { analyticsService, createErrorResponse } from '@/app/api/_services';
+import { analyticsService, authService, createErrorResponse, documentService } from '@/services';
 
 /**
  * GET /api/documents/[documentId]/links/[linkId]/analytics
@@ -10,39 +10,15 @@ export async function GET(
 	props: { params: Promise<{ documentId: string; linkId: string }> },
 ) {
 	try {
+		const userId = await authService.authenticate();
 		const { documentId, linkId } = await props.params;
 
-		const analytics = analyticsService.getDocumentAnalyticsForLink({
-			documentId,
-			linkId,
-		});
+		await documentService.verifyOwnership(userId, documentId);
 
-		return NextResponse.json({ analytics }, { status: 200 });
+		const data = await analyticsService.getAnalyticsForLink(documentId, linkId);
+
+		return NextResponse.json(data, { status: 200 });
 	} catch (error) {
 		return createErrorResponse('Server error while fetching analytics for link.', 500, error);
-	}
-}
-
-export async function POST(
-	req: NextRequest,
-	props: { params: Promise<{ documentId: string; linkId: string }> },
-) {
-	try {
-		// const userId = await authService.authenticate();
-		const { documentId, linkId } = await props.params;
-		const body = await req.json();
-		const { eventType, visitorId, meta } = body;
-
-		const analytics = await analyticsService.logEventForAnalytics({
-			documentId,
-			documentLinkId: linkId,
-			eventType,
-			visitorId,
-			meta,
-		});
-
-		return NextResponse.json({ analytics }, { status: 200 });
-	} catch (error) {
-		return createErrorResponse('Server error while fetching document.', 500, error);
 	}
 }

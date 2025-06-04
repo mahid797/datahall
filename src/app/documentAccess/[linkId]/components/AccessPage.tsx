@@ -1,40 +1,43 @@
 'use client';
 
-import axios from 'axios';
+import { Container, Skeleton } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { Container } from '@mui/material';
 
-import FileAccess from './FileDisplay';
 import AccessError from './AccessError';
+import FileAccess from './FileDisplay';
 import VisitorInfoModal from './VisitorInfoModal';
 
-import { LinkData } from '@/shared/models';
-import { LoadingSpinner } from '@/components';
-import { useFormSubmission, useDocumentAccess } from '@/hooks';
+import { useDocumentAccess, useFormSubmission, useVisitorSubmission } from '@/hooks';
+import { FileAccessPayload } from '@/shared/models';
 
 interface Props {
 	linkId: string;
 }
 
 export default function AccessPage({ linkId }: Props) {
-	const [linkData, setLinkData] = useState<LinkData>({});
-	const [fetchLinkError, setFetchLinkError] = useState<string>('');
+	const [linkData, setLinkData] = useState<FileAccessPayload>({} as FileAccessPayload);
+	const [fetchLinkError, setFetchLinkError] = useState('');
 	const [hasInitialized, setHasInitialized] = useState(false); // This flag blocks the rendering of visitorInfoModal till the useEffect finishes to check whether a link url is truly public or not.
 
 	const { error, data, isLoading } = useDocumentAccess(linkId);
-	const linkInfo = data?.data ?? {};
+	const linkInfo = {
+		isPasswordProtected: false,
+		visitorFields: [] as string[],
+		signedUrl: undefined as string | undefined,
+		...data?.data,
+	};
+
+	const { mutateAsync: submitVisitorData, isPending } = useVisitorSubmission();
 
 	useEffect(() => {
 		if (error) {
-			setFetchLinkError(error?.message);
+			setFetchLinkError(error.message);
 			setHasInitialized(true);
 		}
 	}, [error]);
 
 	const { handleSubmit } = useFormSubmission({
 		onSubmit: async () => {
-			if (!linkId) throw new Error('Missing linkId.');
-
 			const payload = {
 				linkId,
 				firstName: '',
@@ -43,17 +46,15 @@ export default function AccessPage({ linkId }: Props) {
 				password: '',
 			};
 
-			const response = await axios.post(`/api/public_links/${linkId}/access`, payload);
-			if (!response?.data?.data) {
-				throw new Error(response.data?.message || 'Unable to access file.');
-			}
+			const response = await submitVisitorData({ linkId, payload });
+			const file = response.data;
 
 			setLinkData({
-				signedUrl: response.data.data.signedUrl,
-				fileName: response.data.data.fileName,
-				size: response.data.data.size,
-				fileType: response.data.data.fileType,
-				documentId: response.data.data.documentId,
+				signedUrl: file.signedUrl,
+				fileName: file.fileName,
+				size: file.size,
+				fileType: file.fileType,
+				documentId: file.documentId,
 			});
 		},
 
@@ -65,36 +66,32 @@ export default function AccessPage({ linkId }: Props) {
 	});
 
 	useEffect(() => {
-		if (!isLoading && data?.data && !hasInitialized) {
+		if (!isLoading && !hasInitialized) {
 			const { isPasswordProtected, visitorFields, signedUrl } = linkInfo;
 			const isTrulyPublic = !isPasswordProtected && visitorFields.length === 0;
 
 			if (isTrulyPublic && !signedUrl) {
-				handleSubmit({ preventDefault: () => {} } as any).finally(() => {
-					setHasInitialized(true);
-				});
+				handleSubmit({ preventDefault: () => {} } as any).finally(() => setHasInitialized(true));
 			} else {
 				setHasInitialized(true);
 			}
 		}
-	}, [isLoading, data, hasInitialized]);
+	}, [isLoading, hasInitialized, linkInfo, handleSubmit]);
 
-	const handleVisitorInfoFormModalSubmit = (data: { [key: string]: any }) => {
-		setLinkData({
-			signedUrl: data.signedUrl,
-			fileName: data.fileName,
-			size: data.size,
-		});
+	const handleVisitorModalSubmit = async (file: FileAccessPayload) => {
+		setLinkData(file);
 	};
 
 	// ⏳ Still fetching or still waiting for useEffect decision logic
-	if (isLoading || !hasInitialized) {
-		return <LoadingSpinner />;
-	}
+	if (isLoading || !hasInitialized || isPending)
+		return (
+			<Skeleton
+				variant='rectangular'
+				height={200}
+			/>
+		);
 
-	if (fetchLinkError) {
-		return <AccessError message={fetchLinkError} />;
-	}
+	if (fetchLinkError) return <AccessError message={fetchLinkError} />;
 
 	if (linkData.signedUrl) {
 		return (
@@ -115,7 +112,7 @@ export default function AccessPage({ linkId }: Props) {
 				linkId={linkId}
 				visitorFields={linkInfo.visitorFields}
 				passwordRequired={linkInfo.isPasswordProtected}
-				onVisitorInfoModalSubmit={handleVisitorInfoFormModalSubmit}
+				onVisitorInfoModalSubmit={handleVisitorModalSubmit}
 			/>
 		</Container>
 	);

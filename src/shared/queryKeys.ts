@@ -35,6 +35,13 @@ export const queryKeys = {
 
 		/** Links that belong to a document */
 		links: (documentId: string) => ['documents', documentId, 'links'] as const,
+
+		/** Owner-side aggregate analytics for a document */
+		analytics: (documentId: string) => ['documents', documentId, 'analytics'] as const,
+
+		/** Owner-side analytics for a single link */
+		linkAnalytics: (documentId: string, linkId: string) =>
+			['documents', documentId, 'links', linkId, 'analytics'] as const,
 	},
 
 	/* ------------------------------------------------------------------------ */
@@ -43,5 +50,11 @@ export const queryKeys = {
 	links: {
 		/** Visitor access tracking for a link */
 		access: (linkId: string) => ['links', linkId, 'access'] as const,
+
+		/** Visitor-side analytics logging / invalidation */
+		analytics: (linkId: string) => ['links', linkId, 'analytics'] as const,
+
+		/** Visitor-side analytics for a single link */
+		visitors: (linkId: string) => ['links', linkId, 'visitors'] as const,
 	},
 } as const;
