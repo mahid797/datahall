@@ -4,7 +4,7 @@ import { Box, Button, Typography } from '@mui/material';
 import { useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 
-import { useCreateDocumentAnalytics } from '@/hooks';
+import { useCreateDocumentAnalyticsMutation } from '@/hooks/data';
 import { AnalyticsEventType } from '@/shared/enums';
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
@@ -20,7 +20,7 @@ export default function PDFViewer({ url, documentId, linkId, visitorId }: PDFVie
 	const [numPages, setNumPages] = useState<number>();
 	const [page, setPage] = useState(1);
 	const logged = useRef(false); // ensures single VIEW row
-	const analytics = useCreateDocumentAnalytics();
+	const analytics = useCreateDocumentAnalyticsMutation();
 
 	const trackFileView = () => {
 		if (logged.current) return;

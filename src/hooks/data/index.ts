@@ -9,13 +9,13 @@ export { default as useContactsQuery } from './contacts/useContactsQuery';
 export { default as useCreateLinkVisitorMutation } from './documentAccess/useCreateLinkVisitorMutation';
 export { default as useDocumentAccessQuery } from './documentAccess/useDocumentAccessQuery';
 
-export { default as useCreateDocumentAnalyticsMutation } from './documents/useCreateDocumentAnalyticsMutation';
+export { default as useCreateDocumentAnalyticsMutation } from './documentAccess/useCreateDocumentAnalyticsMutation';
 export { default as useCreateDocumentMutation } from './documents/useCreateDocumentMutation';
 export { default as useCreateLinkMutation } from './documents/useCreateLinkMutation';
 export { default as useDeleteDocumentMutation } from './documents/useDeleteDocumentMutation';
-export { default as useDocumentAnalyticsQuery } from './documents/useDocumentAnalyticsQuery';
+export { default as useDocumentAnalyticsQuery } from './documentDetails/useDocumentAnalyticsQuery';
 export { default as useDocumentsQuery } from './documents/useDocumentsQuery';
-export { default as useLinkVisitorsQuery } from './documents/useLinkVisitorsQuery';
+export { default as useLinkVisitorsQuery } from './documentDetails/useLinkVisitorsQuery';
 export { default as useSendLinkInvitesMutatio } from './documents/useSendLinkInvitesMutation';
 
 export { default as useProfileQuery } from './profile/useProfileQuery';
