@@ -10,7 +10,8 @@ import AuthFormWrapper from '../components/AuthFormWrapper';
 
 import { LockIcon } from '@/icons';
 
-import { useFormSubmission, useResetPassword, useToast } from '@/hooks';
+import { useFormSubmission, useToast } from '@/hooks';
+import { useResetPasswordMutation } from '@/hooks/data';
 import { useResetPasswordForm } from '@/hooks/forms';
 
 export default function ResetPassword() {
@@ -38,7 +39,7 @@ export default function ResetPassword() {
 		isPasswordTouched,
 	} = form;
 
-	const resetMutation = useResetPassword();
+	const resetMutation = useResetPasswordMutation();
 
 	const { loading, handleSubmit } = useFormSubmission({
 		validate: () => isValid,

@@ -9,7 +9,7 @@ const deleteDocumentById = async (documentId: string): Promise<void> => {
 	return response.data;
 };
 
-const useDeleteDocument = () => {
+const useDeleteDocumentMutation = () => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
@@ -20,4 +20,4 @@ const useDeleteDocument = () => {
 	});
 };
 
-export default useDeleteDocument;
+export default useDeleteDocumentMutation;

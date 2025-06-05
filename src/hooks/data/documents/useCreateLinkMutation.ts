@@ -18,7 +18,7 @@ interface Response {
  * Creates a new link for the given document and invalidates the
  * document-links list cache on success.
  */
-export function useCreateLinkMutation() {
+export default function useCreateLinkMutation() {
 	const queryClient = useQueryClient();
 
 	return useMutation<Response, Error, Params>({

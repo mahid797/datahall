@@ -9,7 +9,8 @@ import AuthFormWrapper from '../components/AuthFormWrapper';
 
 import { KeyIcon } from '@/icons';
 
-import { useForgotPassword, useFormSubmission, useToast } from '@/hooks';
+import { useFormSubmission, useToast } from '@/hooks';
+import { useForgotPasswordMutation } from '@/hooks/data';
 import { useForgotPasswordForm } from '@/hooks/forms';
 
 export default function ForgotPassword() {
@@ -21,7 +22,7 @@ export default function ForgotPassword() {
 		formState: { errors, isValid },
 	} = form;
 
-	const forgotMutation = useForgotPassword();
+	const forgotMutation = useForgotPasswordMutation();
 	const toast = useToast();
 
 	const { loading, handleSubmit } = useFormSubmission({

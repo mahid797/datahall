@@ -8,7 +8,8 @@ import { Box, Typography } from '@mui/material';
 import { BlueWaveLogo, CustomCheckbox, FormInput, LoadingButton, NavLink } from '@/components';
 import AuthFormWrapper from '../components/AuthFormWrapper';
 
-import { useAuthQueryToasts, useFormSubmission, useSignIn } from '@/hooks';
+import { useFormSubmission } from '@/hooks';
+import { useAuthQueryToasts, useSignInMutation } from '@/hooks/data';
 import { useSignInForm } from '@/hooks/forms';
 
 export default function SignIn() {
@@ -21,7 +22,7 @@ export default function SignIn() {
 		formState: { errors, isValid },
 	} = form;
 
-	const signInMutation = useSignIn();
+	const signInMutation = useSignInMutation();
 
 	const { loading, handleSubmit } = useFormSubmission({
 		mutation: signInMutation,

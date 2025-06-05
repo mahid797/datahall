@@ -18,7 +18,7 @@ const createAnalytics = async ({ documentLinkId, ...rest }: CreateAnalyticsArgs)
 	return data;
 };
 
-const useCreateDocumentAnalytics = () => {
+const useCreateDocumentAnalyticsMutation = () => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
@@ -34,4 +34,4 @@ const useCreateDocumentAnalytics = () => {
 	});
 };
 
-export default useCreateDocumentAnalytics;
+export default useCreateDocumentAnalyticsMutation;

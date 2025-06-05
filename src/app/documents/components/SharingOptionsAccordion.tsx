@@ -8,7 +8,8 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { EyeIcon, EyeOffIcon } from '@/icons';
 
 import { CustomCheckbox, FormInput } from '@/components';
-import { useCreateLinkForm } from '@/hooks/forms/useCreateLinkForm';
+
+import { useCreateLinkForm } from '@/hooks/forms';
 
 import { visitorFieldsConfig } from '@/shared/config/visitorFieldsConfig';
 import { sortFields } from '@/shared/utils';

@@ -14,11 +14,11 @@ const fetchDocuments = async (): Promise<DocumentResponse> => {
 	return response.data;
 };
 
-const useFetchDocuments = () => {
+const useDocumentsQuery = () => {
 	return useQuery({
 		queryKey: queryKeys.documents.all,
 		queryFn: fetchDocuments,
 	});
 };
 
-export default useFetchDocuments;
+export default useDocumentsQuery;

@@ -4,7 +4,7 @@ import axios from 'axios';
 import { LinkVisitor } from '@/shared/models';
 import { queryKeys } from '@/shared/queryKeys';
 
-export default function useFetchLinkVisitors(
+export default function useLinkVisitorsQuery(
 	documentId: string,
 	linkId: string,
 	enabled?: boolean,

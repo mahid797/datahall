@@ -18,7 +18,7 @@ const fetchDocumentDetails = async ({ queryKey }: QueryFunctionContext) => {
 	return data;
 };
 
-const useDocumentAccess = (linkId: string) =>
+const useDocumentAccessQuery = (linkId: string) =>
 	useQuery({
 		queryKey: queryKeys.links.access(linkId),
 		queryFn: fetchDocumentDetails,
@@ -26,4 +26,4 @@ const useDocumentAccess = (linkId: string) =>
 		retry: false,
 	});
 
-export default useDocumentAccess;
+export default useDocumentAccessQuery;

@@ -8,15 +8,16 @@ import Grid from '@mui/material/Grid2';
 
 import { FormInput, LoadingButton, LoadingSpinner, ModalWrapper } from '@/components';
 
-import { useFormSubmission, useModal, useProfile, useToast, useUpdateName } from '@/hooks';
+import { useFormSubmission, useModal, useToast } from '@/hooks';
+import { useProfileQuery, useUpdateNameMutation } from '@/hooks/data';
+import { useProfileForm } from '@/hooks/forms';
 
-import { useProfileForm } from '@/hooks/forms/useProfileForm';
 import PasswordFormModal from './PasswordFormModal';
 import AvatarActions from '@/components/common/AvatarCard';
 
 export default function ProfileForm() {
-	const { data, isLoading: fetchLoading, error } = useProfile();
-	const updateName = useUpdateName();
+	const { data, isLoading: fetchLoading, error } = useProfileQuery();
+	const updateName = useUpdateNameMutation();
 
 	const [isEditing, setIsEditing] = useState(false);
 

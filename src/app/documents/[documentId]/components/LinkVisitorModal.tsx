@@ -14,7 +14,8 @@ import {
 } from '@mui/material';
 
 import { EmptyState } from '@/components';
-import { useFetchLinkVisitors } from '@/hooks';
+
+import { useLinkVisitorsQuery } from '@/hooks/data';
 
 import { LinkVisitor } from '@/shared/models';
 import { formatDateTime } from '@/shared/utils';
@@ -34,7 +35,7 @@ export default function LinkVisitorModal({
 	linkAlias,
 	onClose,
 }: LinkVisitorModalProps) {
-	const { data, isLoading } = useFetchLinkVisitors(documentId, linkId, open);
+	const { data, isLoading } = useLinkVisitorsQuery(documentId, linkId, open);
 
 	return (
 		<Dialog

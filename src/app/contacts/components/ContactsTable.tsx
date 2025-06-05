@@ -22,7 +22,9 @@ import { EmptyState, Paginator } from '@/components';
 
 import ContactsTableRow from './ContactsTableRow';
 
-import { useFetchContacts, useSort } from '@/hooks';
+import { useSort } from '@/hooks';
+import { useContactsQuery } from '@/hooks/data';
+
 import { Contact } from '@/shared/models';
 
 export default function ContactsTable() {
@@ -30,7 +32,7 @@ export default function ContactsTable() {
 	const [pageSize, setPageSize] = useState(9);
 	const [rowHeight, setRowHeight] = useState(59);
 
-	const { data, isLoading, isError, error } = useFetchContacts();
+	const { data, isLoading, isError, error } = useContactsQuery();
 
 	const parsedContacts = data?.map((contact) => ({
 		...contact,

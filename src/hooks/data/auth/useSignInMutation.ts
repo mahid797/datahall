@@ -1,5 +1,5 @@
 /**
- * useSignIn.ts
+ * useSignInMutation.ts
  * -----------------------------------------------------------------------------
  * React-Query mutation that wraps NextAuth’s credentials sign-in.
  *
@@ -12,7 +12,7 @@ import { signIn } from 'next-auth/react';
 
 import type { SignInRequest, SignInResponse } from '@/shared/models/authModels';
 
-export default function useSignIn() {
+export default function useSignInMutation() {
 	return useMutation<SignInResponse, Error, SignInRequest>({
 		mutationFn: async ({ email, password, remember }) => {
 			const res = await signIn('credentials', {

@@ -10,7 +10,7 @@
  */
 
 import { ChangeNameSchema } from '@/shared/validation/profileSchemas';
-import { useFormWithSchema } from '@/hooks/forms/useFormWithSchema';
+import { useFormWithSchema } from '@/hooks/forms';
 import type { z } from 'zod';
 
 /* -------------------------------------------------------------------------- */

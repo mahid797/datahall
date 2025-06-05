@@ -7,12 +7,13 @@ import { FormProvider } from 'react-hook-form';
 import { BlueWaveLogo, FormInput, LoadingButton, NavLink, PasswordValidation } from '@/components';
 import AuthFormWrapper from '../components/AuthFormWrapper';
 
-import { useFormSubmission, useSignUp } from '@/hooks';
+import { useFormSubmission } from '@/hooks';
+import { useSignUpMutation } from '@/hooks/data';
 import { useSignUpForm } from '@/hooks/forms';
 
 export default function SignUp() {
 	const router = useRouter();
-	const registerMutation = useSignUp();
+	const registerMutation = useSignUpMutation();
 	const form = useSignUpForm();
 
 	/* ------------------------------ form state ----------------------------- */

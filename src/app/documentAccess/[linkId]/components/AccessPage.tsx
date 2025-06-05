@@ -7,7 +7,9 @@ import AccessError from './AccessError';
 import FileAccess from './FileDisplay';
 import VisitorInfoModal from './VisitorInfoModal';
 
-import { useDocumentAccess, useFormSubmission, useVisitorSubmission } from '@/hooks';
+import { useFormSubmission } from '@/hooks';
+import { useCreateLinkVisitorMutation, useDocumentAccessQuery } from '@/hooks/data';
+
 import { FileAccessPayload } from '@/shared/models';
 
 interface Props {
@@ -20,7 +22,7 @@ export default function AccessPage({ linkId }: Props) {
 	const [hasInitialized, setHasInitialized] = useState(false); // This flag blocks the rendering of visitorInfoModal till the useEffect finishes to check whether a link url is truly public or not.
 	const autoRequestSent = useRef(false);
 
-	const { error, data, isLoading } = useDocumentAccess(linkId);
+	const { error, data, isLoading } = useDocumentAccessQuery(linkId);
 	const linkInfo = {
 		isPasswordProtected: false,
 		visitorFields: [] as string[],
@@ -28,7 +30,7 @@ export default function AccessPage({ linkId }: Props) {
 		...data?.data,
 	};
 
-	const { mutateAsync: submitVisitorData, isPending } = useVisitorSubmission();
+	const { mutateAsync: submitVisitorData, isPending } = useCreateLinkVisitorMutation();
 
 	useEffect(() => {
 		if (error) {

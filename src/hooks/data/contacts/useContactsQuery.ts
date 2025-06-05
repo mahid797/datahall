@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Contact } from '@/shared/models';
 import { queryKeys } from '@/shared/queryKeys';
 
-export default function useFetchContacts() {
+export default function useContactsQuery() {
 	const fetchContacts = async (): Promise<Contact[]> => {
 		const response = await axios.get('/api/contacts');
 		return response.data.data;

@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 
-import { useToast } from '@/hooks/useToast';
+import { useToast } from '@/hooks';
 
 interface SendInviteParams {
 	documentId: string;
@@ -16,7 +16,11 @@ interface SendInviteParams {
  */
 
 /* TODO: replace console.log with real endpoint when available */
-export function useSendLinkInvites({ documentId, linkUrl, recipients }: SendInviteParams) {
+export default function useSendLinkInvitesMutation({
+	documentId,
+	linkUrl,
+	recipients,
+}: SendInviteParams) {
 	const toast = useToast();
 
 	return useMutation({

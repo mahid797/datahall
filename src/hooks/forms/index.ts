@@ -1,8 +1,8 @@
-export { useChangePasswordForm } from './useChangePasswordForm';
-export { useCreateLinkForm } from './useCreateLinkForm';
-export { useFormWithSchema } from './useFormWithSchema';
-export { useProfileForm } from './useProfileForm';
-export { useSignInForm } from './useSignInForm';
-export { useSignUpForm } from './useSignUpForm';
-export { useForgotPasswordForm } from './useForgotPasswordForm';
-export { useResetPasswordForm } from './useResetPasswordForm';
+export * from './useFormWithSchema';
+export * from './useCreateLinkForm';
+export * from './useChangePasswordForm';
+export * from './useProfileForm';
+export * from './useSignInForm';
+export * from './useSignUpForm';
+export * from './useForgotPasswordForm';
+export * from './useResetPasswordForm';

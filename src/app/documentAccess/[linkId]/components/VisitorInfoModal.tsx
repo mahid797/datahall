@@ -15,7 +15,8 @@ import Grid from '@mui/material/Grid2';
 
 import { FormInput, LoadingButton } from '@/components';
 
-import { useFormSubmission, useValidatedFormData, useVisitorSubmission } from '@/hooks';
+import { useFormSubmission, useValidatedFormData } from '@/hooks';
+import { useCreateLinkVisitorMutation } from '@/hooks/data';
 
 import { EyeIcon, EyeOffIcon, FileDownloadIcon } from '@/icons';
 import { visitorFieldsConfigByKey } from '@/shared/config/visitorFieldsConfig';
@@ -71,7 +72,7 @@ export default function VisitorInfoModal({
 		validationRules: formConfig.validationRules,
 	});
 
-	const { mutateAsync: submitVisitorData, isPending } = useVisitorSubmission();
+	const { mutateAsync: submitVisitorData, isPending } = useCreateLinkVisitorMutation();
 
 	const { loading, handleSubmit, toast } = useFormSubmission({
 		onSubmit: async () => {

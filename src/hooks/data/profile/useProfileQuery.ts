@@ -7,7 +7,7 @@ import { ProfileDto } from '@/shared/models';
 /**
  * Fetch current user profile. Cached for 5 min; no auto-refetch on focus.
  */
-export default function useProfile() {
+export default function useProfileQuery() {
 	return useQuery<ProfileDto, Error>({
 		queryKey: queryKeys.profile.base,
 		queryFn: async () => {

@@ -7,7 +7,10 @@ import { useDropzone } from 'react-dropzone';
 import { useRouter } from 'next/navigation';
 
 import { FilePlusIcon } from '@/icons';
-import { useModal, useToast, useUploadDocument } from '@/hooks';
+
+import { useModal, useToast } from '@/hooks';
+import { useCreateDocumentMutation } from '@/hooks/data';
+
 import { ModalWrapper } from '@/components';
 
 interface DragAndDropBoxProps {
@@ -24,7 +27,7 @@ const DragAndDropBox = ({
 	const { isOpen, openModal, closeModal } = useModal();
 	const { showToast } = useToast();
 	const { data: session } = useSession();
-	const uploadDocument = useUploadDocument();
+	const uploadDocument = useCreateDocumentMutation();
 	const router = useRouter();
 
 	const handleUploadSuccess = useCallback(() => {

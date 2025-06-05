@@ -23,7 +23,7 @@ const submitVisitorDetails = async ({
 	return data;
 };
 
-const useVisitorSubmission = () => {
+const useCreateLinkVisitorMutation = () => {
 	const mutation = useMutation({
 		mutationFn: submitVisitorDetails,
 		retry: false,
@@ -39,4 +39,4 @@ const useVisitorSubmission = () => {
 	};
 };
 
-export default useVisitorSubmission;
+export default useCreateLinkVisitorMutation;

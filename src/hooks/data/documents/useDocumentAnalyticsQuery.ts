@@ -21,11 +21,11 @@ const fetchDocumentAnalytics = async (documentId: string): Promise<DocumentAnaly
 	return data;
 };
 
-const useFetchDocumentAnalytics = (documentId: string, documentLinkId?: string) => {
+const useDocumentAnalyticsQuery = (documentId: string, documentLinkId?: string) => {
 	return useQuery({
 		queryKey: queryKeys.documents.analytics(documentId),
 		queryFn: () => fetchDocumentAnalytics(documentId),
 	});
 };
 
-export default useFetchDocumentAnalytics;
+export default useDocumentAnalyticsQuery;

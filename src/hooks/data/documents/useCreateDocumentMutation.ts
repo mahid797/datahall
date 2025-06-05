@@ -9,7 +9,7 @@ const uploadDocument = async (formData: FormData) => {
 	return response.data;
 };
 
-const useUploadDocument = () => {
+const useCreateDocumentMutation = () => {
 	const queryClient = useQueryClient();
 
 	return useMutation({
@@ -23,4 +23,4 @@ const useUploadDocument = () => {
 	});
 };
 
-export default useUploadDocument;
+export default useCreateDocumentMutation;

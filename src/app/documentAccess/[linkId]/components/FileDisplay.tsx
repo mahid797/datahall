@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Typography, Box, Button } from '@mui/material';
 
 import { useToast } from '@/hooks';
-import { useCreateDocumentAnalytics } from '@/hooks';
+import { useCreateDocumentAnalyticsMutation } from '@/hooks/data';
 
 import { formatFileSize, isViewableFileType } from '@/shared/utils';
 import { AnalyticsEventType } from '@/shared/enums';
@@ -25,7 +25,7 @@ const FileDisplay = ({
 	documentLinkId = '',
 }: FileAccessPayload) => {
 	const { showToast } = useToast();
-	const trackDocumentAnalytics = useCreateDocumentAnalytics();
+	const trackDocumentAnalytics = useCreateDocumentAnalyticsMutation();
 	const showFileViewButton = isViewableFileType(fileType || '');
 	const [displayPdfViewer, setDisplayPdfViewer] = useState(false);
 

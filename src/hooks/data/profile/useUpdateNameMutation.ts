@@ -1,5 +1,5 @@
 /**
- * useUpdateName.ts
+ * useUpdateNameMutation.ts
  * ---------------------------------------------------------------------------
  * TanStack-Query mutation to PATCH /api/profile/name.
  * On success we invalidate the PROFILE query so UI picks up fresh data.
@@ -15,7 +15,7 @@ import { UpdateNameRequest, UpdateNameResponse } from '@/shared/models';
 /* -------------------------------------------------------------------------- */
 /*  Hook                                                                      */
 /* -------------------------------------------------------------------------- */
-export default function useUpdateName() {
+export default function useUpdateNameMutation() {
 	const queryClient = useQueryClient();
 
 	return useMutation<UpdateNameResponse, Error, UpdateNameRequest>({

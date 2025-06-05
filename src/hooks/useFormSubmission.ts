@@ -70,7 +70,7 @@
  */
 import { FormEvent, useState } from 'react';
 import type { UseMutationResult } from '@tanstack/react-query';
-import { useToast } from '@/hooks/useToast';
+import { useToast } from '@/hooks';
 
 interface UseFormSubmissionProps {
 	/** TanStack Query mutation; enables adapter mode when supplied. */
