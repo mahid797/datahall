@@ -13,12 +13,13 @@ import {
 	TableRow,
 } from '@mui/material';
 
-import { EmptyState } from '@/components';
+import { EmptyState, Paginator } from '@/components';
 
 import { useLinkVisitorsQuery } from '@/hooks/data';
 
 import { LinkVisitor } from '@/shared/models';
 import { formatDateTime } from '@/shared/utils';
+import { usePaginatedTable, useResponsivePageSize } from '@/hooks';
 
 interface LinkVisitorModalProps {
 	open: boolean;
@@ -35,8 +36,29 @@ export default function LinkVisitorModal({
 	linkAlias,
 	onClose,
 }: LinkVisitorModalProps) {
-	const { data, isLoading } = useLinkVisitorsQuery(documentId, linkId, open);
+	const { data, isPending } = useLinkVisitorsQuery(documentId, linkId, open);
 
+	const { pageData, page, totalPages, setPage, pageSize, setPageSize } =
+		usePaginatedTable<LinkVisitor>(data ?? [], { pageSize: 10 });
+
+	/* responsive pageSize inside modal */
+	useResponsivePageSize(setPageSize, { offsetHeight: 500 });
+
+	const formatVisitorMetaData = (metaData: string | null): string => {
+		if (!metaData) return 'N/A';
+
+		try {
+			const parsed = JSON.parse(metaData);
+			if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+				return Object.entries(parsed)
+					.map(([key, val]) => `${key}: ${val}`)
+					.join(', ');
+			}
+			return String(parsed);
+		} catch {
+			return metaData;
+		}
+	};
 	return (
 		<Dialog
 			open={open}
@@ -47,7 +69,7 @@ export default function LinkVisitorModal({
 				variant='h2'
 				bgcolor='background.primary'
 				color='text.tertiary'>
-				Visitor Log - {linkAlias}
+				Visitor Log&nbsp;–&nbsp;{linkAlias}
 			</DialogTitle>
 			<DialogContent>
 				<TableContainer
@@ -65,7 +87,7 @@ export default function LinkVisitorModal({
 							</TableRow>
 						</TableHead>
 						<TableBody>
-							{isLoading && (
+							{isPending && (
 								<TableRow>
 									<TableCell
 										colSpan={4}
@@ -80,7 +102,7 @@ export default function LinkVisitorModal({
 								</TableRow>
 							)}
 
-							{data?.length === 0 ? (
+							{!isPending && pageData?.length === 0 ? (
 								<TableRow>
 									<TableCell
 										colSpan={4}
@@ -89,7 +111,7 @@ export default function LinkVisitorModal({
 									</TableCell>
 								</TableRow>
 							) : (
-								data?.map((visitor: LinkVisitor) => (
+								pageData?.map((visitor: LinkVisitor) => (
 									<TableRow key={visitor.id}>
 										<TableCell
 											sx={{
@@ -106,7 +128,7 @@ export default function LinkVisitorModal({
 											{formatDateTime(visitor.visitedAt, { includeTime: true })}
 										</TableCell>
 										<TableCell sx={{ width: '17%', textAlign: 'center' }}>
-											{visitor.visitorMetaData ? visitor.visitorMetaData : 'N/A'}
+											{formatVisitorMetaData(visitor.visitorMetaData)}
 										</TableCell>
 									</TableRow>
 								))
@@ -114,6 +136,16 @@ export default function LinkVisitorModal({
 						</TableBody>
 					</Table>
 				</TableContainer>
+				{totalPages > 1 && (
+					<Paginator
+						nextPage={page}
+						totalPages={totalPages}
+						onPageChange={setPage}
+						pageSize={pageSize}
+						totalItems={data?.length ?? 0}
+						size='sm'
+					/>
+				)}
 			</DialogContent>
 		</Dialog>
 	);

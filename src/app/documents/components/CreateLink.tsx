@@ -8,18 +8,19 @@ import {
 	DialogActions,
 	DialogContent,
 	DialogTitle,
+	Skeleton,
 	Typography,
 } from '@mui/material';
+
+import { CustomCheckbox, FormInput, LoadingButton } from '@/components';
+
+import { useFormSubmission } from '@/hooks';
+import { useCreateLinkMutation, useDocumentDetailQuery } from '@/hooks/data';
+import { useCreateLinkForm } from '@/hooks/forms';
 
 import CustomAccordion from './CustomAccordion';
 import SendingAccordion from './SendingAccordion';
 import SharingOptionsAccordion from './SharingOptionsAccordion';
-
-import { CustomCheckbox, FormInput, LoadingButton } from '@/components';
-
-import { useDocumentDetail, useFormSubmission } from '@/hooks';
-import { useCreateLinkMutation } from '@/hooks/data';
-import { useCreateLinkForm } from '@/hooks/forms';
 
 interface CreateLinkProps {
 	open: boolean;
@@ -28,7 +29,7 @@ interface CreateLinkProps {
 }
 
 export default function CreateLink({ open, documentId, onClose }: CreateLinkProps) {
-	const document = useDocumentDetail(documentId);
+	const { data: document, isPending: isDocumentLoading } = useDocumentDetailQuery(documentId);
 	const createLink = useCreateLinkMutation();
 
 	const form = useCreateLinkForm();
@@ -76,17 +77,28 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 				<Typography
 					my={4}
 					component='div'
+					display='flex'
+					gap={5}
+					alignItems='center'
 					variant='body2'>
 					Selected document:{' '}
-					<Chip
-						size='small'
-						label={document.document?.fileName}
-						sx={{
-							backgroundColor: 'alert.info',
-							borderRadius: 50,
-							verticalAlign: 'baseline',
-						}}
-					/>
+					{isDocumentLoading ? (
+						<Skeleton
+							height='1.5rem'
+							width='10rem'
+							variant='text'
+						/>
+					) : (
+						<Chip
+							size='small'
+							label={document?.fileName}
+							sx={{
+								backgroundColor: 'alert.info',
+								borderRadius: 50,
+								verticalAlign: 'baseline',
+							}}
+						/>
+					)}
 				</Typography>
 			</DialogTitle>
 

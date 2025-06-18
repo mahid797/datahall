@@ -114,7 +114,7 @@ const DocumentsTableRow = ({ document, onDelete }: Props) => {
 					size='small'
 					color='secondary'
 					sx={{
-						width: '5.5rem',
+						width: '8rem',
 					}}
 				/>
 			</TableCell>
