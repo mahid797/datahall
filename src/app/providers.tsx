@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 import AuthProvider from '@/providers/auth/AuthProvider';
 import { ModalProvider } from '@/providers/modal/ModalProvider';
@@ -31,11 +33,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 				<ThemeProvider theme={globalTheme}>
 					<CssBaseline />
 					<ToastProvider>
-						<QueryProvider>
-							<ModalProvider>
-								<AuthProvider>{children}</AuthProvider>
-							</ModalProvider>
-						</QueryProvider>
+						<LocalizationProvider dateAdapter={AdapterDayjs}>
+							<QueryProvider>
+								<ModalProvider>
+									<AuthProvider>{children}</AuthProvider>
+								</ModalProvider>
+							</QueryProvider>
+						</LocalizationProvider>
 					</ToastProvider>
 				</ThemeProvider>
 			</AppRouterCacheProvider>

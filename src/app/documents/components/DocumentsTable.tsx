@@ -1,6 +1,4 @@
 'use client';
-import axios from 'axios';
-import { useEffect, useState } from 'react';
 
 import {
 	Box,
@@ -15,49 +13,36 @@ import {
 
 import DocumentsTableHeader from './DocumentsTableHeader';
 import DocumentsTableRow from './DocumentsTableRow';
+
 import { Paginator } from '@/components';
 
-import { useDeleteDocument, useFetchDocuments, useSort, useToast } from '@/hooks';
+import { usePaginatedTable, useResponsivePageSize, useToast } from '@/hooks';
+import { useDeleteDocumentMutation, useDocumentsQuery } from '@/hooks/data';
+
 import { DocumentType } from '@/shared/models';
 
 const DocumentsTable = () => {
 	const { showToast } = useToast();
 
-	const [page, setPage] = useState(1);
-	const [pageSize, setPageSize] = useState(4);
-	const [rowHeight, setRowHeight] = useState(59);
+	const { data, error, isLoading } = useDocumentsQuery();
+	const allDocs = data?.documents ?? [];
 
-	const { error, isLoading, data } = useFetchDocuments();
-	const { mutate: deleteDocument } = useDeleteDocument();
+	const { mutate: deleteDocument } = useDeleteDocumentMutation();
 
-	//Calculate the row height of the table
-	const calculateRowHeight = () => {
-		const width = window.innerWidth;
-		if (width >= 1200) {
-			return 59; // lg
-		} else if (width >= 900) {
-			return 54; // md
-		} else {
-			return 47; // sm
-		}
-	};
+	const {
+		pageData,
+		page,
+		totalPages,
+		setPage,
+		pageSize,
+		setPageSize,
+		sortKey,
+		sortDirection,
+		toggleSort,
+	} = usePaginatedTable<DocumentType>(allDocs, { initialSort: 'createdAt', pageSize: 4 });
 
 	//Calculate the pageSize based on resizing
-	useEffect(() => {
-		setRowHeight(calculateRowHeight());
-		const handleResize = () => {
-			const availableHeight = window.innerHeight - 500; // Adjust for header, footer, etc.
-			const calculatedRowsPerPage = Math.floor(availableHeight / rowHeight);
-			setPageSize(calculatedRowsPerPage);
-		};
-
-		// Initial calculation and add resize listener
-		handleResize();
-		window.addEventListener('resize', handleResize);
-
-		// Cleanup the event listener on unmount
-		return () => window.removeEventListener('resize', handleResize);
-	}, [rowHeight]);
+	useResponsivePageSize(setPageSize, { offsetHeight: 500 });
 
 	const handleDocumentDelete = async (documentId: string) => {
 		deleteDocument(documentId, {
@@ -75,13 +60,6 @@ const DocumentsTable = () => {
 			},
 		});
 	};
-
-	const { sortedData, orderDirection, orderBy, handleSortRequest } = useSort<DocumentType>(
-		data?.documents || [],
-	);
-	const totalPages = Math.ceil(sortedData.length / pageSize);
-
-	const paginatedData = sortedData.slice((page - 1) * pageSize, page * pageSize);
 
 	if (isLoading) {
 		return (
@@ -118,13 +96,13 @@ const DocumentsTable = () => {
 				<Table aria-label='documents table'>
 					<TableHead>
 						<DocumentsTableHeader
-							orderBy={orderBy}
-							orderDirection={orderDirection}
-							onSort={handleSortRequest}
+							orderBy={sortKey}
+							orderDirection={sortDirection}
+							onSort={toggleSort}
 						/>
 					</TableHead>
 					<TableBody>
-						{paginatedData.map((document, index) => (
+						{pageData.map((document, index) => (
 							<DocumentsTableRow
 								key={index}
 								document={document}
@@ -138,11 +116,11 @@ const DocumentsTable = () => {
 			{totalPages > 1 && (
 				<Box>
 					<Paginator
-						page={page}
+						nextPage={page}
 						totalPages={totalPages}
 						onPageChange={setPage}
 						pageSize={pageSize}
-						totalItems={sortedData.length}
+						totalItems={allDocs.length}
 					/>
 				</Box>
 			)}

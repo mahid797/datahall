@@ -2,40 +2,42 @@
  * Public model types shared across client, API routes and back-end services.
  */
 
+export * from './authModels';
 export type {
-	SignUpRequest,
-	SignUpResponse,
-	SignInRequest,
-	SignInResponse,
+	ChangeNameRequest,
+	ChangeNameResponse,
+	ChangePasswordRequest,
+	ChangePasswordResponse,
 	ForgotPasswordRequest,
 	ForgotPasswordResponse,
 	ResetPasswordRequest,
 	ResetPasswordResponse,
-	ChangePasswordRequest,
-	ChangePasswordResponse,
+	SignInRequest,
+	SignInResponse,
+	SignUpRequest,
+	SignUpResponse,
 	VerifyUserRequest,
 	VerifyUserResponse,
-	ChangeNameRequest,
-	ChangeNameResponse,
 } from './authModels';
-export * from './authModels';
 
-export type { DocumentType, BarDataItem } from './documentModels';
 export * from './documentModels';
+export type { BarDataItem, DocumentType } from './documentModels';
 
-export type {
-	LinkType,
-	LinkFormValues,
-	CreateDocumentLinkPayload,
-	InviteRecipientsPayload,
-	LinkData,
-	LinkDetail,
-} from './linkModels';
 export * from './linkModels';
+export type {
+	CreateDocumentLinkPayload,
+	DocumentLink,
+	FileDisplayPayload,
+	InviteRecipientsPayload,
+	LinkDetailRow,
+	LinkFormValues,
+	PublicLinkMeta,
+} from './linkModels';
 
-export type { User, Contact } from './userModels';
 export * from './userModels';
+export type { Contact, User } from './userModels';
 
+export * from './profileModels';
 export type {
 	ProfileDto,
 	UpdateNameRequest,
@@ -43,4 +45,16 @@ export type {
 	UpdatePasswordRequest,
 	UpdatePasswordResponse,
 } from './profileModels';
-export * from './profileModels';
+
+export type { LinkVisitor } from './userModels';
+
+export * from './analyticsModels';
+export type {
+	ANALYTICS_PERIODS,
+	AnalyticsBucket,
+	AnalyticsEvent,
+	AnalyticsPeriod,
+	AnalyticsSummary,
+	DocumentLinkStat,
+	PERIOD_OPTIONS,
+} from './analyticsModels';

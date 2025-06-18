@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { useWatch } from 'react-hook-form';
 
-import { useFormWithSchema } from '@/hooks/forms/useFormWithSchema';
+import { useFormWithSchema } from '@/hooks/forms';
 import {
 	DocumentLinkFormSchema,
 	documentLinkDefaults,

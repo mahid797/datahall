@@ -114,3 +114,45 @@ export function parseFileSize(sizeString: string, throwOnError = true): number {
 			return NaN;
 	}
 }
+
+/**
+ * isViewableFileType
+ * ----------------------------------------------------------------------------
+ * Checks if a MIME type is viewable based on allowed file types from environment.
+ * Supports files as defined in .env
+ *
+ * @param {string} mimeType - The file's MIME type to check
+ * @returns {boolean} True if the file type is viewable
+ */
+export function isViewableFileType(mimeType: string): boolean {
+	if (!mimeType || typeof mimeType !== 'string') return false;
+
+	const defaultTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/gif'];
+	const allowedTypes = process.env.SUPPORTED_VIEW_TYPES?.split(',') || defaultTypes;
+
+	return allowedTypes.includes(mimeType.toLowerCase());
+}
+
+/**
+ * downloadFile
+ * ---------------------------------------------------------------------------
+ * Fetches a file and triggers a client-side download.
+ * @param {string} url - The URL to fetch the file from.
+ * @param {string} filename - The name to save the file as.
+ * @returns {Promise<void>} Resolves when the download is triggered.
+ * @throws {Error} If the fetch fails or the response is not ok.
+ */
+export async function downloadFile(url: string, filename: string): Promise<void> {
+	const res = await fetch(url);
+	if (!res.ok) throw new Error('Failed to fetch file');
+
+	const blob = await res.blob();
+	const blobUrl = URL.createObjectURL(blob);
+
+	const link = document.createElement('a');
+	link.href = blobUrl;
+	link.download = filename;
+	link.click();
+
+	URL.revokeObjectURL(blobUrl);
+}

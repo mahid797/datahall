@@ -1,15 +1,16 @@
 'use client';
 
-import { useCallback } from 'react';
 import { Box, Button } from '@mui/material';
 import { useSession } from 'next-auth/react';
-import { useDropzone } from 'react-dropzone';
 import { useRouter } from 'next/navigation';
+import { useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
 
 import { FilePlusIcon } from '@/icons';
 
 import { useToast } from '@/hooks';
 import { useCreateDocumentMutation } from '@/hooks/data';
+
 import { useModalContext } from '@/providers/modal/ModalProvider';
 
 interface DragAndDropBoxProps {

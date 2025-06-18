@@ -10,3 +10,16 @@ export function createErrorResponse(message: string, status: number, details?: a
 	console.error(`[${new Date().toISOString()}] ${message}`, details);
 	return NextResponse.json({ message }, { status });
 }
+
+/**
+ * Custom error that API routes can translate into HTTP codes.
+ */
+export class ServiceError extends Error {
+	constructor(
+		message: string,
+		public status: number = 500,
+	) {
+		super(message);
+		this.name = 'ServiceError';
+	}
+}

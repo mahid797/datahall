@@ -1,7 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
 import { ChevronDownIcon, ChevronSelectorVerticalIcon } from '@/icons';
 
 import {
@@ -22,56 +20,34 @@ import { EmptyState, Paginator } from '@/components';
 
 import ContactsTableRow from './ContactsTableRow';
 
-import { useFetchContacts, useSort } from '@/hooks';
+import { usePaginatedTable, useResponsivePageSize } from '@/hooks';
+import { useContactsQuery } from '@/hooks/data';
+
 import { Contact } from '@/shared/models';
 
 export default function ContactsTable() {
-	const [page, setPage] = useState(1);
-	const [pageSize, setPageSize] = useState(9);
-	const [rowHeight, setRowHeight] = useState(59);
+	const { data, isLoading, isError, error } = useContactsQuery();
 
-	const { data, isLoading, isError, error } = useFetchContacts();
+	const parsedContacts: Contact[] =
+		data?.map((contact) => ({
+			...contact,
+			lastActivity: new Date(contact.lastActivity),
+		})) ?? [];
 
-	const parsedContacts = data?.map((contact) => ({
-		...contact,
-		lastActivity: new Date(contact.lastActivity),
-	}));
-
-	const { sortedData, orderDirection, orderBy, handleSortRequest } = useSort<Contact>(
-		parsedContacts || [],
-	);
-
-	//Calculate the row height of the table
-	const calculateRowHeight = () => {
-		const width = window.innerWidth;
-		if (width >= 1200) {
-			return 59; // lg
-		} else if (width >= 900) {
-			return 54; // md
-		} else {
-			return 47; // sm
-		}
-	};
+	const {
+		pageData,
+		page,
+		totalPages,
+		setPage,
+		pageSize,
+		setPageSize,
+		sortKey,
+		sortDirection,
+		toggleSort,
+	} = usePaginatedTable<Contact>(parsedContacts, { initialSort: 'lastActivity', pageSize: 9 });
 
 	//Calculate the pageSize based on resizing
-	useEffect(() => {
-		setRowHeight(calculateRowHeight());
-		const handleResize = () => {
-			const availableHeight = window.innerHeight - 200; // Adjust for header, footer, etc.
-			const calculatedRowsPerPage = Math.floor(availableHeight / rowHeight);
-			setPageSize(calculatedRowsPerPage);
-		};
-
-		// Initial calculation and add resize listener
-		handleResize();
-		window.addEventListener('resize', handleResize);
-
-		// Cleanup the event listener on unmount
-		return () => window.removeEventListener('resize', handleResize);
-	}, [rowHeight]);
-
-	const paginatedData = sortedData.slice((page - 1) * pageSize, page * pageSize);
-	const totalPages = Math.ceil(sortedData.length / pageSize);
+	useResponsivePageSize(setPageSize, { offsetHeight: 200 });
 
 	if (isLoading) {
 		return (
@@ -107,12 +83,12 @@ export default function ContactsTable() {
 							<TableCell sx={{ width: '25%' }}>LAST VIEWED LINK</TableCell>
 							<TableCell sx={{ width: '30%', textAlign: 'center' }}>
 								<TableSortLabel
-									active={orderBy === 'lastActivity'}
-									direction={orderDirection}
-									onClick={() => handleSortRequest('lastActivity')}
+									active={sortKey === 'lastActivity'}
+									direction={sortDirection}
+									onClick={() => toggleSort('lastActivity')}
 									hideSortIcon={false}
 									IconComponent={
-										orderDirection === undefined ? ChevronSelectorVerticalIcon : ChevronDownIcon
+										sortDirection === undefined ? ChevronSelectorVerticalIcon : ChevronDownIcon
 									}>
 									LAST ACTIVITY
 								</TableSortLabel>
@@ -121,7 +97,7 @@ export default function ContactsTable() {
 						</TableRow>
 					</TableHead>
 					<TableBody>
-						{!paginatedData.length ? (
+						{!pageData.length ? (
 							<TableRow>
 								<TableCell
 									colSpan={4}
@@ -130,7 +106,7 @@ export default function ContactsTable() {
 								</TableCell>
 							</TableRow>
 						) : (
-							paginatedData.map((row) => (
+							pageData.map((row) => (
 								<ContactsTableRow
 									key={row.id}
 									contact={row}
@@ -143,11 +119,11 @@ export default function ContactsTable() {
 
 			{totalPages > 1 && (
 				<Paginator
-					page={page}
+					nextPage={page}
 					totalPages={totalPages}
 					onPageChange={setPage}
 					pageSize={pageSize}
-					totalItems={sortedData.length}
+					totalItems={parsedContacts.length}
 				/>
 			)}
 		</>

@@ -1,3 +1,5 @@
+import { ReactNode } from 'react';
+
 // =========== USER TYPE ===========
 
 // This is not the same as the User type in next-auth.d.ts. Needs to be the same as the DB type (currently unused).
@@ -23,4 +25,15 @@ export interface Contact {
 	downloads: number;
 	duration: string;
 	completion: string;
+}
+
+// =========== LINK VISITOR DETAIL ===========
+
+export interface LinkVisitor {
+	id: number;
+	linkId: string;
+	name: string;
+	email: string;
+	visitedAt: string;
+	visitorMetaData: string | null;
 }

@@ -16,6 +16,7 @@ import type {
 import type { IAuth } from './IAuth';
 import { getMgmtToken } from './auth0MgmtToken';
 import { mapAuth0Error } from './helpers';
+import { ServiceError } from '../errorService';
 
 export class Auth0Adapter implements IAuth {
 	async signUp(request: SignUpRequest): Promise<SignUpResponse> {
@@ -149,12 +150,12 @@ export class Auth0Adapter implements IAuth {
 		const { userId, payload } = request;
 		const { firstName, lastName } = payload;
 
-		if (!userId) throw new Error('Missing userId');
+		if (!userId) throw new ServiceError('Missing userId', 400);
 
 		if (!firstName && !lastName) return { success: false, message: 'Nothing to update' };
 
 		const user = await prisma.user.findFirst({ where: { userId } });
-		if (!user?.auth0Sub) throw new Error('User missing auth0Sub');
+		if (!user?.auth0Sub) throw new ServiceError('User missing auth0Sub', 404);
 
 		try {
 			/* ── 1) push to Auth0 ────────────────────────────────────── */

@@ -302,7 +302,6 @@ const globalTheme = createTheme({
 				},
 			},
 		},
-
 		MuiButton: {
 			styleOverrides: {
 				root: {
@@ -600,7 +599,6 @@ const globalTheme = createTheme({
 				},
 			},
 		},
-
 		MuiPaginationItem: {
 			styleOverrides: {
 				root: {
@@ -656,7 +654,6 @@ const globalTheme = createTheme({
 				},
 			},
 		},
-
 		MuiSnackbar: {
 			styleOverrides: {
 				root: {
@@ -707,7 +704,6 @@ const globalTheme = createTheme({
 				disableRipple: true, // Disable ripple effect for all tab buttons
 			},
 		},
-
 		MuiTableCell: {
 			styleOverrides: {
 				root: {
@@ -722,9 +718,10 @@ const globalTheme = createTheme({
 					},
 				},
 				head: {
-					color: text.notes,
+					color: `${text.notes} !important`,
 					fontWeight: '500',
-					paddingX: '0.5rem',
+					paddingLeft: '0.3rem',
+					paddingRight: '0.3rem',
 					'@media (min-width:600px)': {
 						fontSize: '0.65rem',
 						paddingBottom: '0.3rem',
@@ -742,7 +739,8 @@ const globalTheme = createTheme({
 					},
 				},
 				body: {
-					paddingX: '0.6rem',
+					paddingLeft: '0.6rem',
+					paddingRight: '0.6rem',
 					'@media (min-width:600px)': {
 						paddingBottom: '0.3rem',
 						paddingTop: '0.3rem',
@@ -776,13 +774,13 @@ const globalTheme = createTheme({
 				},
 			},
 		},
-
 		MuiTableSortLabel: {
 			styleOverrides: {
 				root: {
 					'& .MuiTableSortLabel-icon': {
 						opacity: 1,
 					},
+					color: `${text.notes} !important`,
 				},
 			},
 		},
@@ -808,7 +806,6 @@ const globalTheme = createTheme({
 				},
 			},
 		},
-
 		MuiDrawer: {
 			styleOverrides: {
 				paper: {
@@ -820,7 +817,6 @@ const globalTheme = createTheme({
 				},
 			},
 		},
-
 		MuiAppBar: {
 			styleOverrides: {
 				root: {
@@ -835,7 +831,6 @@ const globalTheme = createTheme({
 				},
 			},
 		},
-
 		MuiTextField: {
 			styleOverrides: {
 				root: {

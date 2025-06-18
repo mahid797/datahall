@@ -121,6 +121,28 @@ export const ResetPasswordFormSchema = z
 		}
 	});
 
+/* ───────────────────────────── Default values ────────────────────────────── */
+
+export const signInDefaults: SignInValues = {
+	email: '',
+	password: '',
+	remember: false,
+};
+
+export const signUpDefaults: SignUpValues = {
+	firstName: '',
+	lastName: '',
+	email: '',
+	password: '',
+	confirmPassword: '',
+};
+
+export const forgotPasswordDefaults: ForgotPasswordValues = { email: '' };
+
+export const resetPasswordFormDefaults: ResetPasswordFormValues = {
+	newPassword: '',
+	confirmPassword: '',
+};
 /* -------------------------------------------------------------------------- */
 /*  Derived helper types                                                      */
 /* -------------------------------------------------------------------------- */
@@ -130,4 +152,5 @@ export type SignUpValues = z.infer<typeof SignUpSchema>;
 export type ForgotPasswordValues = z.infer<typeof ForgotPasswordSchema>;
 export type ResetPasswordValues = z.infer<typeof ResetPasswordSchema>;
 export type ResetPasswordFormValues = z.infer<typeof ResetPasswordFormSchema>;
+
 export { email as EmailField, password as PasswordField };

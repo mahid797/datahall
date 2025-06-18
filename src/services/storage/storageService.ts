@@ -37,6 +37,14 @@ export interface StorageProvider {
 	 * @returns A promise resolving when the file is deleted
 	 */
 	delete(filePath: string): Promise<void>;
+
+	/**
+	 * Lists file paths in the storage bucket.
+	 * Optionally filters files under a specific prefix.
+	 * @param {string} [prefix] - The prefix to filter files by. Optional.
+	 * @returns {Promise<string[]>} - A promise resolving to an array of file paths.
+	 */
+	list(prefix?: string): Promise<string[]>;
 }
 
 //TODO: Add a local storage provider, move the below to a separate file
@@ -48,6 +56,11 @@ export class PlaceholderProvider implements StorageProvider {
 
 	async delete(filePath: string): Promise<void> {
 		console.warn('PlaceholderProvider: Delete called.');
+	}
+
+	async list(): Promise<string[]> {
+		console.warn('PlaceholderProvider: List called.');
+		return [];
 	}
 }
 
@@ -86,6 +99,16 @@ export async function uploadFile(fileBuffer: Buffer, metadata: FileMetadata): Pr
 		console.error('Error uploading file:', error);
 		throw new Error('File upload failed.');
 	}
+}
+
+/**
+ * Lists file paths using the configured storage provider.
+ * Optionally filters files under a specific prefix.
+ * @param {string} [prefix=''] - The prefix to filter files by. Defaults to an empty string.
+ * @returns {Promise<string[]>} - A promise resolving to an array of file paths.
+ */
+export async function listFiles(prefix = ''): Promise<string[]> {
+	return storageProvider.list(prefix);
 }
 
 /**

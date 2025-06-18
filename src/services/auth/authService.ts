@@ -2,6 +2,7 @@ import type { Session } from 'next-auth';
 import { getServerSession } from 'next-auth';
 
 import { authOptions } from '@/lib/authOptions';
+import { ServiceError } from '../errorService';
 
 import { Auth0Adapter } from './Auth0Adapter';
 import type { IAuth } from './IAuth';
@@ -72,7 +73,7 @@ export const authService = {
 	async authenticate(): Promise<string> {
 		const session: Session | null = await getServerSession(authOptions);
 		if (!session?.user?.userId) {
-			throw new Error('Unauthorized');
+			throw new ServiceError('Unauthorized', 401);
 		}
 		return session.user.userId;
 	},

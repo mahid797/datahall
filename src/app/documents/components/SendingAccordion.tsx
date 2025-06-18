@@ -3,7 +3,8 @@ import { SyntheticEvent } from 'react';
 import { Autocomplete, Box, Chip } from '@mui/material';
 
 import { CustomCheckbox, FormInput } from '@/components';
-import { useFetchContacts } from '@/hooks';
+
+import { useContactsQuery } from '@/hooks/data';
 
 import { DocumentLinkFormValues } from '@/shared/validation/documentLinkSchemas';
 import { validateEmails } from '@/shared/validation/validationUtils';
@@ -26,7 +27,7 @@ export default function SendingAccordion() {
 	const selectFromContact = watch('selectFromContact');
 	const sendToOthers = watch('sendToOthers');
 
-	const { data: contacts = [] } = useFetchContacts();
+	const { data: contacts = [] } = useContactsQuery();
 
 	const contactOptions = contacts
 		.filter((contact) => contact.email)

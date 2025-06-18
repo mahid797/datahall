@@ -1,5 +1,5 @@
 import { FileType } from '@/shared/config/fileIcons';
-import { LinkDetail } from './linkModels';
+import { LinkDetailRow } from './linkModels';
 
 // =========== DOCUMENT TYPE ===========
 
@@ -18,7 +18,7 @@ export interface DocumentType {
 	links: number; // The count of Link[]
 	viewers: number; // The sum of all LinkVisitors for all links
 	views: number; // Potential total doc views (0 if not tracked)
-	createdLinks?: LinkDetail[]; // If you want to store link details
+	createdLinks?: LinkDetailRow[]; // If you want to store link details
 }
 
 // ====== CHART TYPE ======

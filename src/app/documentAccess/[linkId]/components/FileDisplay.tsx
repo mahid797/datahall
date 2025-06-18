@@ -1,84 +1,224 @@
-import React from 'react';
+import dynamic from 'next/dynamic';
+import { useCallback, useState } from 'react';
 
-import { Typography, Box, Button } from '@mui/material';
+import {
+	Box,
+	Button,
+	CircularProgress,
+	Fade,
+	Grid2,
+	Skeleton,
+	Stack,
+	Typography,
+} from '@mui/material';
 
 import { useToast } from '@/hooks';
+import { useCreateDocumentAnalyticsMutation } from '@/hooks/data';
 
-import { formatFileSize } from '@/shared/utils';
+import { FileDownloadIcon } from '@/icons';
+import { AnalyticsEventType } from '@/shared/enums';
+import { FileDisplayPayload } from '@/shared/models';
+import { formatFileSize, isViewableFileType } from '@/shared/utils';
+import { downloadFile } from '@/shared/utils/fileUtils';
 
-interface FilePageProps {
-	signedUrl: string;
-	fileName: string;
-	size: number;
+export enum LoadPhase {
+	Idle = 'idle',
+	Bundle = 'bundle',
+	Img = 'img',
+	Pdf = 'pdf',
+	Done = 'done',
 }
+const PDFViewer = dynamic(() => import('@/components/fileHandling/PDFViewer'), {
+	ssr: false,
+});
 
-const FileDisplay: React.FC<FilePageProps> = ({ signedUrl, fileName, size }) => {
+const LoadingSkeleton = () => (
+	<Stack
+		gap={6}
+		height='83vh'
+		alignItems='center'>
+		<Stack
+			direction='row'
+			gap={80}
+			mt={5}
+			alignItems='center'>
+			<Skeleton
+				variant='rectangular'
+				width={360}
+				height={24}
+			/>
+			<Skeleton
+				variant='rectangular'
+				width={144}
+				height={40}
+			/>
+		</Stack>
+		<Skeleton
+			variant='rectangular'
+			width={800}
+			height='100%'
+		/>
+	</Stack>
+);
+
+const FileDisplay = ({
+	signedUrl,
+	fileName,
+	size,
+	fileType,
+	documentId = '',
+	documentLinkId = '',
+}: FileDisplayPayload) => {
+	const [phase, setPhase] = useState<LoadPhase>(LoadPhase.Idle);
+
+	const viewMode = phase !== LoadPhase.Idle; // “preview” screen vs access buttons
+	const isLoading = viewMode && phase !== LoadPhase.Done; // drives skeleton
+	const isPdf = fileType === 'application/pdf';
+	const isImage = fileType?.startsWith('image/');
+
 	const { showToast } = useToast();
+	const supportsPreview = isViewableFileType(fileType ?? '');
+	const analytics = useCreateDocumentAnalyticsMutation();
 
-	const handleDownload = async () => {
-		try {
-			const response = await fetch(signedUrl);
-			const blob = await response.blob();
-			const url = window.URL.createObjectURL(blob);
+	const logAnalytics = useCallback(
+		(event: AnalyticsEventType) =>
+			analytics.mutateAsync({ documentId, documentLinkId, eventType: event }),
+		[analytics, documentId, documentLinkId],
+	);
 
-			const link = document.createElement('a');
-			link.href = url;
-			link.download = fileName;
-			link.click();
-
-			window.URL.revokeObjectURL(url);
-			showToast({ message: 'File downloaded successfully', variant: 'success' });
-		} catch (error) {
-			console.error('Error downloading the file:', error);
-			showToast({
-				message: 'Error downloading the file. Please try again.',
-				variant: 'error',
-			});
-		}
+	const handleViewFile = () => {
+		setPhase(isImage ? LoadPhase.Bundle : LoadPhase.Img);
 	};
 
+	const handleDownloadFile = useCallback(async () => {
+		try {
+			await logAnalytics(AnalyticsEventType.DOWNLOAD);
+			await downloadFile(signedUrl, fileName);
+			showToast({ variant: 'info', message: 'File download should begin soon' });
+		} catch (err) {
+			console.error('Download error', err);
+			showToast({ variant: 'error', message: 'Could not download file' });
+		}
+	}, [signedUrl, fileName, logAnalytics, showToast]);
+
 	return (
-		<Box textAlign='center'>
-			<Typography
-				variant='h1'
-				color='text.secondary'>
-				File is ready for download
-			</Typography>
-			<Typography variant='subtitle2'>
-				Thanks for verifying your details. You can now download the document.
-			</Typography>
+		<Grid2 height={viewMode ? '100%' : 'inherit'}>
 			<Box
+				textAlign='center'
 				display='flex'
-				justifyContent='center'
-				mt={{ sm: 15, md: 18, lg: 20 }}
-				mx={0}
-				gap={2}>
-				<Typography variant='subtitle2'>Document:</Typography>
+				flexDirection='column'
+				alignItems='center'>
+				{/* Header section */}
 				<Typography
-					variant='subtitle2'
-					color='primary'>
-					{fileName} ({formatFileSize(size)})
+					variant='h1'
+					color='text.secondary'>
+					File is ready for {viewMode ? 'preview' : 'access'}
 				</Typography>
+
+				{!viewMode && (
+					<Typography
+						variant='subtitle2'
+						mb={3}>
+						Thanks for verifying your details. You can now access the document.
+					</Typography>
+				)}
+
+				{!isLoading && (
+					<Box
+						display='flex'
+						gap={80}
+						mt={5}
+						justifyContent='space-around'>
+						<Typography
+							variant='h2'
+							display='flex'
+							my={{ sm: 2, md: 3, lg: 4 }}
+							gap={2}>
+							Document Name:{' '}
+							<Typography
+								variant='inherit'
+								color='primary'>
+								{fileName} ({formatFileSize(size)})
+							</Typography>
+						</Typography>
+
+						{viewMode && (
+							<Button
+								aria-label='Download document'
+								variant='contained'
+								endIcon={
+									<FileDownloadIcon
+										color='white'
+										width={25}
+										height={25}
+									/>
+								}
+								onClick={handleDownloadFile}
+								size='medium'>
+								Download{' '}
+							</Button>
+						)}
+					</Box>
+				)}
+
+				{/* buttons (access-mode) */}
+				{!viewMode && (
+					<Box
+						mt={24}
+						display='flex'
+						justifyContent='center'
+						gap={32}>
+						{supportsPreview && (
+							<Button
+								variant='contained'
+								onClick={handleViewFile}>
+								View file
+							</Button>
+						)}
+						<Button
+							variant='contained'
+							onClick={handleDownloadFile}>
+							Download file
+						</Button>
+					</Box>
+				)}
+
+				{/* preview-mode Loading*/}
+				{isLoading && <LoadingSkeleton />}
+
+				{/* viewer (preview-mode) */}
+				{viewMode && (
+					<Fade
+						in={phase === LoadPhase.Done}
+						timeout={1000}>
+						<Box>
+							{isPdf && (
+								<PDFViewer
+									url={signedUrl}
+									documentId={documentId}
+									linkId={documentLinkId}
+									onMount={() => setPhase(LoadPhase.Pdf)} // dynamic bundle finished
+									onReady={() => setPhase(LoadPhase.Done)} // PDF fully rendered (or errored)
+								/>
+							)}
+							{isImage && (
+								<Box
+									m={5}
+									component='img'
+									src={signedUrl}
+									alt={fileName}
+									maxHeight='90vh'
+									maxWidth='100%'
+									loading='lazy'
+									onLoad={() => setPhase(LoadPhase.Done)}
+									sx={{ objectFit: 'contain', borderRadius: 1 }}
+								/>
+							)}
+						</Box>
+					</Fade>
+				)}
 			</Box>
-			<Box
-				display='flex'
-				justifyContent='center'
-				gap={{ sm: 30, md: 35, lg: 40 }}
-				mt={{ sm: 30, md: 35, lg: 40 }}>
-				<Button
-					variant='contained'
-					onClick={() => {
-						window.open(signedUrl, '_blank');
-					}}>
-					View file
-				</Button>
-				<Button
-					variant='contained'
-					onClick={handleDownload}>
-					Download file
-				</Button>
-			</Box>
-		</Box>
+		</Grid2>
 	);
 };
 

@@ -16,10 +16,11 @@ import Grid from '@mui/material/Grid2';
 
 import { FormInput, LoadingButton, PasswordValidation } from '@/components';
 
-import { useFormSubmission, useUpdatePassword } from '@/hooks';
-import { EyeIcon, EyeOffIcon, LockIcon } from '@/icons';
+import { useFormSubmission } from '@/hooks';
+import { useUpdatePasswordMutation } from '@/hooks/data';
+import { useChangePasswordForm } from '@/hooks/forms';
 
-import { useChangePasswordForm } from '@/hooks/forms/useChangePasswordForm';
+import { EyeIcon, EyeOffIcon, LockIcon } from '@/icons';
 
 interface PasswordFormModalProps {
 	open: boolean;
@@ -39,11 +40,12 @@ export default function PasswordFormModal({ open, toggleModal }: PasswordFormMod
 		register,
 	} = form;
 
-	const changePassword = useUpdatePassword();
+	const changePassword = useUpdatePasswordMutation();
 
 	// Submit data
 	const { loading, handleSubmit, toast } = useFormSubmission({
 		mutation: changePassword,
+		getVariables: () => form.getValues(),
 		validate: () => isValid,
 		successMessage: 'Password updated!',
 		onSuccess: () => {

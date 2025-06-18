@@ -15,11 +15,13 @@ import Grid from '@mui/material/Grid2';
 
 import { FormInput, LoadingButton } from '@/components';
 
-import { useFormSubmission, useValidatedFormData, useVisitorSubmission } from '@/hooks';
+import { useFormSubmission, useValidatedFormData } from '@/hooks';
+import { useCreateLinkVisitorMutation } from '@/hooks/data';
 
 import { EyeIcon, EyeOffIcon, FileDownloadIcon } from '@/icons';
-import { requiredFieldRule, splitName, validEmailRule } from '@/shared/utils';
 import { visitorFieldsConfigByKey } from '@/shared/config/visitorFieldsConfig';
+import { FileDisplayPayload } from '@/shared/models';
+import { requiredFieldRule, splitName, validEmailRule } from '@/shared/utils';
 
 function getFormConfig(passwordRequired: boolean, visitorFields: string[]) {
 	const formConfig: {
@@ -53,13 +55,13 @@ interface VisitorInfoModalProps {
 	linkId: string;
 	passwordRequired: boolean;
 	visitorFields: string[];
-	onVisitorInfoModalSubmit: (data: Record<string, any>) => void;
+	onVisitorInfoModalSubmit: (data: FileDisplayPayload) => void;
 }
 
 export default function VisitorInfoModal({
 	linkId,
 	passwordRequired,
-	visitorFields,
+	visitorFields = [],
 	onVisitorInfoModalSubmit,
 }: VisitorInfoModalProps) {
 	const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);
@@ -70,7 +72,7 @@ export default function VisitorInfoModal({
 		validationRules: formConfig.validationRules,
 	});
 
-	const { mutateAsync: submitVisitorData, isPending } = useVisitorSubmission();
+	const { mutateAsync: submitVisitorData, isPending } = useCreateLinkVisitorMutation();
 
 	const { loading, handleSubmit, toast } = useFormSubmission({
 		onSubmit: async () => {
@@ -99,7 +101,7 @@ export default function VisitorInfoModal({
 				linkId,
 				firstName: splittedName.firstName,
 				lastName: splittedName.lastName,
-				email: values.email || '',
+				email: values.email || undefined,
 				password: values.password || '',
 				visitorMetaData: null, // This will be populated to add any additional user information, Implementation from API endpoint as well.
 			};
@@ -107,7 +109,7 @@ export default function VisitorInfoModal({
 			const response = await submitVisitorData({ linkId, payload });
 
 			if (!response.data) {
-				throw new Error(response.data.message || 'No file data returned.');
+				throw new Error('No file data returned.');
 			}
 
 			onVisitorInfoModalSubmit(response.data);

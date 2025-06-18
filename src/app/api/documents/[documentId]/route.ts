@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authService, DocumentService, createErrorResponse } from '@/services';
+
+import { authService, documentService, createErrorResponse } from '@/services';
+import { DocumentPatchSchema } from '@/shared/validation/documentSchemas';
 
 /**
  * GET /api/documents/[documentId]
@@ -9,7 +11,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ documentI
 	try {
 		const userId = await authService.authenticate();
 		const { documentId } = await props.params;
-		const doc = await DocumentService.getDocumentById(userId, documentId);
+		const doc = await documentService.getDocumentById(userId, documentId);
 		if (!doc) {
 			return createErrorResponse('Document not found or access denied.', 404);
 		}
@@ -38,10 +40,10 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ documen
 	const { documentId } = await props.params;
 	try {
 		const userId = await authService.authenticate();
-		const body = await req.json();
+		const { fileName } = DocumentPatchSchema.parse(await req.json());
 
-		const updatedDoc = await DocumentService.updateDocument(userId, documentId, {
-			fileName: body.fileName,
+		const updatedDoc = await documentService.updateDocument(userId, documentId, {
+			fileName,
 		});
 		if (!updatedDoc) {
 			return createErrorResponse('Document not found or access denied.', 404);
@@ -64,7 +66,7 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ docume
 	try {
 		const userId = await authService.authenticate();
 
-		const deletedDoc = await DocumentService.deleteDocument(userId, documentId);
+		const deletedDoc = await documentService.deleteDocument(userId, documentId);
 		if (!deletedDoc) {
 			return createErrorResponse('Document not found or access denied.', 404);
 		}

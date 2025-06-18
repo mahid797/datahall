@@ -75,7 +75,7 @@ const UserTable = ({ users, page, setPage, pageSize, totalUsers }: Props) => (
 			</Table>
 		</TableContainer>
 		<Paginator
-			page={page}
+			nextPage={page}
 			totalPages={Math.ceil(totalUsers / pageSize)}
 			onPageChange={setPage}
 			pageSize={pageSize}

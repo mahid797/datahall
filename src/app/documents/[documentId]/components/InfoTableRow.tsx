@@ -1,11 +1,13 @@
 import axios from 'axios';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 
-import { Box, IconButton, Button, TableCell, TableRow, Tooltip, Typography } from '@mui/material';
+import { Box, Button, IconButton, TableCell, TableRow, Tooltip, Typography } from '@mui/material';
 
 import { CheckIcon, CopyIcon, TrashIcon } from '@/icons';
 
-import { useToast } from '@/hooks';
+import { ModalWrapper } from '@/components';
+
+import { useModal, useToast } from '@/hooks';
 import { Contact, LinkDetailRow } from '@/shared/models';
 import { formatDateTime } from '@/shared/utils';
 
@@ -17,7 +19,7 @@ interface InfoTableRowProps {
 	documentDetail: LinkDetailRow | Contact;
 }
 
-export default function InfoTableRow({ documentDetail, variant }: InfoTableRowProps) {
+function InfoTableRow({ documentDetail, variant }: InfoTableRowProps) {
 	const [linkVisitorOpen, setLinkVisitorOpen] = useState(false);
 	const [isLinkCopied, setIsLinkCopied] = useState(false);
 	const { openModal } = useModalContext();
@@ -91,7 +93,7 @@ export default function InfoTableRow({ documentDetail, variant }: InfoTableRowPr
 									},
 								}}
 								placement='bottom-start'>
-								<Typography>
+								<Typography noWrap>
 									{documentDetail.alias ? documentDetail.alias : documentDetail.createdLink}
 									<IconButton
 										sx={{ ml: 10 }}
@@ -139,6 +141,15 @@ export default function InfoTableRow({ documentDetail, variant }: InfoTableRowPr
 					linkAlias={documentDetail.alias || documentDetail.createdLink}
 					onClose={handleCloseLinkVisitorModal}
 				/>
+
+				{/* Link Visitor Modal */}
+				<LinkVisitorModal
+					open={linkVisitorOpen}
+					documentId={documentDetail.documentId}
+					linkId={documentDetail.linkId}
+					linkAlias={documentDetail.alias || documentDetail.createdLink}
+					onClose={handleCloseLinkVisitorModal}
+				/>
 			</>
 		);
 	}
@@ -169,3 +180,5 @@ export default function InfoTableRow({ documentDetail, variant }: InfoTableRowPr
 	// If neither variant matches or the data is incomplete
 	return null;
 }
+
+export default memo(InfoTableRow);

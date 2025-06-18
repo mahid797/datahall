@@ -30,7 +30,7 @@ const FileDownloadIcon: FC<FileDownloadIconProps> = ({
 		<svg
 			width={width}
 			height={height}
-			viewBox='0 0 28 28'
+			viewBox='0 2 28 28'
 			fill='none'
 			xmlns='http://www.w3.org/2000/svg'
 			aria-label='File Download Icon'

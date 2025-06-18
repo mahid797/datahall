@@ -12,7 +12,7 @@
 import { useState } from 'react';
 import { useWatch } from 'react-hook-form';
 
-import { ChangePasswordSchema } from '@/shared/validation/profileSchemas';
+import { ChangePasswordDefaults, ChangePasswordSchema } from '@/shared/validation/profileSchemas';
 import { useFormWithSchema } from '@/hooks/forms/useFormWithSchema';
 import type { z } from 'zod';
 
@@ -23,12 +23,7 @@ import type { z } from 'zod';
 type PasswordField = 'currentPassword' | 'newPassword' | 'confirmPassword';
 
 export function useChangePasswordForm(mode: 'onBlur' | 'onChange' | 'onSubmit' = 'onBlur') {
-	const defaults = {
-		currentPassword: '',
-		newPassword: '',
-		confirmPassword: '',
-	};
-	const form = useFormWithSchema(ChangePasswordSchema, defaults, mode);
+	const form = useFormWithSchema(ChangePasswordSchema, ChangePasswordDefaults, mode);
 
 	/* Local UI state – show / hide password inputs per field */
 	const [visible, setVisible] = useState<Record<PasswordField, boolean>>({

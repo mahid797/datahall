@@ -1,35 +1,66 @@
 // =========== LINK TYPE ===========
 
-export interface LinkType {
+export interface DocumentLink {
 	id: number;
 	documentLinkId: string;
 	documentId: string;
 	createdByUserId: string;
-	alias?: string;
-	linkUrl: string;
+	alias: string | null;
 	isPublic: boolean;
-	visitorFields?: string[];
-	expirationTime?: string;
-	password?: string;
-	updatedAt: string;
-	createdAt: string;
+	expirationTime: string | null; // ISO 8601
+	password: string | null; // hashed in DB – never sent to client
+	visitorFields: string[]; // e.g. ["name","email"]
+	linkUrl: string; // convenience field (built server-side)
+	createdAt: string; // ISO 8601
+	updatedAt: string; // ISO 8601
 }
 
 // =========== LINK FORM VALUES ===========
 
 export interface LinkFormValues {
-	password?: string;
+	/* basic */
 	isPublic: boolean;
 	alias?: string;
-	expirationTime?: string;
+	/* password protection */
 	requirePassword: boolean;
+	password?: string;
+	/* expiry */
 	expirationEnabled: boolean;
+	expirationTime?: string; // ISO 8601
+	/* visitor info */
 	requireUserDetails: boolean;
-	visitorFields?: string[];
-	contactEmails?: { label: string; id: number }[];
+	visitorFields: string[];
+	/* sending options */
 	selectFromContact: boolean;
-	otherEmails?: string;
+	contactEmails?: { label: string; id: number }[];
 	sendToOthers: boolean;
+	otherEmails?: string;
+}
+
+export interface CreateDocumentLinkPayload {
+	alias?: string;
+	isPublic: boolean;
+	expirationTime?: string;
+	password?: string;
+	visitorFields?: string[];
+	/* emailing */
+	contactEmails?: { label: string; id: number }[];
+	otherEmails?: string;
+}
+
+export interface PublicLinkMeta {
+	isPasswordProtected: boolean;
+	visitorFields: string[]; // required visitor inputs
+	signedUrl?: string; // only present when link is truly public
+}
+
+export interface FileDisplayPayload {
+	signedUrl: string;
+	fileName: string;
+	size: number; // bytes
+	fileType: string; // MIME
+	documentId: string;
+	documentLinkId?: string;
 }
 
 // =========== LINK PAYLOAD ===========
@@ -57,23 +88,12 @@ export interface InviteRecipientsPayload {
 	recipients: string[];
 }
 
-// =========== LINK DATA ===========
-
-export interface LinkData {
-	isPasswordProtected?: boolean;
-	requiredUserDetailsOption?: number;
-	signedUrl?: string;
-	fileName?: string;
-	size?: number;
-}
-
 // =========== LINK DETAIL ===========
-
-export interface LinkDetail {
-	documentLinkId: string; // unique string
-	alias: string; // The links's friendly name
-	documentId: string; // The documentId from DB
-	createdLink: string; // The linkUrl from DB
-	lastActivity: Date; // The link's updatedAt
-	linkViews: number; // If you track actual link views, you can use a real value
+export interface LinkDetailRow {
+	linkId: string;
+	alias: string | null;
+	documentId: string;
+	createdLink: string; // same as linkUrl
+	lastActivity: string; // ISO date
+	linkViews: number; // aggregated analytics
 }

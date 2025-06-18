@@ -3,10 +3,10 @@
 import axios from 'axios';
 import { useCallback, useEffect, useState } from 'react';
 
-import { Contact, LinkDetail } from '@/shared/models';
+import { Contact, LinkDetailRow } from '@/shared/models';
 
 interface UseDocumentDataReturn {
-	data: LinkDetail[] | Contact[];
+	data: LinkDetailRow[] | Contact[];
 	loading: boolean;
 	error: string | null;
 	refetch: () => void;
@@ -16,7 +16,7 @@ export default function useDocumentData(
 	documentId: string,
 	variant: 'linkTable' | 'visitorTable',
 ): UseDocumentDataReturn {
-	const [data, setData] = useState<LinkDetail[] | Contact[]>([]);
+	const [data, setData] = useState<LinkDetailRow[] | Contact[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 

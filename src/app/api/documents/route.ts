@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { authService, createErrorResponse, DocumentService, uploadFile } from '@/services';
-import { buildLinkUrl } from '@/shared/utils/urlBuilder';
+import { authService, createErrorResponse, documentService, uploadFile } from '@/services';
+import { buildLinkUrl } from '@/shared/utils';
 
 /**
  * GET /api/documents
@@ -10,7 +10,7 @@ import { buildLinkUrl } from '@/shared/utils/urlBuilder';
 export async function GET(req: NextRequest) {
 	try {
 		const userId = await authService.authenticate();
-		const documents = await DocumentService.getUserDocuments(userId);
+		const documents = await documentService.getUserDocuments(userId);
 
 		const result = documents.map((doc) => {
 			const linkCount = doc.documentLinks.length;
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
 
 		// Validate file with environment constraints
 		try {
-			DocumentService.validateUploadFile(file);
+			documentService.validateUploadFile(file);
 		} catch (err) {
 			if (err instanceof Error) {
 				if (err.message === 'INVALID_FILE_TYPE') {
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
 			return createErrorResponse('File upload failed.', 500);
 		}
 
-		const document = await DocumentService.createDocument({
+		const document = await documentService.createDocument({
 			userId,
 			fileName: file.name,
 			filePath: uploadResult,

@@ -1,61 +1,105 @@
 'use client';
 
-import axios from 'axios';
-import { useEffect, useState } from 'react';
-import { Container } from '@mui/material';
+import { Box, Container, Skeleton, Stack } from '@mui/material';
+import { useEffect, useRef, useState } from 'react';
 
-import FileAccess from './FileDisplay';
 import AccessError from './AccessError';
+import FileDisplay from './FileDisplay';
 import VisitorInfoModal from './VisitorInfoModal';
 
-import { LinkData } from '@/shared/models';
-import { LoadingSpinner } from '@/components';
-import { useFormSubmission, useDocumentAccess } from '@/hooks';
+import { useFormSubmission } from '@/hooks';
+import { useCreateLinkVisitorMutation, useDocumentAccessQuery } from '@/hooks/data';
+
+import { FileDisplayPayload } from '@/shared/models';
 
 interface Props {
 	linkId: string;
 }
 
-export default function AccessPage({ linkId }: Props) {
-	const [linkData, setLinkData] = useState<LinkData>({});
-	const [fetchLinkError, setFetchLinkError] = useState<string>('');
-	const [hasInitialized, setHasInitialized] = useState(false); // This flag blocks the rendering of visitorInfoModal till the useEffect finishes to check whether a link url is truly public or not.
+function AccessSkeleton() {
+	return (
+		<Stack
+			spacing={4}
+			alignItems='center'>
+			<Skeleton
+				variant='rectangular'
+				width={225}
+				height={24}
+			/>
+			<Skeleton
+				variant='rectangular'
+				width={400}
+				height={20}
+			/>
+			<Skeleton
+				variant='rectangular'
+				width={350}
+				height={35}
+			/>
+			<Box
+				display='flex'
+				alignItems='center'
+				pt={24}
+				gap={32}>
+				<Skeleton
+					variant='rectangular'
+					width={150}
+					height={40}
+				/>
+				<Skeleton
+					variant='rectangular'
+					width={150}
+					height={40}
+				/>
+			</Box>
+		</Stack>
+	);
+}
 
-	const { error, data, isLoading } = useDocumentAccess(linkId);
-	const linkInfo = data?.data ?? {};
+export default function AccessPage({ linkId }: Props) {
+	const [linkData, setLinkData] = useState<FileDisplayPayload>({} as FileDisplayPayload);
+	const [fetchLinkError, setFetchLinkError] = useState('');
+	const [hasInitialized, setHasInitialized] = useState(false); // This flag blocks the rendering of visitorInfoModal till the useEffect finishes to check whether a link url is truly public or not.
+	const autoRequestSent = useRef(false);
+
+	const { error, data, isLoading } = useDocumentAccessQuery(linkId);
+	const linkInfo = {
+		isPasswordProtected: false,
+		visitorFields: [] as string[],
+		signedUrl: undefined as string | undefined,
+		...data?.data,
+	};
+
+	const { mutateAsync: submitVisitorData, isPending } = useCreateLinkVisitorMutation();
 
 	useEffect(() => {
 		if (error) {
-			setFetchLinkError(error?.message);
+			setFetchLinkError(error.message);
 			setHasInitialized(true);
 		}
 	}, [error]);
 
 	const { handleSubmit } = useFormSubmission({
 		onSubmit: async () => {
-			if (!linkId) throw new Error('Missing linkId.');
-
 			const payload = {
 				linkId,
 				firstName: '',
 				lastName: '',
-				email: '',
 				password: '',
 			};
 
-			const response = await axios.post(`/api/public_links/${linkId}/access`, payload);
-			if (!response?.data?.data) {
-				throw new Error(response.data?.message || 'Unable to access file.');
-			}
+			const response = await submitVisitorData({ linkId, payload });
+			const file = response.data;
 
 			setLinkData({
-				signedUrl: response.data.data.signedUrl,
-				fileName: response.data.data.fileName,
-				size: response.data.data.size,
+				signedUrl: file.signedUrl,
+				fileName: file.fileName,
+				size: file.size,
+				fileType: file.fileType,
+				documentId: file.documentId,
 			});
 		},
-
-		successMessage: 'File accessed successfully!',
+		successMessage: 'File accessed successfully....!',
 		errorMessage: 'Error accessing the link. Please try again later.',
 		onError: (errMsg) => {
 			setFetchLinkError(errMsg);
@@ -63,11 +107,12 @@ export default function AccessPage({ linkId }: Props) {
 	});
 
 	useEffect(() => {
-		if (!isLoading && data?.data && !hasInitialized) {
+		if (!isLoading && !hasInitialized) {
 			const { isPasswordProtected, visitorFields, signedUrl } = linkInfo;
 			const isTrulyPublic = !isPasswordProtected && visitorFields.length === 0;
 
-			if (isTrulyPublic && !signedUrl) {
+			if (isTrulyPublic && !signedUrl && !autoRequestSent.current) {
+				autoRequestSent.current = true;
 				handleSubmit({ preventDefault: () => {} } as any).finally(() => {
 					setHasInitialized(true);
 				});
@@ -75,31 +120,26 @@ export default function AccessPage({ linkId }: Props) {
 				setHasInitialized(true);
 			}
 		}
-	}, [isLoading, data, hasInitialized]);
+	}, [isLoading, hasInitialized, linkInfo, handleSubmit]);
 
-	const handleVisitorInfoFormModalSubmit = (data: { [key: string]: any }) => {
-		setLinkData({
-			signedUrl: data.signedUrl,
-			fileName: data.fileName,
-			size: data.size,
-		});
+	const handleVisitorModalSubmit = async (file: FileDisplayPayload) => {
+		setLinkData(file);
 	};
 
 	// ⏳ Still fetching or still waiting for useEffect decision logic
-	if (isLoading || !hasInitialized) {
-		return <LoadingSpinner />;
-	}
+	if (isLoading || !hasInitialized || isPending) return <AccessSkeleton />;
 
-	if (fetchLinkError) {
-		return <AccessError message={fetchLinkError} />;
-	}
+	if (fetchLinkError) return <AccessError message={fetchLinkError} />;
 
 	if (linkData.signedUrl) {
 		return (
-			<FileAccess
+			<FileDisplay
 				size={linkData.size || 0}
 				fileName={linkData.fileName || 'Document'}
+				fileType={linkData.fileType}
 				signedUrl={linkData.signedUrl}
+				documentId={linkData.documentId}
+				documentLinkId={linkId}
 			/>
 		);
 	}
@@ -110,7 +150,7 @@ export default function AccessPage({ linkId }: Props) {
 				linkId={linkId}
 				visitorFields={linkInfo.visitorFields}
 				passwordRequired={linkInfo.isPasswordProtected}
-				onVisitorInfoModalSubmit={handleVisitorInfoFormModalSubmit}
+				onVisitorInfoModalSubmit={handleVisitorModalSubmit}
 			/>
 		</Container>
 	);

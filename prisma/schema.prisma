@@ -96,8 +96,9 @@ model Document {
   createdAt  DateTime @default(now()) @db.Timestamptz(6)
   updatedAt  DateTime @updatedAt @db.Timestamptz(6)
 
-  user          User           @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  user          User                @relation(fields: [userId], references: [userId], onDelete: Cascade)
   documentLinks DocumentLink[]
+  analytics     DocumentAnalytics[]
 
   @@index([userId])
 }
@@ -120,11 +121,12 @@ model DocumentLink {
   updatedAt       DateTime  @updatedAt @db.Timestamptz(6)
 
   // relations
-  document Document              @relation(fields: [documentId], references: [documentId], onDelete: Cascade)
-  creator  User                  @relation(fields: [createdByUserId], references: [userId], onDelete: Cascade)
-  visitors DocumentLinkVisitor[]
+  document  Document              @relation(fields: [documentId], references: [documentId], onDelete: Cascade)
+  creator   User                  @relation(fields: [createdByUserId], references: [userId], onDelete: Cascade)
+  visitors  DocumentLinkVisitor[]
+  analytics DocumentAnalytics[]
 
-  //    constraints & indexes
+  // constraints & indexes
   @@unique([documentId, alias], name: "document_alias_unique") // Composite uniqueness: alias must be unique only within its document
   @@index([documentId])
   @@index([createdByUserId])
@@ -140,7 +142,34 @@ model DocumentLinkVisitor {
   visitedAt       DateTime @default(now()) @db.Timestamptz(6)
   updatedAt       DateTime @updatedAt @db.Timestamptz(6)
 
-  documentLink DocumentLink @relation(fields: [documentLinkId], references: [documentLinkId], onDelete: Cascade)
+  documentLink DocumentLink        @relation(fields: [documentLinkId], references: [documentLinkId], onDelete: Cascade)
+  analytics    DocumentAnalytics[]
 
   @@index([documentLinkId, visitedAt])
+}
+
+model DocumentAnalytics {
+  id             Int                @id @default(autoincrement())
+  documentId     String
+  documentLinkId String?
+  visitorId      Int?
+  eventType      AnalyticsEventType
+  meta           Json?
+  timestamp      DateTime           @default(now()) @db.Timestamptz(6)
+  minuteBucket   DateTime           @default(dbgenerated("date_trunc('minute', now())")) @db.Timestamptz(6) // ⬅️  rounds to the minute for de-duplication
+
+  // relations
+  visitor      DocumentLinkVisitor? @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  document     Document             @relation(fields: [documentId], references: [documentId], onDelete: Cascade)
+  documentLink DocumentLink?        @relation(fields: [documentLinkId], references: [documentLinkId], onDelete: Cascade)
+
+  // constraints & indexes
+  @@unique([visitorId, documentLinkId, eventType, minuteBucket])
+  @@index([documentId, eventType])
+  @@index([documentLinkId, eventType])
+}
+
+enum AnalyticsEventType {
+  VIEW
+  DOWNLOAD
 }

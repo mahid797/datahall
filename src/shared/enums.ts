@@ -15,3 +15,8 @@ export enum UserRole {
 	User = 'USER',
 	Guest = 'GUEST',
 }
+
+export enum AnalyticsEventType {
+	VIEW = 'VIEW',
+	DOWNLOAD = 'DOWNLOAD',
+}
