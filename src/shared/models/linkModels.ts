@@ -54,7 +54,7 @@ export interface PublicLinkMeta {
 	signedUrl?: string; // only present when link is truly public
 }
 
-export interface FileAccessPayload {
+export interface FileDisplayPayload {
 	signedUrl: string;
 	fileName: string;
 	size: number; // bytes

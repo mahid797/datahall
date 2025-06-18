@@ -35,5 +35,5 @@ export interface LinkVisitor {
 	name: string;
 	email: string;
 	visitedAt: string;
-	visitorMetaData: ReactNode;
+	visitorMetaData: string | null;
 }
