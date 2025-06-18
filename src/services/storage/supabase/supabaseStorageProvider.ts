@@ -2,16 +2,16 @@ import { createClient } from '@supabase/supabase-js';
 
 import { FileMetadata, ServiceError, StorageProvider, UploadResult } from '@/services';
 
+const bucketName = process.env.SUPABASE_STORAGE_BUCKET as string;
+
 export class SupabaseProvider implements StorageProvider {
 	private supabase;
-
 	constructor() {
 		this.supabase = createClient(
 			process.env.SUPABASE_URL as string,
 			process.env.SUPABASE_SERVICE_ROLE_KEY as string,
 		);
 	}
-
 	/**
 	 * Uploads a file to the Supabase storage bucket.
 	 * @param fileBuffer - Buffer containing the file's data.
@@ -19,7 +19,6 @@ export class SupabaseProvider implements StorageProvider {
 	 * @returns A promise resolving to the file's public URL (if bucket is public) or file path (if bucket is private).
 	 */
 	async upload(fileBuffer: Buffer, metadata: FileMetadata): Promise<UploadResult> {
-		const bucketName = process.env.SUPABASE_STORAGE_BUCKET as string;
 		const filePath = `${metadata.userId}/${metadata.fileName}`;
 
 		// Upload file to Supabase Storage
@@ -42,8 +41,6 @@ export class SupabaseProvider implements StorageProvider {
 	 * @param filePath - The path of the file to delete within the bucket.
 	 */
 	async delete(filePath: string): Promise<void> {
-		const bucketName = 'documents';
-
 		const { error } = await this.supabase.storage.from(bucketName).remove([filePath]);
 
 		if (error) {
@@ -53,19 +50,49 @@ export class SupabaseProvider implements StorageProvider {
 	}
 
 	/**
+	 * Lists file paths in the Supabase storage bucket.
+	 * Optionally filters files under a specific prefix.
+	 * @param {string} [prefix=''] - The prefix to filter files by. Defaults to an empty string.
+	 * @returns {Promise<string[]>} - A promise resolving to an array of file paths.
+	 * @throws {ServiceError} - Throws an error if the file listing operation fails.
+	 */
+	async list(prefix: string = ''): Promise<string[]> {
+		const recurse = async (dir: string): Promise<string[]> => {
+			const { data, error } = await this.supabase.storage
+				.from(bucketName)
+				.list(dir, { limit: 10_000 });
+
+			if (error) {
+				console.error('Supabase list error:', error);
+				throw new ServiceError('File list failed.', 500);
+			}
+
+			const paths: string[] = [];
+			for (const entry of data ?? []) {
+				const fullPath = dir ? `${dir}/${entry.name}` : entry.name;
+
+				// entry.metadata === null  ⇒  it's a "folder" placeholder
+				if (entry.metadata === null) {
+					paths.push(...(await recurse(fullPath)));
+				} else {
+					paths.push(fullPath);
+				}
+			}
+			return paths;
+		};
+
+		return recurse(prefix);
+	}
+
+	/**
 	 * Generates a signed URL for a file in the Supabase storage bucket.
-	 * @param bucket - The name of the bucket containing the file.
 	 * @param filePath - The path of the file within the bucket.
 	 * @param expiresIn - The number of seconds until the signed URL expires (default: 3 days).
 	 * @returns - A promise resolving to the signed URL.
 	 */
-	async generateSignedUrl(
-		bucket: string,
-		filePath: string,
-		expiresIn: number = 259200,
-	): Promise<string> {
+	async generateSignedUrl(filePath: string, expiresIn: number): Promise<string> {
 		const { data, error } = await this.supabase.storage
-			.from(bucket)
+			.from(bucketName)
 			.createSignedUrl(filePath, expiresIn);
 
 		if (error) {

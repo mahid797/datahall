@@ -1,6 +1,6 @@
 export { authService } from './auth/authService';
 export type { StorageProvider, FileMetadata, UploadResult } from './storage/storageService';
-export { uploadFile, deleteFile } from './storage/storageService';
+export { uploadFile, deleteFile, listFiles } from './storage/storageService';
 
 // Fix the storageService import to use the correct path
 // export {storageService} from './storage/storageService';

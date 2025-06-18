@@ -196,12 +196,22 @@ export const linkService = {
 		if (!link || !link.document) {
 			throw new ServiceError('Link not found', 404);
 		}
-		if (link.expirationTime && new Date(link.expirationTime) < new Date()) {
-			throw new ServiceError('Link has expired', 410);
+
+		const defaultTtl = Number(process.env.DEFAULT_TTL) || 86_400; // 24 h fallback
+		let expiresIn = defaultTtl;
+
+		if (link.expirationTime) {
+			const secondsUntilLinkExpires = Math.floor(
+				(link.expirationTime.getTime() - Date.now()) / 1000,
+			);
+
+			if (secondsUntilLinkExpires <= 0) throw new ServiceError('Link has expired', 410);
+
+			expiresIn = Math.min(defaultTtl, secondsUntilLinkExpires);
 		}
 
 		const supabaseProvider = new SupabaseProvider();
-		const signedUrl = await supabaseProvider.generateSignedUrl('documents', link.document.filePath);
+		const signedUrl = await supabaseProvider.generateSignedUrl(link.document.filePath, expiresIn);
 
 		return {
 			signedUrl,
