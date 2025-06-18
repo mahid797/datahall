@@ -20,7 +20,7 @@ import { useCreateLinkVisitorMutation } from '@/hooks/data';
 
 import { EyeIcon, EyeOffIcon, FileDownloadIcon } from '@/icons';
 import { visitorFieldsConfigByKey } from '@/shared/config/visitorFieldsConfig';
-import { FileAccessPayload } from '@/shared/models';
+import { FileDisplayPayload } from '@/shared/models';
 import { requiredFieldRule, splitName, validEmailRule } from '@/shared/utils';
 
 function getFormConfig(passwordRequired: boolean, visitorFields: string[]) {
@@ -55,13 +55,13 @@ interface VisitorInfoModalProps {
 	linkId: string;
 	passwordRequired: boolean;
 	visitorFields: string[];
-	onVisitorInfoModalSubmit: (data: FileAccessPayload) => void;
+	onVisitorInfoModalSubmit: (data: FileDisplayPayload) => void;
 }
 
 export default function VisitorInfoModal({
 	linkId,
 	passwordRequired,
-	visitorFields,
+	visitorFields = [],
 	onVisitorInfoModalSubmit,
 }: VisitorInfoModalProps) {
 	const [isPasswordVisible, setIsPasswordVisible] = React.useState(false);

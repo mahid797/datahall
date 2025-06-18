@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 
-import { Box, IconButton, Button, TableCell, TableRow, Tooltip, Typography } from '@mui/material';
+import { Box, Button, IconButton, TableCell, TableRow, Tooltip, Typography } from '@mui/material';
 
 import { CheckIcon, CopyIcon, TrashIcon } from '@/icons';
 
@@ -18,7 +18,7 @@ interface InfoTableRowProps {
 	documentDetail: LinkDetailRow | Contact;
 }
 
-export default function InfoTableRow({ documentDetail, variant }: InfoTableRowProps) {
+function InfoTableRow({ documentDetail, variant }: InfoTableRowProps) {
 	const [linkVisitorOpen, setLinkVisitorOpen] = useState(false);
 	const [isLinkCopied, setIsLinkCopied] = useState(false);
 	const { showToast } = useToast();
@@ -65,12 +65,8 @@ export default function InfoTableRow({ documentDetail, variant }: InfoTableRowPr
 		return (
 			<>
 				<TableRow hover>
-					<TableCell
-						sx={{ width: '45%', pl: '2.5rem', py: { sm: '0.7rem', md: '0.92rem', lg: '1.18rem' } }}>
-						<Box
-							display='flex'
-							alignItems='center'
-							gap={10}>
+					<TableCell sx={{ width: '45%', pl: '2.5rem' }}>
+						<Box display='flex'>
 							<Tooltip
 								enterDelay={800}
 								title={documentDetail.createdLink}
@@ -83,7 +79,7 @@ export default function InfoTableRow({ documentDetail, variant }: InfoTableRowPr
 									},
 								}}
 								placement='bottom-start'>
-								<Typography>
+								<Typography noWrap>
 									{documentDetail.alias ? documentDetail.alias : documentDetail.createdLink}
 									<IconButton
 										sx={{ ml: 10 }}
@@ -172,3 +168,5 @@ export default function InfoTableRow({ documentDetail, variant }: InfoTableRowPr
 	// If neither variant matches or the data is incomplete
 	return null;
 }
+
+export default memo(InfoTableRow);

@@ -1,11 +1,14 @@
 'use client';
 
-import { Box, Button, Typography } from '@mui/material';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
+import { Box, CircularProgress, Skeleton, Typography } from '@mui/material';
 
 import { useCreateDocumentAnalyticsMutation } from '@/hooks/data';
 import { AnalyticsEventType } from '@/shared/enums';
+import Paginator from '../navigation/Paginator';
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
@@ -14,13 +17,28 @@ interface PDFViewerProps {
 	documentId: string;
 	linkId?: string;
 	visitorId?: number;
+	onReady?: () => void;
+	onMount?: () => void;
 }
 
-export default function PDFViewer({ url, documentId, linkId, visitorId }: PDFViewerProps) {
+export default function PDFViewer({
+	url,
+	documentId,
+	linkId,
+	visitorId,
+	onReady,
+	onMount,
+}: PDFViewerProps) {
 	const [numPages, setNumPages] = useState<number>();
-	const [page, setPage] = useState(1);
+	const [page, setPage] = useState<number | null>(null);
 	const logged = useRef(false); // ensures single VIEW row
 	const analytics = useCreateDocumentAnalyticsMutation();
+
+	const [error, setError] = useState<Error | null>(null);
+
+	useEffect(() => {
+		onMount?.();
+	}, []);
 
 	const trackFileView = () => {
 		if (logged.current) return;
@@ -34,42 +52,64 @@ export default function PDFViewer({ url, documentId, linkId, visitorId }: PDFVie
 	};
 
 	return (
-		<Box textAlign='center'>
-			<Document
-				file={url}
-				onLoadSuccess={({ numPages }) => {
-					setNumPages(numPages);
-					trackFileView();
+		<>
+			<Box
+				display='flex'
+				flexDirection='column'
+				alignItems='center'
+				maxHeight={`calc(100vh - 245px)`}
+				mx='auto'
+				my={4}
+				px={2}
+				tabIndex={0}
+				sx={{
+					border: 1,
+					borderColor: 'divider',
+					borderRadius: 2,
+					boxShadow: 2,
+					overflowY: 'auto',
 				}}>
-				<Page
-					pageNumber={page}
-					width={780}
+				<Document
+					file={url}
+					onLoadSuccess={({ numPages }) => {
+						setNumPages(numPages);
+						setPage(1);
+						trackFileView();
+						onReady?.();
+					}}
+					loading={null}
+					onLoadError={(e) => {
+						setError(e);
+						onReady?.();
+					}}
+					error={
+						<Typography
+							color='error'
+							align='center'
+							py={4}>
+							{error?.message || 'Failed to load PDF'}
+						</Typography>
+					}>
+					{page && (
+						<Page
+							pageNumber={page}
+							width={780}
+							renderTextLayer={false}
+							renderAnnotationLayer={false}
+						/>
+					)}
+				</Document>
+			</Box>
+			{numPages && numPages > 1 && page && (
+				<Paginator
+					size='sm'
+					nextPage={page}
+					totalPages={numPages}
+					pageSize={1}
+					totalItems={numPages}
+					onPageChange={setPage}
 				/>
-			</Document>
-
-			{/* simple navigation – same UX we had before */}
-			{numPages && numPages > 1 && (
-				<Box
-					mt={4}
-					display='flex'
-					alignItems='center'
-					gap={2}
-					justifyContent='center'>
-					<Button
-						disabled={page === 1}
-						onClick={() => setPage((p) => p - 1)}>
-						Previous
-					</Button>
-					<Typography>
-						Page {page} of {numPages}
-					</Typography>
-					<Button
-						disabled={page === numPages}
-						onClick={() => setPage((p) => p + 1)}>
-						Next
-					</Button>
-				</Box>
 			)}
-		</Box>
+		</>
 	);
 }

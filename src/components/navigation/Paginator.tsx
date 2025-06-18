@@ -3,17 +3,23 @@ import { Box, Button, Pagination, PaginationItem } from '@mui/material';
 import { ArrowNarrowLeftIcon, ArrowNarrowRightIcon } from '@/icons';
 
 interface PaginatorProps {
-	page: number;
+	nextPage: number;
 	totalPages: number;
 	onPageChange: (newPage: number) => void;
 	pageSize: number;
 	totalItems: number;
+	size?: 'sm' | 'md' | 'lg';
 }
 
-const Paginator = ({ page, totalPages, onPageChange, pageSize, totalItems }: PaginatorProps) => {
-	const handlePageChange = (_event: any, newPage: number) => {
-		onPageChange(newPage);
-	};
+const Paginator = ({
+	nextPage,
+	totalPages,
+	onPageChange,
+	pageSize,
+	totalItems,
+	size = 'md',
+}: PaginatorProps) => {
+	const handlePageChange = (next: number) => onPageChange(Math.min(Math.max(1, next), totalPages));
 
 	if (totalItems <= pageSize) {
 		return null;
@@ -24,25 +30,25 @@ const Paginator = ({ page, totalPages, onPageChange, pageSize, totalItems }: Pag
 			display='flex'
 			justifyContent='center'
 			alignItems='center'
-			mt='1rem'
-			gap='5rem'>
+			mt={size === 'sm' ? '0.5rem' : size === 'lg' ? '2rem' : '1rem'}
+			gap={40}>
 			<Button
 				variant='outlined'
 				color='secondary'
 				startIcon={<ArrowNarrowLeftIcon />}
-				onClick={() => onPageChange(page > 1 ? page - 1 : page)}
-				disabled={page === 1}
+				onClick={() => handlePageChange(nextPage - 1)}
+				disabled={nextPage === 1}
 				sx={{ minWidth: '8rem' }}>
 				Previous
 			</Button>
 
 			<Pagination
 				count={totalPages}
-				page={page}
+				page={nextPage}
 				hideNextButton
 				hidePrevButton
 				size='medium'
-				onChange={handlePageChange}
+				onChange={(_, value) => handlePageChange(value)}
 				shape='rounded'
 				color='secondary'
 				renderItem={(item) => (
@@ -56,8 +62,8 @@ const Paginator = ({ page, totalPages, onPageChange, pageSize, totalItems }: Pag
 				variant='outlined'
 				color='secondary'
 				endIcon={<ArrowNarrowRightIcon />}
-				onClick={() => onPageChange(page < totalPages ? page + 1 : page)}
-				disabled={page === totalPages}
+				onClick={() => handlePageChange(nextPage + 1)}
+				disabled={nextPage === totalPages}
 				sx={{ minWidth: '8rem' }}>
 				Next
 			</Button>

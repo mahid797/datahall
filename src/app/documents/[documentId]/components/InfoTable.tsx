@@ -1,9 +1,10 @@
 'use client';
-import { useState } from 'react';
 import {
 	Box,
 	Button,
+	CircularProgress,
 	Paper,
+	Skeleton,
 	Table,
 	TableBody,
 	TableCell,
@@ -11,15 +12,16 @@ import {
 	TableHead,
 	TableRow,
 	Typography,
-	CircularProgress,
 } from '@mui/material';
+import { useMemo } from 'react';
 
+import { EmptyState, Paginator } from '@/components';
 import InfoTableHeader from './InfoTableHeader';
 import InfoTableRow from './InfoTableRow';
-import { EmptyState, Paginator } from '@/components';
 
+import { usePaginatedTable, useResponsivePageSize } from '@/hooks';
+import { useDocumentLinksQuery, useDocumentVisitorsQuery } from '@/hooks/data';
 import { Contact, LinkDetailRow } from '@/shared/models';
-import { useDocumentData, useSort } from '@/hooks';
 
 interface InfoTableProps {
 	variant: 'linkTable' | 'visitorTable';
@@ -27,49 +29,67 @@ interface InfoTableProps {
 }
 
 // InfoTable - Renders either a "link table" or "visitor table" based on the `variant`.
-
 export default function InfoTable({ variant, documentId }: InfoTableProps) {
-	const [page, setPage] = useState(1);
-	const pageSize = 4; // Items per page
+	/* ── data fetch ─────────── */
+	const { data, isPending, error } =
+		variant === 'linkTable'
+			? useDocumentLinksQuery(documentId)
+			: useDocumentVisitorsQuery(documentId);
 
-	// 1) Fetch data from the new backend route
-	const { data, loading, error } = useDocumentData(documentId, variant);
+	const raw: Array<LinkDetailRow | Contact> = data ?? [];
 
-	// 2) Sort the data (the updated useSort hook can handle Date automatically if we sort by "lastViewed")
-	const { sortedData, orderDirection, orderBy, handleSortRequest } = useSort<
-		LinkDetailRow | Contact
-	>(data);
+	/* ── sort + paging util ──────────── */
+	const {
+		pageData,
+		page,
+		totalPages,
+		setPage,
+		pageSize,
+		setPageSize,
+		sortKey,
+		sortDirection,
+		toggleSort,
+	} = usePaginatedTable(raw, { initialSort: 'lastActivity', pageSize: 4 });
 
-	// 3) If still loading or error
-	if (loading) {
-		return (
-			<Box
-				display='flex'
-				justifyContent='center'
-				py={25}>
-				<CircularProgress />
-			</Box>
-		);
-	}
+	/* ── responsive rows-per-page ────── */
+	// TODO: Make sure the offsetHeight and rowHeights looks good on all screen sizes
+	const { rowHeight } = useResponsivePageSize(setPageSize, {
+		offsetHeight: 700,
+		rowHeights: { lg: 59, md: 54, sm: 47 },
+	});
+
+	/* ── column metadata ────────────── */
+	const columns = useMemo(
+		() =>
+			variant === 'linkTable'
+				? [
+						{ key: 'link', label: 'LINK', width: '45%' },
+						{ key: 'lastActivity', label: 'LAST VIEWED', width: '20%', sortable: true },
+						{ key: 'views', label: 'VIEWS', width: '10%' },
+						{ key: 'action', label: 'ACTION', width: '10%' },
+						{ key: 'blank', label: '', width: '15%' },
+					]
+				: [
+						{ key: 'visitor', label: 'VISITOR', width: '30%' },
+						{ key: 'lastActivity', label: 'LAST VIEWED', width: '25%', sortable: true },
+						{ key: 'downloads', label: 'DOWNLOADS', width: '15%' },
+						{ key: 'duration', label: 'DURATION', width: '15%' },
+						{ key: 'completion', label: 'COMPLETION', width: '15%' },
+					],
+		[variant],
+	);
+
 	if (error) {
 		return (
 			<Box
 				textAlign='center'
 				mt={5}>
-				<Typography color='error'>{error}</Typography>
+				<Typography color='error'>{(error as Error).message}</Typography>
 			</Box>
 		);
 	}
 
-	// 4) Pagination
-	const totalItems = sortedData.length;
-	const totalPages = Math.ceil(totalItems / pageSize);
-	const startIndex = (page - 1) * pageSize;
-	const currentPageData = sortedData.slice(startIndex, startIndex + pageSize);
-
-	// 5) Check for empty states
-	const isLinkTableEmpty = variant === 'linkTable' && !currentPageData.length && !totalItems;
-	const isVisitorTableEmpty = variant === 'visitorTable' && !totalItems;
+	const isTableEmpty = !isPending && pageData.length === 0;
 
 	return (
 		<Box>
@@ -79,59 +99,74 @@ export default function InfoTable({ variant, documentId }: InfoTableProps) {
 					stickyHeader>
 					<TableHead>
 						<InfoTableHeader
-							variant={variant}
-							orderBy={orderBy}
-							orderDirection={orderDirection}
-							onSort={handleSortRequest}
+							columns={columns}
+							sortKey={sortKey}
+							sortDirection={sortDirection}
+							onSort={(k) => toggleSort(k as any)}
 						/>
 					</TableHead>
 
 					<TableBody>
-						{/* If linkTable has zero data, show "Create a link" row */}
-						{isLinkTableEmpty && (
-							<TableRow>
-								<TableCell
-									colSpan={5}
-									sx={{ textAlign: 'center', py: { sm: '0.5rem', md: '0.7rem', lg: '0.9rem' } }}>
-									<Button
-										variant='contained'
-										sx={{ px: { sm: 50, md: 60, lg: 70 } }}>
-										Create a link
-									</Button>
-								</TableCell>
-							</TableRow>
-						)}
+						{/* Render sorted & paginated rows */}
+						{isPending &&
+							Array.from({ length: pageSize }).map((_, index) => (
+								<TableRow
+									key={index}
+									hover>
+									{columns.map(({ key, width }) => (
+										<TableCell
+											key={key}
+											sx={{ width, py: 1.25 }}>
+											<Skeleton
+												key={index}
+												animation='wave'
+												variant='rectangular'
+												height={rowHeight * 0.55}
+												width='100%'
+												sx={{ borderRadius: 2, mx: 'auto' }}
+											/>
+										</TableCell>
+									))}
+								</TableRow>
+							))}
 
-						{/* If visitorTable has zero data, show "No visitor data found" row */}
-						{variant === 'visitorTable' && isVisitorTableEmpty && (
-							<TableRow>
-								<TableCell
-									colSpan={5}
-									sx={{ textAlign: 'center', py: { sm: '0.5rem', md: '0.7rem', lg: '0.9rem' } }}>
-									<EmptyState message='No visitor data found.' />
-								</TableCell>
-							</TableRow>
-						)}
-
-						{/* Otherwise, render sorted & paginated rows */}
-						{currentPageData.map((detail, index) => (
+						{pageData.map((detail, index) => (
 							<InfoTableRow
 								key={index}
 								documentDetail={detail}
 								variant={variant}
 							/>
 						))}
+
+						{/* TODO: If linkTable has zero data, show "Create a link" row */}
+						{isTableEmpty && (
+							<TableRow>
+								<TableCell
+									colSpan={columns.length}
+									sx={{ textAlign: 'center', py: { sm: '0.5rem', md: '0.7rem', lg: '0.9rem' } }}>
+									{variant === 'linkTable' ? (
+										<Button
+											variant='contained'
+											sx={{ px: { sm: 50, md: 60, lg: 70 } }}>
+											Create a link
+										</Button>
+									) : (
+										<EmptyState message='No visitor data found.' />
+									)}
+								</TableCell>
+							</TableRow>
+						)}
 					</TableBody>
 				</Table>
 			</TableContainer>
 
 			{totalPages > 1 && (
 				<Paginator
-					page={page}
+					nextPage={page}
 					totalPages={totalPages}
 					onPageChange={setPage}
 					pageSize={pageSize}
-					totalItems={totalItems}
+					totalItems={raw.length}
 				/>
 			)}
 		</Box>
