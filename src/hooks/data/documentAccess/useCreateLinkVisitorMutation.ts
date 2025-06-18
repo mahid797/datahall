@@ -2,11 +2,11 @@ import axios from 'axios';
 import { useMutation } from '@tanstack/react-query';
 
 import { PublicLinkAccessPayload } from '@/shared/validation/publicLinkSchemas';
-import { FileAccessPayload } from '@/shared/models';
+import { FileDisplayPayload } from '@/shared/models';
 
 interface VisitorSubmissionResponse {
 	message: string;
-	data: FileAccessPayload;
+	data: FileDisplayPayload;
 }
 
 const submitVisitorDetails = async ({
