@@ -8,7 +8,7 @@ import { usePathname } from 'next/navigation';
 import { ReactNode, useEffect, useState } from 'react';
 import { isPublicRoute } from '@/shared/config/routesConfig';
 
-export default function AuthWrapper({ children }: { children: ReactNode }) {
+export default function AuthProvider({ children }: { children: ReactNode }) {
 	const { data: session, status } = useSession();
 	const pathname = usePathname(); // Get the current route path
 	const [isLoading, setIsLoading] = useState(true);

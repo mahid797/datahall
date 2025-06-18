@@ -12,6 +12,7 @@ import { Contact, LinkDetailRow } from '@/shared/models';
 import { formatDateTime } from '@/shared/utils';
 
 import LinkVisitorModal from './LinkVisitorModal';
+import { useModalContext } from '@/providers/modal/ModalProvider';
 
 interface InfoTableRowProps {
 	variant?: 'linkTable' | 'visitorTable';
@@ -21,8 +22,8 @@ interface InfoTableRowProps {
 function InfoTableRow({ documentDetail, variant }: InfoTableRowProps) {
 	const [linkVisitorOpen, setLinkVisitorOpen] = useState(false);
 	const [isLinkCopied, setIsLinkCopied] = useState(false);
+	const { openModal } = useModalContext();
 	const { showToast } = useToast();
-	const deleteModal = useModal();
 
 	const isLinkDetail = (d: LinkDetailRow | Contact): d is LinkDetailRow =>
 		(d as LinkDetailRow).createdLink !== undefined;
@@ -38,16 +39,25 @@ function InfoTableRow({ documentDetail, variant }: InfoTableRowProps) {
 		setLinkVisitorOpen(false);
 	};
 
-	const handleDeleteLink = async () => {
-		try {
-			const link = documentDetail as LinkDetailRow;
-			await axios.delete(`/api/documents/${link.documentId}/links/${link.linkId}`);
+	const handleDelete = () => {
+		openModal({
+			type: 'deleteConfirm',
+			contentProps: {
+				title: 'Really delete this link?',
+				description:
+					'Deleting this link is permanent. All associated share settings will be removed.',
+				onConfirm: async () => {
+					try {
+						const link = documentDetail as LinkDetailRow;
+						await axios.delete(`/api/documents/${link.documentId}/links/${link.linkId}`);
 
-			showToast({ message: 'Link deleted!', variant: 'success' });
-			deleteModal.closeModal();
-		} catch (err) {
-			showToast({ message: 'Error deleting link', variant: 'error' });
-		}
+						showToast({ message: 'Link deleted successfully!', variant: 'success' });
+					} catch (err) {
+						showToast({ message: 'Error deleting link', variant: 'error' });
+					}
+				},
+			},
+		});
 	};
 
 	const handleLinkCopy = () => {
@@ -65,8 +75,12 @@ function InfoTableRow({ documentDetail, variant }: InfoTableRowProps) {
 		return (
 			<>
 				<TableRow hover>
-					<TableCell sx={{ width: '45%', pl: '2.5rem' }}>
-						<Box display='flex'>
+					<TableCell
+						sx={{ width: '45%', pl: '2.5rem', py: { sm: '0.7rem', md: '0.92rem', lg: '1.18rem' } }}>
+						<Box
+							display='flex'
+							alignItems='center'
+							gap={10}>
 							<Tooltip
 								enterDelay={800}
 								title={documentDetail.createdLink}
@@ -97,7 +111,7 @@ function InfoTableRow({ documentDetail, variant }: InfoTableRowProps) {
 						{documentDetail.linkViews}
 					</TableCell>
 					<TableCell sx={{ width: '10%', textAlign: 'center' }}>
-						<IconButton onClick={deleteModal.openModal}>
+						<IconButton onClick={handleDelete}>
 							<Box
 								component={TrashIcon}
 								width={{ sm: '1rem', md: '1.04rem', lg: '1.08rem' }}
@@ -128,15 +142,13 @@ function InfoTableRow({ documentDetail, variant }: InfoTableRowProps) {
 					onClose={handleCloseLinkVisitorModal}
 				/>
 
-				{/* Confirm Delete Modal */}
-				<ModalWrapper
-					variant='delete'
-					title='Really delete this link?'
-					description='Deleting this link is permanent. All associated share settings will be removed.'
-					confirmButtonText='Delete link'
-					open={deleteModal.isOpen}
-					onClose={handleDeleteLink}
-					toggleModal={deleteModal.closeModal}
+				{/* Link Visitor Modal */}
+				<LinkVisitorModal
+					open={linkVisitorOpen}
+					documentId={documentDetail.documentId}
+					linkId={documentDetail.linkId}
+					linkAlias={documentDetail.alias || documentDetail.createdLink}
+					onClose={handleCloseLinkVisitorModal}
 				/>
 			</>
 		);

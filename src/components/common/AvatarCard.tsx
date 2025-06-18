@@ -1,5 +1,6 @@
 import { Avatar, Box, Link } from '@mui/material';
 import { PencilIcon } from '@/icons';
+import { MouseEvent } from 'react';
 
 interface AvatarActionsProps {
 	/** Image URL (optional). If absent, initials are shown. */
@@ -9,9 +10,9 @@ interface AvatarActionsProps {
 	/** Diameter in px (default 64) */
 	size?: number;
 	/** Called when user clicks Delete link */
-	onDelete?: () => void;
+	onDelete?: (event: MouseEvent) => void;
 	/** Called when user clicks Update link OR the hover overlay */
-	onUpdate?: () => void;
+	onUpdate?: (event: MouseEvent) => void;
 	/** Disable editing UI (e.g. when form is not in edit mode) */
 	disabled?: boolean;
 }

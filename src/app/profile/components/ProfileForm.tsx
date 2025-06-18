@@ -6,7 +6,7 @@ import { FormProvider } from 'react-hook-form';
 import { Box, Button, Divider, Link, Typography } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 
-import { FormInput, LoadingButton, LoadingSpinner, ModalWrapper } from '@/components';
+import { FormInput, LoadingButton, LoadingSpinner } from '@/components';
 
 import { useFormSubmission, useModal, useToast } from '@/hooks';
 import { useProfileQuery, useUpdateNameMutation } from '@/hooks/data';
@@ -14,6 +14,7 @@ import { useProfileForm } from '@/hooks/forms';
 
 import PasswordFormModal from './PasswordFormModal';
 import AvatarActions from '@/components/common/AvatarCard';
+import { useModalContext } from '@/providers/modal/ModalProvider';
 
 export default function ProfileForm() {
 	const { data, isLoading: fetchLoading, error } = useProfileQuery();
@@ -22,10 +23,8 @@ export default function ProfileForm() {
 	const [isEditing, setIsEditing] = useState(false);
 
 	const passwordFormModal = useModal();
-	const deleteAccountModal = useModal();
-	const deletePhotoModal = useModal();
-	const uploadModal = useModal();
 
+	const { openModal } = useModalContext();
 	const { showToast } = useToast();
 
 	const form = useProfileForm(data); // NEW helper
@@ -64,26 +63,56 @@ export default function ProfileForm() {
 	};
 
 	const handleDeleteAccount = () => {
-		console.log('Account deleted!');
-		showToast({
-			message: 'Account deleted!',
-			variant: 'error',
+		openModal({
+			type: 'deleteConfirm',
+			contentProps: {
+				title: 'Really delete this account?',
+				description:
+					'If you delete your account, you will no longer be able to sign in, and all of your data will be deleted. Deleting your account is permanent and non-recoverable.',
+				onConfirm: () => {
+					console.log('Account deleted successfully!');
+					showToast({
+						message: 'Account deleted successfully!',
+						variant: 'success',
+					});
+				},
+			},
 		});
 	};
 
 	const handleDeletePhoto = () => {
-		console.log('Photo deleted!');
-		showToast({
-			message: 'Photo deleted!',
-			variant: 'error',
+		openModal({
+			type: 'deleteConfirm',
+			contentProps: {
+				title: 'Really delete this photo?',
+				description:
+					'When you delete this photo, all the links associated with the photo will also be removed. This action is non-reversible.',
+				onConfirm: () => {
+					console.log('Photo deleted successfully!');
+					showToast({
+						message: 'Photo deleted successfully!',
+						variant: 'success',
+					});
+				},
+			},
 		});
 	};
 
-	const handleUpdatePhoto = () => {
-		console.log('Picture updated successfully!');
-		showToast({
-			message: 'Picture updated successfully!',
-			variant: 'success',
+	const handleUploadPhoto = () => {
+		openModal({
+			type: 'uploadFile',
+			contentProps: {
+				title: 'Upload profile image',
+				maxFileSize: '3 MB',
+				fileFormats: 'JPG, PNG',
+				onUploadComplete: () => {
+					console.log('Photo updated successfully!');
+					showToast({
+						message: 'Photo updated successfully!',
+						variant: 'success',
+					});
+				},
+			},
 		});
 	};
 
@@ -218,21 +247,21 @@ export default function ProfileForm() {
 
 						{/* Photo */}
 						{/* <Grid size={6}>
-						<Typography variant='h4'>Your photo</Typography>
-						<Typography variant='subtitle1'>
-							This photo will be displayed on your profile page.
-						</Typography>
-					</Grid>
-					<Grid size={6}>
-						<AvatarActions
-							src='https://picsum.photos/200/200'
-							initials='U'
-							size={64}
-							onDelete={deletePhotoModal.openModal}
-							onUpdate={uploadModal.openModal}
-							disabled={!isEditing}
-						/>
-					</Grid> */}
+							<Typography variant='h4'>Your photo</Typography>
+							<Typography variant='subtitle1'>
+								This photo will be displayed on your profile page.
+							</Typography>
+						</Grid>
+						<Grid size={6}>
+							<AvatarActions
+								src='https://picsum.photos/200/200'
+								initials='U'
+								size={64}
+								onDelete={handleDeletePhoto}
+								onUpdate={handleUploadPhoto}
+								disabled={!isEditing}
+							/>
+						</Grid> */}
 
 						{/* Password */}
 						<Grid
@@ -290,7 +319,7 @@ export default function ProfileForm() {
 								variant='contained'
 								color='error'
 								size='medium'
-								onClick={deleteAccountModal.openModal}
+								onClick={handleDeleteAccount}
 								disabled={true}>
 								Delete account
 							</Button>
@@ -303,41 +332,6 @@ export default function ProfileForm() {
 			<PasswordFormModal
 				open={passwordFormModal.isOpen}
 				toggleModal={passwordFormModal.closeModal}
-			/>
-
-			{/* Delete photo modal */}
-			<ModalWrapper
-				variant='delete'
-				title='Really delete this photo?'
-				description='When you delete this photo, all the links associated with the photo will also be removed. This action is non-reversible.'
-				confirmButtonText='Delete photo'
-				open={deletePhotoModal.isOpen}
-				onClose={handleDeletePhoto}
-				toggleModal={deletePhotoModal.closeModal}
-			/>
-
-			{/* Upload photo modal */}
-			<ModalWrapper
-				variant='upload'
-				title='Upload profile image'
-				confirmButtonText='Update'
-				open={uploadModal.isOpen}
-				onClose={handleUpdatePhoto}
-				maxFileSize='3 MB'
-				fileFormats='JPG, PNG'
-				toggleModal={uploadModal.closeModal}
-			/>
-
-			{/* Delete account modal */}
-			<ModalWrapper
-				variant='delete'
-				title='Really delete this account?'
-				description='If you delete your account, you will no longer be able to sign in, and all of your data will be deleted. Deleting your account is permanent and non-recoverable.'
-				confirmButtonText='Delete account'
-				cancelButtonText='Cancel'
-				open={deleteAccountModal.isOpen}
-				onClose={handleDeleteAccount}
-				toggleModal={deleteAccountModal.closeModal}
 			/>
 		</>
 	);
