@@ -8,6 +8,7 @@ import {
 	Button,
 	IconButton,
 	Box,
+	DialogContentText,
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { TrashIcon } from '@/icons';
@@ -23,6 +24,8 @@ interface FileInfo {
 }
 
 interface UploadFileModalProps {
+	title?: string;
+	description?: string;
 	maxFileSize?: string; // e.g. '1 MB'
 	fileFormats?: string; // e.g. 'PDF'
 	closeModal: () => void; // from the system
@@ -30,6 +33,8 @@ interface UploadFileModalProps {
 }
 
 export default function UploadFileModal({
+	title = 'Upload file(s)',
+	description,
 	maxFileSize = '1 MB',
 	fileFormats = 'PDF',
 	closeModal,
@@ -69,20 +74,27 @@ export default function UploadFileModal({
 
 	return (
 		<>
-			<DialogTitle variant='h2'>Upload File</DialogTitle>
+			<DialogTitle variant='h2'>{title}</DialogTitle>
 			<DialogContent>
-				<Typography
-					variant='body1'
-					mb={4}>
-					Supported formats: {fileFormats} | Max file size: {maxFileSize} each.
-				</Typography>
+				{description && (
+					<Box mb={4}>
+						<Typography variant='body2'>{description}</Typography>
+					</Box>
+				)}
 
-				<Box mb={3}>
+				<Box
+					mt={12}
+					mb={3}>
 					<CustomUploader
 						allowedFormats={fileFormats}
 						fileInfo={fileInfo}
 						onFileInfoChange={setFileInfo}
 					/>
+				</Box>
+				<Box mb={11}>
+					<Typography variant='h6'>
+						Supported formats: {fileFormats} | Max file size: {maxFileSize} each.
+					</Typography>
 				</Box>
 
 				{fileInfo.name && (
@@ -95,28 +107,26 @@ export default function UploadFileModal({
 						borderColor='text.notes'
 						minHeight='7.5vh'
 						mb={5}>
-						<Grid size={status === 'failed' ? 7 : 8}>
+						<Grid
+							size={2}
+							display='flex'
+							justifyContent='center'>
 							<Box
-								display='flex'
-								alignItems='center'
-								gap={2}>
-								<Box
-									component={iconSrc}
-									sx={{ width: 35, height: 35 }}
-								/>
-								<Box>
-									<Typography
-										variant='body1'
-										color={status === 'failed' ? 'error' : undefined}>
-										{fileInfo.name}
-									</Typography>
-									<Typography
-										variant='body2'
-										color={status === 'failed' ? 'error' : undefined}>
-										{fileInfo.size}
-									</Typography>
-								</Box>
-							</Box>
+								component={iconSrc}
+								sx={{ width: 35, height: 35 }}
+							/>
+						</Grid>
+						<Grid size={status === 'failed' ? 7 : 8}>
+							<Typography
+								variant='body1'
+								color={status === 'failed' ? 'error' : undefined}>
+								{fileInfo.name}
+							</Typography>
+							<Typography
+								variant='body2'
+								color={status === 'failed' ? 'error' : undefined}>
+								{fileInfo.size}
+							</Typography>
 						</Grid>
 						<Grid size={status === 'failed' ? 3 : 2}>
 							{status === 'inProgress' && (
@@ -126,7 +136,7 @@ export default function UploadFileModal({
 								/>
 							)}
 							{status === 'completed' && (
-								<IconButton onClick={() => setFileInfo({ name: '', size: '', type: '' })}>
+								<IconButton>
 									<Box
 										component={TrashIcon}
 										width={{ sm: '1rem', md: '1.1rem', lg: '1.18rem' }}
@@ -137,7 +147,7 @@ export default function UploadFileModal({
 							{status === 'failed' && (
 								<Typography
 									variant='body2'
-									color='error'>
+									color={status === 'failed' ? 'error' : undefined}>
 									Upload Failed
 								</Typography>
 							)}

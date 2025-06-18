@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useState, FormEvent } from 'react';
 import {
 	DialogTitle,
@@ -7,18 +8,26 @@ import {
 	TextField,
 	Button,
 	Typography,
+	Box,
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import Dropdown from '../input/Dropdown';
 
 interface InviteModalProps {
+	title?: string;
+	description?: string;
 	closeModal: () => void;
 	// If you want a callback when the user finishes inviting:
 	onInvite?: (email: string, role: string) => void;
 	// You can pass a defaultEmail or defaultRole here if you like
 }
 
-export default function InviteModal({ closeModal, onInvite }: InviteModalProps) {
+export default function InviteModal({
+	title = 'Invite new team member',
+	description,
+	closeModal,
+	onInvite,
+}: InviteModalProps) {
 	const [email, setEmail] = useState('');
 	const [role, setRole] = useState('Select role');
 
@@ -33,18 +42,18 @@ export default function InviteModal({ closeModal, onInvite }: InviteModalProps) 
 
 	return (
 		<>
-			<DialogTitle variant='h2'>Invite a User</DialogTitle>
-			<DialogContent>
-				<Typography
-					variant='body1'
-					mb={3}>
-					Please enter the user’s email and select a role.
-				</Typography>
+			<Box
+				component='form'
+				onSubmit={handleSubmit}>
+				<DialogTitle variant='h2'>{title}</DialogTitle>
+				<DialogContent>
+					<Box mb={12}>
+						<Typography variant='body1'>{description}</Typography>
+					</Box>
 
-				<form onSubmit={handleSubmit}>
 					<Grid
 						container
-						rowSpacing={4}
+						rowSpacing={14}
 						flexDirection='column'>
 						<Grid>
 							<TextField
@@ -80,21 +89,21 @@ export default function InviteModal({ closeModal, onInvite }: InviteModalProps) 
 							/>
 						</Grid>
 					</Grid>
-				</form>
-			</DialogContent>
-			<DialogActions sx={{ mr: 8, mb: 7 }}>
-				<Button
-					variant='text'
-					color='secondary'
-					onClick={closeModal}>
-					Cancel
-				</Button>
-				<Button
-					variant='contained'
-					onClick={handleSubmit}>
-					Invite
-				</Button>
-			</DialogActions>
+				</DialogContent>
+				<DialogActions sx={{ mr: 8, mb: 7 }}>
+					<Button
+						variant='text'
+						color='secondary'
+						onClick={closeModal}>
+						Cancel
+					</Button>
+					<Button
+						variant='contained'
+						type='submit'>
+						Send invite
+					</Button>
+				</DialogActions>
+			</Box>
 		</>
 	);
 }

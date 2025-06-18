@@ -2,7 +2,6 @@ import React from 'react';
 import {
 	Button,
 	Typography,
-	Box,
 	DialogActions,
 	DialogContentText,
 	DialogTitle,
@@ -17,7 +16,7 @@ interface DeleteConfirmModalProps {
 }
 
 export default function DeleteConfirmModal({
-	title = 'Really delete this item?',
+	title = 'Really delete this file?',
 	description,
 	onConfirm,
 	closeModal,
@@ -35,14 +34,10 @@ export default function DeleteConfirmModal({
 		<>
 			<DialogTitle variant='h2'>{title}</DialogTitle>
 			<DialogContent>
-				{description && (
-					<DialogContentText mb={4}>
-						<Typography variant='body1'>{description}</Typography>
-					</DialogContentText>
-				)}
+				{description && <Typography variant='body1'>{description}</Typography>}
 			</DialogContent>
 
-			<DialogActions sx={{ mr: 8, mb: 7 }}>
+			<DialogActions sx={{ mr: 8, my: 7 }}>
 				<Button
 					variant='text'
 					color='secondary'

@@ -3,19 +3,19 @@ import { useEffect, useState } from 'react';
 
 import { Box, Button } from '@mui/material';
 
-import { ModalWrapper } from '@/components';
-
 import { dummyTeams } from './dummyTeams';
 
 import FilterToggle from './FilterToggle';
 import UserTable from './UserTable';
 
-import { useModal } from '@/hooks';
+import { useToast } from '@/hooks';
 
 import { User } from '@/shared/models';
+import { useModalContext } from '@/providers/modal/ModalProvider';
 
 export default function TeamClient() {
-	const inviteModal = useModal();
+	const { openModal } = useModalContext();
+	const { showToast } = useToast();
 
 	const [filterRole, setFilterRole] = useState<'All' | 'Administrator' | 'Member'>('All');
 	const [page, setPage] = useState(1);
@@ -40,6 +40,23 @@ export default function TeamClient() {
 		setPage(1); // Reset to page 1 when the filter changes
 	};
 
+	const handleInvite = () => {
+		openModal({
+			type: 'inviteUser',
+			contentProps: {
+				title: 'Invite new team member',
+				description: 'When you add a new team member, they will get access to all monitors.',
+				onInvite: () => {
+					console.log('Invitation sent successfully!');
+					showToast({
+						message: 'Invitation sent successfully!',
+						variant: 'success',
+					});
+				},
+			},
+		});
+	};
+
 	return (
 		<>
 			<Box
@@ -53,7 +70,7 @@ export default function TeamClient() {
 				<Button
 					variant='contained'
 					color='primary'
-					onClick={inviteModal.openModal}>
+					onClick={handleInvite}>
 					Invite team member
 				</Button>
 			</Box>
@@ -67,18 +84,6 @@ export default function TeamClient() {
 					totalUsers={totalUsers}
 				/>
 			</Box>
-
-			<ModalWrapper
-				variant='invite'
-				title='Invite new team member'
-				description='When you add a new team member, they will get access to all monitors.'
-				confirmButtonText='Send invite'
-				toggleModal={inviteModal.closeModal}
-				open={inviteModal.isOpen}
-				onClose={function (): void {
-					throw new Error('Function not implemented.');
-				}}
-			/>
 		</>
 	);
 }

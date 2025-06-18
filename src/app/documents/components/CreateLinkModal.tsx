@@ -10,9 +10,8 @@ import SharingOptionsAccordion from './SharingOptionsAccordion';
 import { CustomCheckbox, FormInput, LoadingButton } from '@/components';
 
 import { useDocumentDetail, useFormSubmission } from '@/hooks';
-
-import { useCreateLinkMutation } from '@/hooks/documents/useCreateLinkMutation';
-import { useCreateLinkForm } from '@/hooks/forms/useCreateLinkForm';
+import { useCreateLinkMutation } from '@/hooks/data';
+import { useCreateLinkForm } from '@/hooks/forms';
 
 interface CreateLinkModalProps {
 	documentId: string;

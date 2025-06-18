@@ -1,4 +1,5 @@
 'use client';
+
 import { useState, MouseEvent } from 'react';
 import { Avatar, Box, Button, CircularProgress, Link, Typography } from '@mui/material';
 import Grid from '@mui/material/Grid2';
@@ -66,6 +67,7 @@ export default function BrandingSetting() {
 	 * This replaces the old <ModalWrapper variant="..." /> usage.
 	 */
 	const { openModal } = useModalContext();
+
 	const handleDelete = (e: MouseEvent) => {
 		// We do preventDefault() to avoid the link jump
 		e.preventDefault();
@@ -77,14 +79,12 @@ export default function BrandingSetting() {
 				description:
 					'When you delete this logo, all the links associated with the logo will also be removed. This action is non-reversible.',
 				onConfirm: () => {
+					console.log('Logo deleted successfully!');
 					showToast({
-						message: 'Logo deleted!',
-						variant: 'error',
+						message: 'Logo deleted successfully!',
+						variant: 'success',
 					});
 				},
-			},
-			dialogProps: {
-				fullWidth: true,
 			},
 		});
 	};
@@ -95,8 +95,9 @@ export default function BrandingSetting() {
 		openModal({
 			type: 'uploadFile',
 			contentProps: {
+				title: 'Upload logo',
 				maxFileSize: '3 MB',
-				fileFormats: 'JPG,PNG',
+				fileFormats: 'JPG, PNG',
 				onUploadComplete: () => {
 					console.log('Logo updated successfully!');
 					showToast({
@@ -104,9 +105,6 @@ export default function BrandingSetting() {
 						variant: 'success',
 					});
 				},
-			},
-			dialogProps: {
-				fullWidth: true,
 			},
 		});
 	};
@@ -216,28 +214,27 @@ export default function BrandingSetting() {
 			 * - This is purely so devs can see how it used to be
 			 * =================================================================
 			 */}
-			{/*
-      <ModalWrapper
-        variant='delete'
-        title='Really delete this logo?'
-        description='When you delete this logo, all the links associated with the logo will also be removed. This action is non-reversible.'
-        confirmButtonText='Delete logo'
-        open={deleteModal.isOpen}
-        onClose={handleDelete}
-        toggleModal={deleteModal.closeModal}
-      />
 
-      <ModalWrapper
-        variant='upload'
-        title='Upload logo'
-        confirmButtonText='Update'
-        open={uploadModal.isOpen}
-        onClose={handleUpdate}
-        maxFileSize='3 MB'
-        fileFormats='JPG, PNG'
-        toggleModal={uploadModal.closeModal}
-      />
-      */}
+			{/* <ModalWrapper
+				variant='delete'
+				title='Really delete this logo?'
+				description='When you delete this logo, all the links associated with the logo will also be removed. This action is non-reversible.'
+				confirmButtonText='Delete logo'
+				open={deleteModal.isOpen}
+				onClose={handleDelete}
+				toggleModal={deleteModal.closeModal}
+			/> */}
+
+			{/* <ModalWrapper
+				variant='upload'
+				title='Upload logo'
+				confirmButtonText='Update'
+				open={uploadModal.isOpen}
+				onClose={handleUpdate}
+				maxFileSize='3 MB'
+				fileFormats='JPG, PNG'
+				toggleModal={uploadModal.closeModal}
+			/> */}
 		</>
 	);
 }

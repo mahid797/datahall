@@ -53,7 +53,10 @@ export const MODAL_REGISTRY: Record<ModalType, ModalRegistryEntry> = {
 	},
 	createLink: {
 		component: CreateLinkModal,
-		defaultDialogProps: { maxWidth: 'sm', fullWidth: true },
+		defaultDialogProps: {
+			maxWidth: 'sm',
+			fullWidth: true,
+		},
 	},
 	shareableLink: {
 		component: ShareableLinkModal,
