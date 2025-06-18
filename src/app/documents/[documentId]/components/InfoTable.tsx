@@ -31,12 +31,22 @@ interface InfoTableProps {
 // InfoTable - Renders either a "link table" or "visitor table" based on the `variant`.
 export default function InfoTable({ variant, documentId }: InfoTableProps) {
 	/* ── data fetch ─────────── */
-	const { data, isPending, error } =
-		variant === 'linkTable'
-			? useDocumentLinksQuery(documentId)
-			: useDocumentVisitorsQuery(documentId);
+	const {
+		data: linkData = [],
+		isPending: linksPending,
+		error: linksError,
+	} = useDocumentLinksQuery(documentId);
 
-	const raw: Array<LinkDetailRow | Contact> = data ?? [];
+	const {
+		data: visitorData = [],
+		isPending: visitorsPending,
+		error: visitorsError,
+	} = useDocumentVisitorsQuery(documentId);
+
+	const raw: Array<LinkDetailRow | Contact> = variant === 'linkTable' ? linkData : visitorData;
+
+	const isPending = variant === 'linkTable' ? linksPending : visitorsPending;
+	const error = variant === 'linkTable' ? linksError : visitorsError;
 
 	/* ── sort + paging util ──────────── */
 	const {
