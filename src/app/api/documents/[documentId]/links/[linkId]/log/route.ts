@@ -35,7 +35,7 @@ export async function GET(
 				name: fullName,
 				email: visitor.email || null,
 				visitedAt: visitor.visitedAt,
-				visitorMetaData: visitor.visitorMetaData,
+				visitorMetaData: visitor.visitorMetaData ? JSON.stringify(visitor.visitorMetaData) : null,
 			};
 		});
 

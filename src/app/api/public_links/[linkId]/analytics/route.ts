@@ -8,9 +8,13 @@ import { PublicLinkAnalyticsSchema } from '@/shared/validation/publicLinkSchemas
  * Logs VIEW / DOWNLOAD events – no auth required.
  */
 
-export async function POST(req: NextRequest, { params }: { params: { linkId: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ linkId: string }> }) {
 	try {
-		const { linkId } = params;
+		const { linkId } = await props.params;
+		if (!linkId) {
+			return createErrorResponse('Link ID is required.', 400);
+		}
+
 		const body = PublicLinkAnalyticsSchema.parse(await req.json());
 
 		// Ensure link exists & not expired

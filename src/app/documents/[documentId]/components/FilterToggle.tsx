@@ -1,23 +1,30 @@
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
 
+import { AnalyticsPeriod, PERIOD_OPTIONS } from '@/shared/models/analyticsModels';
+
 interface FilterToggleProps {
-	currentFilter: 'fromStart' | 'last30Days' | 'last7Days';
-	onFilterChange: (period: 'fromStart' | 'last30Days' | 'last7Days') => void;
+	currentFilter: AnalyticsPeriod;
+	onFilterChange: (period: AnalyticsPeriod) => void;
 }
 
 const FilterToggle = ({ currentFilter, onFilterChange }: FilterToggleProps) => (
 	<ToggleButtonGroup
 		value={currentFilter}
 		exclusive
-		onChange={(event, newPeriod) => {
-			if (newPeriod !== null) {
-				onFilterChange(newPeriod);
-			}
-		}}
-		aria-label='Filter by period'>
-		<ToggleButton value='fromStart'>From start</ToggleButton>
-		<ToggleButton value='last30Days'>Last 30 days</ToggleButton>
-		<ToggleButton value='last7Days'>Last 7 days</ToggleButton>
+		aria-label='Analytics period filter'
+		onChange={(_, newValue) => {
+			if (newValue) onFilterChange(newValue as AnalyticsPeriod);
+		}}>
+		{PERIOD_OPTIONS.map(({ value, label, aria }) => (
+			<ToggleButton
+				key={value}
+				size='small'
+				value={value}
+				color='primary'
+				aria-label={aria}>
+				{label}
+			</ToggleButton>
+		))}
 	</ToggleButtonGroup>
 );
 

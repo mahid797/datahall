@@ -8,6 +8,8 @@
  * -----------------------------------------------------------------------------
  */
 
+import type { AnalyticsPeriod } from '@/shared/models/analyticsModels';
+
 export const queryKeys = {
 	/* ------------------------------------------------------------------------ */
 	/*  Profile                                                                 */
@@ -36,8 +38,12 @@ export const queryKeys = {
 		/** Links that belong to a document */
 		links: (documentId: string) => ['documents', documentId, 'links'] as const,
 
+		/** Visitors for a document */
+		visitors: (documentId: string) => ['documents', documentId, 'visitors'] as const,
+
 		/** Owner-side aggregate analytics for a document */
-		analytics: (documentId: string) => ['documents', documentId, 'analytics'] as const,
+		analytics: (documentId: string, period: AnalyticsPeriod = 'all') =>
+			['documents', documentId, 'analytics', period] as const,
 
 		/** Owner-side analytics for a single link */
 		linkAnalytics: (documentId: string, linkId: string) =>

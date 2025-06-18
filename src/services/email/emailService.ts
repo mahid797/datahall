@@ -1,4 +1,6 @@
 import { BaseAdapter } from './BaseAdapter';
+import { BrevoAdapter } from './BrevoAdapter';
+import { DevAdapter } from './DevAdapter';
 
 function canSendEmails(): boolean {
 	const { SEND_EMAILS, BREVO_API_KEY, EMAIL_FROM_ADDR, EMAIL_FROM_NAME } = process.env;
@@ -9,9 +11,7 @@ function canSendEmails(): boolean {
 	return wantSend && haveCreds;
 }
 
-const Adapter: new () => BaseAdapter = canSendEmails()
-	? (await import('./BrevoAdapter')).BrevoAdapter
-	: (await import('./DevAdapter')).DevAdapter;
+const Adapter: new () => BaseAdapter = canSendEmails() ? BrevoAdapter : DevAdapter;
 
 /**
  * Singleton e‑mail service used throughout the app.

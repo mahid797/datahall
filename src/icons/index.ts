@@ -14,6 +14,7 @@ export { default as MailIcon } from './communication/MailIcon';
 export { default as PencilIcon } from './editor/PencilIcon';
 
 export { default as AudioIcon } from './files/AudioIcon';
+export { default as DownloadIcon } from './files/DownloadIcon';
 export { default as ExcelIcon } from './files/ExcelIcon';
 export { default as FileDownloadIcon } from './files/FileDownloadIcon';
 export { default as FileIcon } from './files/FileIcon';

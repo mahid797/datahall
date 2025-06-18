@@ -19,12 +19,10 @@ const LinkIdPage = ({ params }: { params: Promise<{ linkId: string }> }) => {
 			{!showFileAccess ? (
 				<Box
 					display='flex'
-					flexDirection='column'
-					justifyContent='center'
 					alignItems='center'
-					textAlign='center'
+					flexDirection='column'
 					gap={{ sm: 30, md: 35, lg: 40 }}>
-					<Box>
+					<Box textAlign='center'>
 						<Typography
 							mb={2}
 							variant='h1'>
