@@ -1,10 +1,11 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, use } from 'react';
 import dayjs from 'dayjs';
 import { BarChart } from '@mui/x-charts/BarChart';
 
 import { AnalyticsBucket } from '@/shared/models/analyticsModels';
+import { useSort } from '@/hooks';
 
 interface CustomBarChartProps {
 	buckets: AnalyticsBucket[];
@@ -12,7 +13,10 @@ interface CustomBarChartProps {
 
 function CustomBarChart({ buckets }: CustomBarChartProps) {
 	// Create a dataset array with index signature for each bucket
-	const dataset = buckets.map((b) => ({
+
+	const { sortedData: sortedBuckets } = useSort(buckets, 'date');
+
+	const dataset = sortedBuckets.map((b) => ({
 		date: b.date,
 		views: b.views,
 		downloads: b.downloads,

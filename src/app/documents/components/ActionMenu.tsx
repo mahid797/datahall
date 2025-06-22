@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { Menu, MenuItem, Typography } from '@mui/material';
 
 import CreateLink from './CreateLink';
@@ -27,8 +29,8 @@ export default function ActionMenu({
 	const { showToast } = useToast();
 
 	// Outdated code for opening a create link dialog
-	// const [newLinkUrl, setNewLinkUrl] = useState('');
-	// const [createLinkOpen, setCreateLinkOpen] = useState(false);
+	const [newLinkUrl, setNewLinkUrl] = useState('');
+	const [createLinkOpen, setCreateLinkOpen] = useState(false);
 
 	const handleOpenCreateLink = () => {
 		openModal({
@@ -45,6 +47,16 @@ export default function ActionMenu({
 		});
 		onClose();
 	};
+	function DeprecatedhandleOpenCreateLink() {
+		setCreateLinkOpen(true);
+		// onClose();
+	}
+	function DeprecatedhandleCloseCreateLink(action: string, createdLink?: string) {
+		setCreateLinkOpen(false);
+		if (createdLink) {
+			setNewLinkUrl(createdLink);
+		}
+	}
 
 	const handleDelete = () => {
 		openModal({
@@ -83,7 +95,8 @@ export default function ActionMenu({
 				open={open}
 				onClose={onClose}
 				disableScrollLock={true}>
-				<MenuItem onClick={handleOpenCreateLink}>Create link</MenuItem>
+				<MenuItem onClick={handleOpenCreateLink}>Create link - V2</MenuItem>
+				<MenuItem onClick={DeprecatedhandleOpenCreateLink}>Create link</MenuItem>
 				{/* <MenuItem onClick={onClose}>Duplicate document</MenuItem> */}
 				{/* <MenuItem onClick={handleUpload}>Update document</MenuItem> */}
 				{onAnalytics && <MenuItem onClick={onAnalytics}>View analytics</MenuItem>}
@@ -98,17 +111,17 @@ export default function ActionMenu({
 
 			{/* Uncomment the following lines to enable the OLD CreateLink and ShareLinkDialog components */}
 			{/* CREATE LINK DIALOG */}
-			{/* <CreateLink
+			<CreateLink
 				open={createLinkOpen}
 				documentId={documentId}
-				onClose={handleCloseCreateLink}
-			/> */}
+				onClose={DeprecatedhandleCloseCreateLink}
+			/>
 
 			{/* SHAREABLE LINK DIALOG */}
-			{/* <ShareLinkDialog
+			<ShareLinkDialog
 				linkUrl={newLinkUrl}
 				onClose={() => setNewLinkUrl('')} // hide the dialog
-			/> */}
+			/>
 		</>
 	);
 }

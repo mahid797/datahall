@@ -1,4 +1,8 @@
-import { useState, useMemo, useCallback } from 'react';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import { useCallback, useMemo, useState } from 'react';
+
+dayjs.extend(utc);
 
 type SortFunction<T> = (a: T, b: T, orderDirection: 'asc' | 'desc' | undefined) => number;
 
@@ -10,7 +14,9 @@ export function useSort<T>(
 	initialKey: keyof T | undefined = undefined,
 	customSort?: SortFunction<T>,
 ) {
-	const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | undefined>(undefined);
+	const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | undefined>(
+		initialKey ? 'asc' : undefined,
+	);
 	const [sortBy, setSortBy] = useState<keyof T | undefined>(initialKey);
 
 	// Memoised comparator function.
@@ -25,6 +31,18 @@ export function useSort<T>(
 
 			let aValue: any = a[sortBy];
 			let bValue: any = b[sortBy];
+
+			if (
+				typeof aValue === 'string' &&
+				typeof bValue === 'string' &&
+				dayjs(aValue, undefined, true).isValid() &&
+				dayjs(bValue, undefined, true).isValid()
+			) {
+				const dateA = dayjs.utc(aValue).valueOf();
+				const dateB = dayjs.utc(bValue).valueOf();
+
+				return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+			}
 
 			// 2) If both values are Date objects, compare by getTime().
 			if (aValue instanceof Date && bValue instanceof Date) {

@@ -16,10 +16,11 @@ import { UpdatePasswordRequest, UpdatePasswordResponse } from '@/shared/models';
 /* -------------------------------------------------------------------------- */
 export default function useUpdatePasswordMutation() {
 	return useMutation<UpdatePasswordResponse, Error, UpdatePasswordRequest>({
-		mutationFn: async ({ currentPassword, newPassword }) => {
+		mutationFn: async ({ currentPassword, newPassword, confirmPassword }) => {
 			const { data } = await axios.patch<UpdatePasswordResponse>('/api/profile/password', {
 				currentPassword,
 				newPassword,
+				confirmPassword,
 			});
 			return data;
 		},

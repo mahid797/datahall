@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 
-import { Box, TextField, TextFieldProps, Typography } from '@mui/material';
+import { TextField, TextFieldProps, Typography } from '@mui/material';
 
 type RHFRegisterProps = {
 	name?: string;
@@ -47,7 +47,7 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
 		const showError = Boolean(errorMessage);
 
 		return (
-			<Box>
+			<>
 				{label && (
 					<Typography
 						variant='h3'
@@ -69,13 +69,11 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
 						formHelperText: {
 							sx: { minHeight: showError ? minHeight : '0em' },
 						},
-						input: {
-							autoComplete: props.type === 'password' ? 'new-password' : undefined,
-						},
 					}}
+					autoComplete={props.type === 'password' ? 'new-password' : undefined}
 					sx={{ minWidth, ...props.sx }}
 				/>
-			</Box>
+			</>
 		);
 	},
 );

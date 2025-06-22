@@ -2,19 +2,20 @@ import { useRef } from 'react';
 import { useWatch } from 'react-hook-form';
 
 import { useFormWithSchema } from '@/hooks/forms';
-import {
-	DocumentLinkFormSchema,
-	documentLinkDefaults,
-	DocumentLinkPayloadSchema,
-	DocumentLinkFormValues,
-} from '@/shared/validation/documentLinkSchemas';
+
 import { VisitorFieldKey } from '@/shared/config/visitorFieldsConfig';
+import {
+	documentLinkDefaults,
+	DocumentLinkFormSchema,
+	DocumentLinkFormValues,
+	DocumentLinkPayloadSchema,
+} from '@/shared/validation/documentLinkSchemas';
 
 /**
  * UI-state + helpers specific to the Create-Link dialog.
  */
 export function useCreateLinkForm() {
-	const form = useFormWithSchema(DocumentLinkFormSchema, documentLinkDefaults, 'onBlur');
+	const form = useFormWithSchema(DocumentLinkFormSchema, documentLinkDefaults, 'onChange');
 
 	/** Build an API-ready payload (Zod `.transform()` handles field pruning) */
 	const getPayload = () => DocumentLinkPayloadSchema.parse(form.getValues());
