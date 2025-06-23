@@ -28,10 +28,21 @@ export default function ActionMenu({
 	const { openModal } = useModalContext();
 	const { showToast } = useToast();
 
-	// Outdated code for opening a create link dialog
+	// Outdated code for opening a create link dialog --- STARTS
 	const [newLinkUrl, setNewLinkUrl] = useState('');
 	const [createLinkOpen, setCreateLinkOpen] = useState(false);
 
+	function DeprecatedhandleOpenCreateLink() {
+		setCreateLinkOpen(true);
+		// onClose();
+	}
+	function DeprecatedhandleCloseCreateLink(action: string, createdLink?: string) {
+		setCreateLinkOpen(false);
+		if (createdLink) {
+			setNewLinkUrl(createdLink);
+		}
+	}
+	// Outdated code for opening a create link dialog --- ENDS
 	const handleOpenCreateLink = () => {
 		openModal({
 			type: 'createLink',
@@ -47,16 +58,6 @@ export default function ActionMenu({
 		});
 		onClose();
 	};
-	function DeprecatedhandleOpenCreateLink() {
-		setCreateLinkOpen(true);
-		// onClose();
-	}
-	function DeprecatedhandleCloseCreateLink(action: string, createdLink?: string) {
-		setCreateLinkOpen(false);
-		if (createdLink) {
-			setNewLinkUrl(createdLink);
-		}
-	}
 
 	const handleDelete = () => {
 		openModal({
@@ -95,8 +96,8 @@ export default function ActionMenu({
 				open={open}
 				onClose={onClose}
 				disableScrollLock={true}>
-				<MenuItem onClick={handleOpenCreateLink}>Create link - V2</MenuItem>
-				<MenuItem onClick={DeprecatedhandleOpenCreateLink}>Create link</MenuItem>
+				<MenuItem onClick={handleOpenCreateLink}>Share</MenuItem>
+				{/* <MenuItem onClick={DeprecatedhandleOpenCreateLink}>Create link</MenuItem> */}
 				{/* <MenuItem onClick={onClose}>Duplicate document</MenuItem> */}
 				{/* <MenuItem onClick={handleUpload}>Update document</MenuItem> */}
 				{onAnalytics && <MenuItem onClick={onAnalytics}>View analytics</MenuItem>}

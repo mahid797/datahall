@@ -8,9 +8,9 @@ import Grid from '@mui/material/Grid2';
 
 import { FormInput, LoadingButton, LoadingSpinner } from '@/components';
 
-import { useFormSubmission, useModal, useToast } from '@/hooks';
+import { useModal, useToast } from '@/hooks';
 import { useProfileQuery, useUpdateNameMutation } from '@/hooks/data';
-import { useProfileForm } from '@/hooks/forms';
+import { useProfileForm, useFormSubmission } from '@/hooks/forms';
 
 import PasswordFormModal from './PasswordFormModal';
 import AvatarActions from '@/components/common/AvatarCard';

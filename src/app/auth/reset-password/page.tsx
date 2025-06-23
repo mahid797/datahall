@@ -10,9 +10,9 @@ import AuthFormWrapper from '../components/AuthFormWrapper';
 
 import { LockIcon } from '@/icons';
 
-import { useFormSubmission, useToast } from '@/hooks';
+import { useToast } from '@/hooks';
 import { useResetPasswordMutation } from '@/hooks/data';
-import { useResetPasswordForm } from '@/hooks/forms';
+import { useFormSubmission, useResetPasswordForm } from '@/hooks/forms';
 
 export default function ResetPassword() {
 	const router = useRouter();

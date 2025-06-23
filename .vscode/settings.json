@@ -32,4 +32,6 @@
     "editor.largeFileOptimizations": true,
     // Trim Trailing Whitespace on Save
     "files.trimTrailingWhitespace": true,
+    "WillLuke.nextjs.addTypesOnSave": true,
+    "WillLuke.nextjs.hasPrompted": true,
 }

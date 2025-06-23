@@ -15,8 +15,8 @@ import Grid from '@mui/material/Grid2';
 
 import { FormInput, LoadingButton } from '@/components';
 
-import { useFormSubmission, useValidatedFormData } from '@/hooks';
 import { useCreateLinkVisitorMutation } from '@/hooks/data';
+import { useFormSubmission, useValidatedFormData } from '@/hooks/forms';
 
 import { EyeIcon, EyeOffIcon, FileDownloadIcon } from '@/icons';
 import { visitorFieldsConfigByKey } from '@/shared/config/visitorFieldsConfig';
