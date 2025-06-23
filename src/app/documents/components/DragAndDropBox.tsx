@@ -1,10 +1,11 @@
 'use client';
 
-import { Box, Button } from '@mui/material';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
+
+import { Box, Button } from '@mui/material';
 
 import { FilePlusIcon } from '@/icons';
 
@@ -55,7 +56,7 @@ const DragAndDropBox = ({
 		if (!documentCount) {
 			router.refresh();
 		}
-	}, [showToast]);
+	}, [showToast, documentCount, router]);
 
 	const handleUploadError = useCallback(
 		(msg?: string, status?: string) => {
@@ -92,7 +93,7 @@ const DragAndDropBox = ({
 			} finally {
 			}
 		},
-		[session, handleUploadError, handleUploadSuccess],
+		[session, handleUploadError, handleUploadSuccess, uploadDocument],
 	);
 
 	const onDrop = useCallback(

@@ -1,9 +1,12 @@
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
+
 import { useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { Box, Chip, IconButton, MenuItem, Select, Typography } from '@mui/material';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { MobileDateTimePicker } from '@mui/x-date-pickers';
 
 import { EyeIcon, EyeOffIcon } from '@/icons';
 
@@ -13,7 +16,6 @@ import { useCreateLinkForm } from '@/hooks/forms';
 
 import { visitorFieldsConfig } from '@/shared/config/visitorFieldsConfig';
 import { sortFields } from '@/shared/utils';
-import { DocumentLinkFormValues } from '@/shared/validation/documentLinkSchemas';
 
 export default function SharingOptionsAccordion() {
 	const {
@@ -58,7 +60,7 @@ export default function SharingOptionsAccordion() {
 							<Select
 								multiple
 								size='small'
-								sx={{ minWidth: 455 }}
+								sx={{ minWidth: 475 }}
 								disabled={!askUserDetails}
 								{...field}
 								onChange={(e) => updateVisitorFields(e.target.value as string[])}
@@ -137,17 +139,22 @@ export default function SharingOptionsAccordion() {
 				display='flex'
 				alignItems='center'
 				gap={2}
-				ml={7.5}
+				ml={14}
+				mr={20}
 				mb={10}>
 				<Controller
 					control={control}
 					name='expirationTime'
 					render={({ field }) => (
-						<DateTimePicker
-							slotProps={{ textField: { fullWidth: true, size: 'small' } }}
+						<MobileDateTimePicker
+							minDateTime={dayjs()}
+							slotProps={{
+								toolbar: { hidden: true },
+								textField: { fullWidth: true, size: 'small' },
+							}}
 							disabled={!enableExpiry}
-							value={field.value ? dayjs(field.value) : null}
-							onChange={(d) => setExpirationTime(d ? d.toISOString() : '')}
+							value={field.value ? dayjs.utc(field.value).local() : null}
+							onChange={(d) => setExpirationTime(d ? dayjs.utc(d).toISOString() : '')}
 						/>
 					)}
 				/>

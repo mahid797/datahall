@@ -4,11 +4,14 @@ import { useEffect, useRef, useState } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
-import { Box, CircularProgress, Skeleton, Typography } from '@mui/material';
+
+import { Box, Typography } from '@mui/material';
 
 import { useCreateDocumentAnalyticsMutation } from '@/hooks/data';
-import { AnalyticsEventType } from '@/shared/enums';
+
 import Paginator from '../navigation/Paginator';
+
+import { AnalyticsEventType } from '@/shared/enums';
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
@@ -38,7 +41,7 @@ export default function PDFViewer({
 
 	useEffect(() => {
 		onMount?.();
-	}, []);
+	}, [onMount]);
 
 	const trackFileView = () => {
 		if (logged.current) return;

@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Container, Skeleton, Stack } from '@mui/material';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import AccessError from './AccessError';
 import FileDisplay from './FileDisplay';
@@ -63,12 +63,15 @@ export default function AccessPage({ linkId }: Props) {
 	const autoRequestSent = useRef(false);
 
 	const { error, data, isLoading } = useDocumentAccessQuery(linkId);
-	const linkInfo = {
-		isPasswordProtected: false,
-		visitorFields: [] as string[],
-		signedUrl: undefined as string | undefined,
-		...data?.data,
-	};
+	const linkInfo = useMemo(
+		() => ({
+			isPasswordProtected: false,
+			visitorFields: [] as string[],
+			signedUrl: undefined as string | undefined,
+			...data?.data,
+		}),
+		[data],
+	);
 
 	const { mutateAsync: submitVisitorData, isPending } = useCreateLinkVisitorMutation();
 

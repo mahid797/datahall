@@ -1,18 +1,16 @@
-import axios from 'axios';
 import { memo, useState } from 'react';
 
 import { Box, Button, IconButton, TableCell, TableRow, Tooltip, Typography } from '@mui/material';
 
 import { CheckIcon, CopyIcon, TrashIcon } from '@/icons';
 
-import { ModalWrapper } from '@/components';
-
-import { useModal, useToast } from '@/hooks';
+import { useToast } from '@/hooks';
+import useDeleteLinkMutation from '@/hooks/data/documentDetails/useDeleteLinkMutation';
 import { Contact, LinkDetailRow } from '@/shared/models';
 import { formatDateTime } from '@/shared/utils';
 
-import LinkVisitorModal from './LinkVisitorModal';
 import { useModalContext } from '@/providers/modal/ModalProvider';
+import LinkVisitorModal from './LinkVisitorModal';
 
 interface InfoTableRowProps {
 	variant?: 'linkTable' | 'visitorTable';
@@ -24,6 +22,8 @@ function InfoTableRow({ documentDetail, variant }: InfoTableRowProps) {
 	const [isLinkCopied, setIsLinkCopied] = useState(false);
 	const { openModal } = useModalContext();
 	const { showToast } = useToast();
+
+	const deleteLink = useDeleteLinkMutation();
 
 	const isLinkDetail = (d: LinkDetailRow | Contact): d is LinkDetailRow =>
 		(d as LinkDetailRow).createdLink !== undefined;
@@ -49,7 +49,7 @@ function InfoTableRow({ documentDetail, variant }: InfoTableRowProps) {
 				onConfirm: async () => {
 					try {
 						const link = documentDetail as LinkDetailRow;
-						await axios.delete(`/api/documents/${link.documentId}/links/${link.linkId}`);
+						await deleteLink.mutateAsync({ documentId: link.documentId, linkId: link.linkId });
 
 						showToast({ message: 'Link deleted successfully!', variant: 'success' });
 					} catch (err) {
@@ -132,15 +132,6 @@ function InfoTableRow({ documentDetail, variant }: InfoTableRowProps) {
 						</Tooltip>
 					</TableCell>
 				</TableRow>
-
-				{/* Link Visitor Modal */}
-				<LinkVisitorModal
-					open={linkVisitorOpen}
-					documentId={documentDetail.documentId}
-					linkId={documentDetail.linkId}
-					linkAlias={documentDetail.alias || documentDetail.createdLink}
-					onClose={handleCloseLinkVisitorModal}
-				/>
 
 				{/* Link Visitor Modal */}
 				<LinkVisitorModal

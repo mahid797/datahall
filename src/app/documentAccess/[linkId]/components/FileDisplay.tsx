@@ -1,16 +1,7 @@
 import dynamic from 'next/dynamic';
 import { useCallback, useState } from 'react';
 
-import {
-	Box,
-	Button,
-	CircularProgress,
-	Fade,
-	Grid2,
-	Skeleton,
-	Stack,
-	Typography,
-} from '@mui/material';
+import { Box, Button, Fade, Grid2, Skeleton, Stack, Typography } from '@mui/material';
 
 import { useToast } from '@/hooks';
 import { useCreateDocumentAnalyticsMutation } from '@/hooks/data';
@@ -73,6 +64,9 @@ const FileDisplay = ({
 
 	const viewMode = phase !== LoadPhase.Idle; // “preview” screen vs access buttons
 	const isLoading = viewMode && phase !== LoadPhase.Done; // drives skeleton
+	const handlePdfMount = useCallback(() => setPhase(LoadPhase.Pdf), [setPhase]);
+	const handlePdfReady = useCallback(() => setPhase(LoadPhase.Done), [setPhase]);
+
 	const isPdf = fileType === 'application/pdf';
 	const isImage = fileType?.startsWith('image/');
 
@@ -197,8 +191,8 @@ const FileDisplay = ({
 									url={signedUrl}
 									documentId={documentId}
 									linkId={documentLinkId}
-									onMount={() => setPhase(LoadPhase.Pdf)} // dynamic bundle finished
-									onReady={() => setPhase(LoadPhase.Done)} // PDF fully rendered (or errored)
+									onMount={handlePdfMount} // dynamic bundle finished
+									onReady={handlePdfReady} // PDF fully rendered (or errored)
 								/>
 							)}
 							{isImage && (

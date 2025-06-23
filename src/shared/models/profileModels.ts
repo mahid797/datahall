@@ -21,6 +21,7 @@ export interface UpdateNameResponse {
 export interface UpdatePasswordRequest {
 	currentPassword: string;
 	newPassword: string;
+	confirmPassword: string;
 }
 export interface UpdatePasswordResponse {
 	success: boolean;

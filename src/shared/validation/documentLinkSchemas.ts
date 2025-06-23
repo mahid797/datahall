@@ -1,4 +1,5 @@
 import { z } from 'zod';
+
 import { visitorFieldKeys } from '@/shared/config/visitorFieldsConfig';
 /* -------------------------------------------------------------------------- */
 /*  UI-level schema – used by react-hook-form                                 */
@@ -19,7 +20,7 @@ export const DocumentLinkFormSchema = z.object({
 		.max(255, 'Max 255 characters') // alias is *optional*
 		.optional()
 		.default(''),
-	isPublic: z.boolean().default(true),
+	isPublic: z.boolean().default(false),
 
 	/* visitor info */
 	requireUserDetails: z.boolean().default(false),

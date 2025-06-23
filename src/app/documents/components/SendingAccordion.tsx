@@ -1,6 +1,6 @@
 import { SyntheticEvent } from 'react';
 
-import { Autocomplete, Box, Chip } from '@mui/material';
+import { Autocomplete, Box, Chip, Skeleton } from '@mui/material';
 
 import { CustomCheckbox, FormInput } from '@/components';
 
@@ -27,7 +27,7 @@ export default function SendingAccordion() {
 	const selectFromContact = watch('selectFromContact');
 	const sendToOthers = watch('sendToOthers');
 
-	const { data: contacts = [] } = useContactsQuery();
+	const { data: contacts = [], isLoading } = useContactsQuery();
 
 	const contactOptions = contacts
 		.filter((contact) => contact.email)
@@ -52,6 +52,21 @@ export default function SendingAccordion() {
 		setValue('otherEmails', validEmails.join(', '), { shouldValidate: true });
 	};
 
+	const LoadingSkeleton = () => (
+		<Box
+			display='flex'
+			flexDirection='column'
+			gap={2}>
+			{[...Array(4)].map((_, idx) => (
+				<Skeleton
+					key={idx}
+					variant='text'
+					height={24}
+				/>
+			))}
+		</Box>
+	);
+
 	return (
 		<Box py={4}>
 			<CustomCheckbox
@@ -69,7 +84,9 @@ export default function SendingAccordion() {
 					render={({ field: { value, onChange } }) => (
 						<Autocomplete
 							multiple
-							disablePortal
+							disablePortal={false}
+							loading={isLoading}
+							loadingText={<LoadingSkeleton />}
 							options={contactOptions.filter(
 								(option) => !value.some((selected) => selected.id === option.id),
 							)}
