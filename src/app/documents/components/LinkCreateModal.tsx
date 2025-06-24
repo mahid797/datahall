@@ -1,30 +1,38 @@
 import { SyntheticEvent, useState } from 'react';
 import { FormProvider } from 'react-hook-form';
 
-import { Box, Chip, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
+import {
+	Box,
+	Chip,
+	DialogActions,
+	DialogContent,
+	DialogTitle,
+	Skeleton,
+	Typography,
+} from '@mui/material';
 
-import CustomAccordion from './CustomAccordion';
-import SendingAccordion from './SendingAccordion';
-import SharingOptionsAccordion from './SharingOptionsAccordion';
+import AccordionContainer from './AccordionContainer';
+import EmailOptionsAccordion from './EmailOptionsAccordion';
+import AccessLinkConfiguration from './LinkSettingsAccordion';
 
-import { CustomCheckbox, FormInput, LoadingButton } from '@/components';
+import { FormCheckbox, FormInput, LoadingButton } from '@/components';
 
-import { useDocumentDetail, useFormSubmission } from '@/hooks';
-import { useCreateLinkMutation } from '@/hooks/data';
-import { useCreateLinkForm } from '@/hooks/forms';
+import { useCreateLinkMutation, useDocumentDetailQuery } from '@/hooks/data';
+import { useCreateLinkForm, useFormSubmission } from '@/hooks/forms';
 
-interface CreateLinkModalProps {
+interface LinkCreateModalProps {
 	documentId: string;
 	onLinkGenerated?: (linkUrl: string) => void;
 	closeModal: () => void;
 }
 
-export default function CreateLinkModal({
+export default function LinkCreateModal({
 	documentId,
 	onLinkGenerated,
 	closeModal,
-}: CreateLinkModalProps) {
-	const document = useDocumentDetail(documentId);
+}: LinkCreateModalProps) {
+	const { data: document, isPending: isDocumentLoading } = useDocumentDetailQuery(documentId);
+
 	const createLink = useCreateLinkMutation();
 	const form = useCreateLinkForm();
 
@@ -42,14 +50,12 @@ export default function CreateLinkModal({
 				documentId,
 				payload: getPayload(),
 			});
-
 			onLinkGenerated?.(link.linkUrl);
-			closeModal();
 		},
 		successMessage: 'Link created successfully!',
 		onError: (error) => {
-			const message =
-				(error as any)?.response?.data?.message || 'Failed to create link. Please try again.';
+			const message = error || 'Failed to create link. Please try again.';
+			console.log(error);
 			toast.showToast({
 				message,
 				variant: 'error',
@@ -70,17 +76,28 @@ export default function CreateLinkModal({
 				<Typography
 					my={4}
 					component='div'
+					display='flex'
+					gap={5}
+					alignItems='center'
 					variant='body2'>
 					Selected document:{' '}
-					<Chip
-						size='small'
-						label={document.document?.fileName}
-						sx={{
-							backgroundColor: 'alert.info',
-							borderRadius: 50,
-							verticalAlign: 'baseline',
-						}}
-					/>
+					{isDocumentLoading ? (
+						<Skeleton
+							height='1.5rem'
+							width='10rem'
+							variant='text'
+						/>
+					) : (
+						<Chip
+							size='small'
+							label={document?.fileName}
+							sx={{
+								backgroundColor: 'alert.info',
+								borderRadius: 50,
+								verticalAlign: 'baseline',
+							}}
+						/>
+					)}
 				</Typography>
 			</DialogTitle>
 
@@ -99,28 +116,28 @@ export default function CreateLinkModal({
 								placeholder='Enter alias'
 							/>
 
-							<CustomCheckbox
+							<FormCheckbox
 								sx={{ mt: 6, ml: 2 }}
+								name='isPublic'
 								label='Allow anyone with this link to preview and download'
-								{...register('isPublic')}
-								onChange={(e) => toggleIsPublic(e.target.checked)}
+								onCheckedChange={toggleIsPublic}
 							/>
 						</Box>
 
 						{/* Accordions */}
-						<CustomAccordion
+						<AccordionContainer
 							title='Sharing options'
 							expanded={expanded === 'sharing-options'}
 							onChange={handleChange('sharing-options')}>
-							<SharingOptionsAccordion />
-						</CustomAccordion>
+							<AccessLinkConfiguration />
+						</AccordionContainer>
 
-						<CustomAccordion
+						<AccordionContainer
 							title='Sending'
 							expanded={expanded === 'sending'}
 							onChange={handleChange('sending')}>
-							<SendingAccordion />
-						</CustomAccordion>
+							<EmailOptionsAccordion />
+						</AccordionContainer>
 					</Box>
 				</DialogContent>
 			</FormProvider>
@@ -131,6 +148,7 @@ export default function CreateLinkModal({
 					fullWidth
 					loading={loading}
 					disabled={!isValid}
+					onClick={handleSubmit}
 					buttonText='Generate'
 					loadingText='Generating…'
 				/>

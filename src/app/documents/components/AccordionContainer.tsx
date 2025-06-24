@@ -13,7 +13,7 @@ interface CustomAccordionProps extends AccordionProps {
 	defaultExpanded?: boolean;
 }
 
-const CustomAccordion = ({
+const AccordionContainer = ({
 	title,
 	defaultExpanded = false,
 	children,
@@ -51,4 +51,4 @@ const CustomAccordion = ({
 	);
 };
 
-export default CustomAccordion;
+export default AccordionContainer;

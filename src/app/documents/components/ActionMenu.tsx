@@ -45,12 +45,12 @@ export default function ActionMenu({
 	// Outdated code for opening a create link dialog --- ENDS
 	const handleOpenCreateLink = () => {
 		openModal({
-			type: 'createLink',
+			type: 'linkCreate',
 			contentProps: {
 				documentId,
 				onLinkGenerated: (linkUrl: string) => {
 					openModal({
-						type: 'shareableLink',
+						type: 'linkCopy',
 						contentProps: { linkUrl },
 					});
 				},

@@ -1,20 +1,20 @@
 import { SyntheticEvent } from 'react';
+import { Controller, useFormContext, useWatch } from 'react-hook-form';
 
 import { Autocomplete, Box, Chip, Skeleton } from '@mui/material';
 
-import { CustomCheckbox, FormInput } from '@/components';
+import { FormCheckbox, FormInput } from '@/components';
 
 import { useContactsQuery } from '@/hooks/data';
 
 import { DocumentLinkFormValues } from '@/shared/validation/documentLinkSchemas';
 import { validateEmails } from '@/shared/validation/validationUtils';
-import { Controller, useFormContext } from 'react-hook-form';
 
 /**
  * “Sending” section — choose recipients for the link e-mail.
  * Reads and updates react-hook-form state directly via `useFormContext`.
  */
-export default function SendingAccordion() {
+export default function EmailOptionsAccordion() {
 	const {
 		control,
 		register,
@@ -23,9 +23,9 @@ export default function SendingAccordion() {
 		formState: { errors },
 	} = useFormContext<DocumentLinkFormValues>();
 
-	const isPublicLink = watch('isPublic');
-	const selectFromContact = watch('selectFromContact');
-	const sendToOthers = watch('sendToOthers');
+	const isPublicLink = useWatch({ name: 'isPublic' });
+	const selectFromContact = useWatch({ name: 'selectFromContact' });
+	const sendToOthers = useWatch({ name: 'sendToOthers' });
 
 	const { data: contacts = [], isLoading } = useContactsQuery();
 
@@ -69,11 +69,13 @@ export default function SendingAccordion() {
 
 	return (
 		<Box py={4}>
-			<CustomCheckbox
+			<FormCheckbox
+				name='selectFromContact'
 				label='Select from the contact list'
-				disabled={isPublicLink}
-				{...register('selectFromContact')}
+				disabledWhen={() => isPublicLink}
+				clearOnFalse={['contactEmails']}
 			/>
+
 			<Box
 				mt={3}
 				mb={8}
@@ -121,10 +123,11 @@ export default function SendingAccordion() {
 				/>
 			</Box>
 
-			<CustomCheckbox
+			<FormCheckbox
+				name='sendToOthers'
 				label='Send to e-mails not in the contact list'
-				disabled={isPublicLink}
-				{...register('sendToOthers')}
+				disabledWhen={() => isPublicLink}
+				clearOnFalse={['otherEmails']}
 			/>
 
 			<Box
