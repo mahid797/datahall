@@ -1,10 +1,16 @@
-import CreateLinkModal from '@/app/documents/components/CreateLinkModal';
-import ShareableLinkModal from '@/app/documents/components/ShareableLinkModal';
+import React from 'react';
+
+import { DialogProps } from '@mui/material';
+
+import DocumentAccessModal from '@/app/documentAccess/[linkId]/components/DocumentAccessModal';
+import VisitorLogModal from '@/app/documents/[documentId]/components/VisitorLogModal';
+import LinkCopyModal from '@/app/documents/components/LinkCopyModal';
+import LinkCreateModal from '@/app/documents/components/LinkCreateModal';
+import PasswordChangeModal from '@/app/profile/components/PasswordChangeModal';
 import DeleteConfirmModal from '@/components/modals/DeleteConfirmModal';
 import InviteModal from '@/components/modals/InviteModal';
 import UploadFileModal from '@/components/modals/UploadFileModal';
-import { DialogProps } from '@mui/material';
-import React from 'react';
+import { ModalDialogProps } from './ModalProvider';
 
 /**
  * A union of valid modal types in your app.
@@ -13,8 +19,11 @@ export type ModalType =
 	| 'deleteConfirm'
 	| 'uploadFile'
 	| 'inviteUser'
-	| 'createLink'
-	| 'shareableLink';
+	| 'linkCreate'
+	| 'linkCopy'
+	| 'passwordChange'
+	| 'visitorLog'
+	| 'documentAccess';
 
 /**
  * Defines what each entry in the registry contains:
@@ -23,7 +32,7 @@ export type ModalType =
  */
 interface ModalRegistryEntry {
 	component: React.ComponentType<any>;
-	defaultDialogProps?: Partial<DialogProps>;
+	defaultDialogProps?: ModalDialogProps;
 }
 
 /**
@@ -51,18 +60,27 @@ export const MODAL_REGISTRY: Record<ModalType, ModalRegistryEntry> = {
 			fullWidth: true,
 		},
 	},
-	createLink: {
-		component: CreateLinkModal,
+	linkCreate: {
+		component: LinkCreateModal,
 		defaultDialogProps: {
 			maxWidth: 'sm',
 			fullWidth: true,
 		},
 	},
-	shareableLink: {
-		component: ShareableLinkModal,
-		defaultDialogProps: {
-			maxWidth: 'sm',
-			fullWidth: true,
-		},
+	linkCopy: {
+		component: LinkCopyModal,
+		defaultDialogProps: { maxWidth: 'sm', fullWidth: true },
+	},
+	passwordChange: {
+		component: PasswordChangeModal,
+		defaultDialogProps: { maxWidth: 'sm', fullWidth: true },
+	},
+	visitorLog: {
+		component: VisitorLogModal,
+		defaultDialogProps: { maxWidth: 'md', fullWidth: true },
+	},
+	documentAccess: {
+		component: DocumentAccessModal,
+		defaultDialogProps: { maxWidth: 'sm', fullWidth: true },
 	},
 };
