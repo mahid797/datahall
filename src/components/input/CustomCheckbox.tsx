@@ -10,13 +10,16 @@ interface CustomCheckboxProps extends CheckboxProps {
 	name: string;
 }
 
+/**
+ * @deprecated
+ * This component is deprecated and will be removed in future versions.
+ */
 const CustomCheckbox = ({ checked, onChange, label, name, ...props }: CustomCheckboxProps) => (
 	<FormControlLabel
 		control={
 			<Checkbox
 				icon={<SquareIcon />}
 				checkedIcon={<CheckSquareIcon />}
-				checked={checked}
 				name={name}
 				onChange={onChange}
 				{...props}

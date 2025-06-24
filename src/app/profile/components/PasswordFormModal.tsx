@@ -26,6 +26,10 @@ interface PasswordFormModalProps {
 	toggleModal: () => void;
 }
 
+/**
+ * @deprecated
+ * This component is deprecated and will be removed in future versions.
+ */
 export default function PasswordFormModal({ open, toggleModal }: PasswordFormModalProps) {
 	const form = useChangePasswordForm();
 

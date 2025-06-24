@@ -19,10 +19,14 @@ import { useCreateLinkVisitorMutation } from '@/hooks/data';
 import { useFormSubmission, useValidatedFormData } from '@/hooks/forms';
 
 import { EyeIcon, EyeOffIcon, FileDownloadIcon } from '@/icons';
-import { visitorFieldsConfigByKey } from '@/shared/config/visitorFieldsConfig';
-import { FileDisplayPayload } from '@/shared/models';
+import { VisitorFieldKey, visitorFieldsConfigByKey } from '@/shared/config/visitorFieldsConfig';
+import { PublicLinkFilePayload } from '@/shared/models';
 import { requiredFieldRule, splitName, validEmailRule } from '@/shared/utils';
 
+/**
+ * @deprecated
+ * This function is deprecated and will be removed in future versions.
+ */
 function getFormConfig(passwordRequired: boolean, visitorFields: string[]) {
 	const formConfig: {
 		initialValues: Record<string, string>;
@@ -54,10 +58,14 @@ function getFormConfig(passwordRequired: boolean, visitorFields: string[]) {
 interface VisitorInfoModalProps {
 	linkId: string;
 	passwordRequired: boolean;
-	visitorFields: string[];
-	onVisitorInfoModalSubmit: (data: FileDisplayPayload) => void;
+	visitorFields: VisitorFieldKey[];
+	onVisitorInfoModalSubmit: (data: PublicLinkFilePayload) => void;
 }
 
+/**
+ * @deprecated
+ * This component is deprecated and will be removed in future versions.
+ */
 export default function VisitorInfoModal({
 	linkId,
 	passwordRequired,
@@ -163,7 +171,8 @@ export default function VisitorInfoModal({
 								<Grid size={3}>
 									<Typography
 										variant='h3'
-										mt={field === 'password' ? 10 : 0}>
+										// mt={field === 'password' ? 10 : 0}
+									>
 										{fieldConfig.label}
 									</Typography>
 								</Grid>

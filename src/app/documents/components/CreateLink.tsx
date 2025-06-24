@@ -14,13 +14,12 @@ import {
 
 import { CustomCheckbox, FormInput, LoadingButton } from '@/components';
 
-import { useFormSubmission } from '@/hooks';
 import { useCreateLinkMutation, useDocumentDetailQuery } from '@/hooks/data';
-import { useCreateLinkForm } from '@/hooks/forms';
+import { useCreateLinkForm, useFormSubmission } from '@/hooks/forms';
 
-import CustomAccordion from './CustomAccordion';
-import SendingAccordion from './SendingAccordion';
-import SharingOptionsAccordion from './SharingOptionsAccordion';
+import AccordionContainer from './AccordionContainer';
+import EmailOptionsAccordion from './EmailOptionsAccordion';
+import AccessLinkConfiguration from './LinkSettingsAccordion';
 
 interface CreateLinkProps {
 	open: boolean;
@@ -28,6 +27,10 @@ interface CreateLinkProps {
 	onClose: (action: string, createdLink?: string) => void;
 }
 
+/**
+ * @deprecated
+ * This component is deprecated and will be removed in future versions.
+ */
 export default function CreateLink({ open, documentId, onClose }: CreateLinkProps) {
 	const { data: document, isPending: isDocumentLoading } = useDocumentDetailQuery(documentId);
 	const createLink = useCreateLinkMutation();
@@ -126,19 +129,19 @@ export default function CreateLink({ open, documentId, onClose }: CreateLinkProp
 						</Box>
 
 						{/* Accordions */}
-						<CustomAccordion
+						<AccordionContainer
 							title='Sharing options'
 							expanded={expanded === 'sharing-options'}
 							onChange={handleChange('sharing-options')}>
-							<SharingOptionsAccordion />
-						</CustomAccordion>
+							<AccessLinkConfiguration />
+						</AccordionContainer>
 
-						<CustomAccordion
+						<AccordionContainer
 							title='Sending'
 							expanded={expanded === 'sending'}
 							onChange={handleChange('sending')}>
-							<SendingAccordion />
-						</CustomAccordion>
+							<EmailOptionsAccordion />
+						</AccordionContainer>
 					</Box>
 				</DialogContent>
 			</FormProvider>
