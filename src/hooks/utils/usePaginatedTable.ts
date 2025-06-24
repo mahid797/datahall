@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSort } from './useSort';
+import { SortFunction, useSort } from './useSort';
 
 interface Options<T> {
 	pageSize?: number;
 	initialSort?: keyof T;
-	customSort?: Parameters<typeof useSort<T>>[2];
+	customSort?: SortFunction<T>;
+	initialSortOrder?: 'asc' | 'desc' | undefined;
 }
 
 /**
@@ -13,14 +14,14 @@ interface Options<T> {
  */
 export function usePaginatedTable<T>(
 	rawData: T[],
-	{ pageSize = 4, initialSort, customSort }: Options<T> = {},
+	{ pageSize = 4, initialSort, customSort, initialSortOrder }: Options<T> = {},
 ) {
 	/* sort first */
-	const { sortedData, sortDirection, sortKey, toggleSort } = useSort<T>(
-		rawData,
-		initialSort,
+	const { sortedData, sortDirection, sortKey, toggleSort } = useSort<T>(rawData, {
+		initialKey: initialSort,
+		initialOrder: initialSortOrder,
 		customSort,
-	);
+	});
 
 	/* paging */
 	const [page, setPage] = useState(1);

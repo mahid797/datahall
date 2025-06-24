@@ -14,7 +14,7 @@ import { useModalContext } from '@/providers/modal/ModalProvider';
 import ColorPickerBox from './ColorPickerBox';
 
 import { PencilIcon } from '@/icons';
-import AvatarActions from '@/components/common/AvatarCard';
+import AvatarCard from '@/components/common/AvatarCard';
 /**
  * NOTE FOR DEVELOPERS:
  * =====================

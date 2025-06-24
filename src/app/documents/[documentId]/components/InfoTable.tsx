@@ -59,7 +59,10 @@ export default function InfoTable({ variant, documentId }: InfoTableProps) {
 		sortKey,
 		sortDirection,
 		toggleSort,
-	} = usePaginatedTable(raw, { initialSort: 'lastActivity', pageSize: 4 });
+	} = usePaginatedTable(raw, {
+		initialSort: 'lastActivity',
+		pageSize: 4,
+	});
 
 	/* ── responsive rows-per-page ────── */
 	// TODO: Make sure the offsetHeight and rowHeights looks good on all screen sizes
