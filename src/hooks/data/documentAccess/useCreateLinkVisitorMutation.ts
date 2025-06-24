@@ -2,11 +2,11 @@ import axios from 'axios';
 import { useMutation } from '@tanstack/react-query';
 
 import { PublicLinkAccessPayload } from '@/shared/validation/publicLinkSchemas';
-import { FileDisplayPayload } from '@/shared/models';
+import type { PublicLinkFilePayload } from '@/shared/models';
 
 interface VisitorSubmissionResponse {
 	message: string;
-	data: FileDisplayPayload;
+	data: PublicLinkFilePayload;
 }
 
 const submitVisitorDetails = async ({
@@ -27,9 +27,6 @@ const useCreateLinkVisitorMutation = () => {
 	const mutation = useMutation({
 		mutationFn: submitVisitorDetails,
 		retry: false,
-		onError: (error) => {
-			console.error('Error submitting visitor details: ', error);
-		},
 	});
 
 	return {

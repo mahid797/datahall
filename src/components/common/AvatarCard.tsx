@@ -2,7 +2,7 @@ import { Avatar, Box, Link } from '@mui/material';
 import { PencilIcon } from '@/icons';
 import { MouseEvent } from 'react';
 
-interface AvatarActionsProps {
+interface AvatarCardProps {
 	/** Image URL (optional). If absent, initials are shown. */
 	src?: string;
 	/** Fallback initials when no image. Example: "BU" */
@@ -17,14 +17,14 @@ interface AvatarActionsProps {
 	disabled?: boolean;
 }
 
-export default function AvatarActions({
+export default function AvatarCard({
 	src,
 	initials = '',
 	size = 64,
 	onDelete,
 	onUpdate,
 	disabled = false,
-}: AvatarActionsProps) {
+}: AvatarCardProps) {
 	const linkStyle = disabled ? { pointerEvents: 'none', opacity: 0.5 } : {};
 
 	return (

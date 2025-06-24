@@ -28,9 +28,6 @@ const useCreateDocumentAnalyticsMutation = () => {
 				queryKey: queryKeys.links.analytics(variables.documentLinkId),
 			});
 		},
-		onError: (error) => {
-			console.error('Error adding analytics: ', error);
-		},
 	});
 };
 
