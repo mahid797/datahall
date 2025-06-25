@@ -8,7 +8,7 @@ import { useCreateDocumentAnalyticsMutation } from '@/hooks/data';
 
 import { FileDownloadIcon } from '@/icons';
 import { AnalyticsEventType } from '@/shared/enums';
-import { FileDisplayPayload } from '@/shared/models';
+import { PublicLinkFilePayload } from '@/shared/models';
 import { formatFileSize, isViewableFileType } from '@/shared/utils';
 import { downloadFile } from '@/shared/utils/fileUtils';
 
@@ -59,7 +59,7 @@ const FileDisplay = ({
 	fileType,
 	documentId = '',
 	documentLinkId = '',
-}: FileDisplayPayload) => {
+}: PublicLinkFilePayload) => {
 	const [phase, setPhase] = useState<LoadPhase>(LoadPhase.Idle);
 
 	const viewMode = phase !== LoadPhase.Idle; // “preview” screen vs access buttons
@@ -81,6 +81,10 @@ const FileDisplay = ({
 	);
 
 	const handleViewFile = () => {
+		if (!isPdf) {
+			// PDFViewer logs its own VIEW; images need it here
+			logAnalytics(AnalyticsEventType.VIEW).catch(() => {});
+		}
 		setPhase(isImage ? LoadPhase.Bundle : LoadPhase.Img);
 	};
 
