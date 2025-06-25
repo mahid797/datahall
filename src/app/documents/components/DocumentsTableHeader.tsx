@@ -20,16 +20,15 @@ const DocumentsTableHeader = ({ orderBy, orderDirection, onSort }: Props) => (
 				direction={orderDirection}
 				onClick={() => onSort('uploader')}
 				hideSortIcon={false}
-				sx={{ paddingLeft: '1.8rem' }}
 				IconComponent={
 					orderDirection === undefined ? ChevronSelectorVerticalIcon : ChevronDownIcon
 				}>
 				UPLOADER
 			</TableSortLabel>
 		</TableCell>
-		<TableCell sx={{ width: '15%', pl: '2rem' }}>ANALYTICS</TableCell>
-		<TableCell sx={{ width: '5%', pl: '1.5rem' }}>LINK</TableCell>
-		<TableCell sx={{ width: '5%', pl: '1.5rem' }}>ACTION</TableCell>
+		<TableCell sx={{ width: '15%', textAlign: 'center' }}>ANALYTICS</TableCell>
+		<TableCell sx={{ width: '10%', textAlign: 'center' }}>LINK</TableCell>
+		<TableCell sx={{ width: '10%', textAlign: 'center' }}>ACTION</TableCell>
 	</TableRow>
 );
 

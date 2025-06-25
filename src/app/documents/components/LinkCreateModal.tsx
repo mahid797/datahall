@@ -38,10 +38,13 @@ export default function LinkCreateModal({
 
 	const {
 		register,
+		watch,
 		formState: { errors, isValid },
 		getPayload,
 		toggleIsPublic,
 	} = form;
+
+	const isPublic = watch('isPublic');
 
 	const { loading, handleSubmit, toast } = useFormSubmission({
 		validate: () => isValid,
@@ -107,7 +110,10 @@ export default function LinkCreateModal({
 						display='flex'
 						flexDirection='column'
 						gap={2}>
-						<Box>
+						<Box
+							display='flex'
+							flexDirection='column'
+							gap={5}>
 							<FormInput
 								label='Link alias'
 								minWidth={460}

@@ -15,7 +15,7 @@ export default function ContactsTableRow({ contact }: Props) {
 				<br />
 				<Typography variant='caption'>{contact.email ? contact.email : 'N/A'}</Typography>
 			</TableCell>
-			<TableCell sx={{ pl: '1rem' }}>{contact.lastViewedLink}</TableCell>
+			<TableCell>{contact.lastViewedLink}</TableCell>
 			<TableCell sx={{ textAlign: 'center' }}>
 				{formatDateTime(contact.lastActivity, { includeTime: true })}
 			</TableCell>

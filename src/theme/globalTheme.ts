@@ -743,8 +743,8 @@ const globalTheme = createTheme({
 					},
 				},
 				body: {
-					paddingLeft: '0.6rem',
-					paddingRight: '0.6rem',
+					paddingLeft: '0.3rem',
+					paddingRight: '0.3rem',
 					'@media (min-width:600px)': {
 						paddingBottom: '0.3rem',
 						paddingTop: '0.3rem',

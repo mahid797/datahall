@@ -151,7 +151,8 @@ export default function InfoTable({ variant, documentId }: InfoTableProps) {
 							/>
 						))}
 
-						{/* TODO: If linkTable has zero data, show "Create a link" row */}
+						{/* TODO: If linkTable has zero data, show "Create a link" row.
+          				    Note: "Create a link" button is currently disabled and non-functional. */}
 						{isTableEmpty && (
 							<TableRow>
 								<TableCell
@@ -160,6 +161,7 @@ export default function InfoTable({ variant, documentId }: InfoTableProps) {
 									{variant === 'linkTable' ? (
 										<Button
 											variant='contained'
+											disabled
 											sx={{ px: { sm: 50, md: 60, lg: 70 } }}>
 											Create a link
 										</Button>

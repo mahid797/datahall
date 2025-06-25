@@ -122,7 +122,7 @@ export default function DocumentView({ documentId }: DocumentViewProps) {
 			{isDocumentLoading ? (
 				<HeadingSkeleton />
 			) : (
-				<Box>
+				<Box mb={10}>
 					<Box
 						display='flex'
 						alignItems='center'>

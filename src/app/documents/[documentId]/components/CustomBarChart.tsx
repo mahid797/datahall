@@ -28,7 +28,6 @@ function CustomBarChart({ buckets }: CustomBarChartProps) {
 	const categoryGapRatio = dataset.length <= 7 ? 0.4 : 0.1;
 	return (
 		<BarChart
-			// width={1230}
 			height={300}
 			sx={{ width: '100%' }}
 			dataset={dataset}

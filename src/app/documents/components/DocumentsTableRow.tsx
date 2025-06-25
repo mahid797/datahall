@@ -107,7 +107,7 @@ const DocumentsTableRow = ({ document, onDelete }: Props) => {
 				</Box>
 			</TableCell>
 
-			<TableCell>
+			<TableCell sx={{ textAlign: 'center' }}>
 				<Chip
 					icon={<BarChartIcon />}
 					label={`${document.viewers} views`}
@@ -118,7 +118,7 @@ const DocumentsTableRow = ({ document, onDelete }: Props) => {
 					}}
 				/>
 			</TableCell>
-			<TableCell sx={{ pl: '1.5rem' }}>
+			<TableCell sx={{ textAlign: 'center' }}>
 				<IconButton
 					disabled={document.createdLinks?.length === 0}
 					onClick={handleLinkCopy}>
@@ -129,7 +129,7 @@ const DocumentsTableRow = ({ document, onDelete }: Props) => {
 					)}
 				</IconButton>
 			</TableCell>
-			<TableCell sx={{ pl: '1.5rem' }}>
+			<TableCell sx={{ textAlign: 'center' }}>
 				<IconButton onClick={handleMenuOpen}>
 					<SettingsIcon
 						width={20}
