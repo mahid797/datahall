@@ -24,6 +24,8 @@ function InfoTableRow({ documentDetail, variant }: InfoTableRowProps) {
 
 	const deleteLink = useDeleteLinkMutation();
 
+	const deleteLink = useDeleteLinkMutation();
+
 	const isLinkDetail = (d: LinkDetailRow | Contact): d is LinkDetailRow =>
 		(d as LinkDetailRow).createdLink !== undefined;
 
@@ -51,6 +53,7 @@ function InfoTableRow({ documentDetail, variant }: InfoTableRowProps) {
 				onConfirm: async () => {
 					try {
 						const link = documentDetail as LinkDetailRow;
+						await deleteLink.mutateAsync({ documentId: link.documentId, linkId: link.linkId });
 						await deleteLink.mutateAsync({ documentId: link.documentId, linkId: link.linkId });
 
 						showToast({ message: 'Link deleted successfully!', variant: 'success' });
