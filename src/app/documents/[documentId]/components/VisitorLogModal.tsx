@@ -1,6 +1,7 @@
 'use client';
 import {
 	Box,
+	Button,
 	CircularProgress,
 	DialogActions,
 	DialogContent,
@@ -134,10 +135,13 @@ export default function VisitorLogModal({
 				)}
 			</DialogContent>
 
-			<DialogActions sx={{ pr: 6, pb: 4 }}>
-				<IconButton onClick={closeModal}>
-					<XCloseIcon />
-				</IconButton>
+			<DialogActions sx={{ display: 'flex', justifyContent: 'center' }}>
+				<Button
+					variant='contained'
+					size='small'
+					onClick={closeModal}>
+					Close
+				</Button>
 			</DialogActions>
 		</>
 	);
