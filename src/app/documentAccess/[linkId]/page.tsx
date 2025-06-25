@@ -1,48 +1,62 @@
-'use client';
+import { Metadata } from 'next';
+import { Suspense } from 'react';
 
-import React, { use } from 'react';
+import AccessManager from './components/AccessManager';
+import AccessSkeleton from './components/AccessSkeleton';
 
-import { Box, Button, Typography } from '@mui/material';
-import AccessPage from './components/AccessPage';
+import { PublicLinkMetaResponse } from '@/shared/models';
 
-const LinkIdPage = ({ params }: { params: Promise<{ linkId: string }> }) => {
-	const { linkId } = use(params);
+/* ------------------------------------------------------------------ */
+/*  Server-side fetch of link-meta                                    */
+/* ------------------------------------------------------------------ */
+async function fetchPublicLinkMeta(linkId: string) {
+	try {
+		const base = process.env.NEXT_PUBLIC_APP_URL!;
+		const res = await fetch(`${base}/api/public_links/${linkId}`, {
+			cache: 'no-store',
+			next: { revalidate: 0 },
+		});
 
-	const [showFileAccess, setShowFileAccess] = React.useState(false);
+		// invalid link etc.
+		if (!res.ok) {
+			console.error(`Failed to fetch link meta: ${res.status} ${res.statusText}`);
+			return null;
+		}
 
-	const handleConfirmClick = () => {
-		setShowFileAccess(true);
-	};
+		const data = await res.json();
 
+		// Type safety: check required fields
+		if (
+			!data ||
+			typeof data !== 'object' ||
+			typeof (data as any).data !== 'object' ||
+			typeof (data as any).data.isPasswordProtected !== 'boolean'
+		) {
+			console.error('Invalid meta response:', data);
+			return null;
+		}
+
+		return data as PublicLinkMetaResponse;
+	} catch (err) {
+		console.error('Error fetching link meta:', err);
+		return null;
+	}
+}
+
+export default async function LinkAccessPage({ params }: { params: { linkId: string } }) {
+	const { linkId } = params;
+	const initialMeta = await fetchPublicLinkMeta(linkId);
 	return (
-		<>
-			{!showFileAccess ? (
-				<Box
-					display='flex'
-					alignItems='center'
-					flexDirection='column'
-					gap={{ sm: 30, md: 35, lg: 40 }}>
-					<Box textAlign='center'>
-						<Typography
-							mb={2}
-							variant='h1'>
-							A secure file has been shared with you
-						</Typography>
-						<Typography variant='body1'>
-							Please confirm your identity to access this document
-						</Typography>
-					</Box>
-					<Button
-						variant='contained'
-						onClick={handleConfirmClick}>
-						Confirm
-					</Button>
-				</Box>
-			) : (
-				<AccessPage linkId={linkId} />
-			)}
-		</>
+		<Suspense fallback={<AccessSkeleton />}>
+			<AccessManager
+				linkId={linkId}
+				initialMeta={initialMeta ?? undefined}
+			/>
+		</Suspense>
 	);
-};
+}
 
-export default LinkIdPage;
+export const metadata: Metadata = {
+	title: 'File Share',
+	description: 'Access a file shared with you via DataRoom',
+};

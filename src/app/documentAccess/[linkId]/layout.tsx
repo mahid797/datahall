@@ -33,7 +33,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
 					alignItems='center'
 					overflow='auto'
 					width='100%'>
-					{children} {/* Removed the second <Grid2> and added to FileDisplay.tsx */}
+					{children}
 				</Grid2>
 				{/* ── Row 3 ──── */}
 				<Grid2>
