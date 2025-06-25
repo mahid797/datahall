@@ -7,6 +7,7 @@ export { default as CustomUploader } from './fileHandling/CustomUploader';
 
 export { default as CustomCheckbox } from './input/CustomCheckbox';
 export { default as Dropdown } from './input/Dropdown';
+export { default as FormCheckbox } from './input/FormCheckbox';
 export { default as FormInput } from './input/FormInput';
 export { default as PasswordValidation } from './input/PasswordValidation';
 

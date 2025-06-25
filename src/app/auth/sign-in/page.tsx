@@ -5,12 +5,11 @@ import { FormProvider } from 'react-hook-form';
 
 import { Box, Typography } from '@mui/material';
 
-import { BlueWaveLogo, CustomCheckbox, FormInput, LoadingButton, NavLink } from '@/components';
+import { BlueWaveLogo, FormCheckbox, FormInput, LoadingButton, NavLink } from '@/components';
 import AuthFormWrapper from '../components/AuthFormWrapper';
 
-import { useFormSubmission } from '@/hooks';
 import { useAuthQueryToasts, useSignInMutation } from '@/hooks/data';
-import { useSignInForm } from '@/hooks/forms';
+import { useFormSubmission, useSignInForm } from '@/hooks/forms';
 
 export default function SignIn() {
 	useAuthQueryToasts();
@@ -82,8 +81,7 @@ export default function SignIn() {
 						alignItems='center'
 						mt={8}
 						mb={5}>
-						<CustomCheckbox
-							{...register('remember')}
+						<FormCheckbox
 							name='remember'
 							label='Remember for 30 days'
 						/>

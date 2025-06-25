@@ -14,7 +14,7 @@ interface CustomBarChartProps {
 function CustomBarChart({ buckets }: CustomBarChartProps) {
 	// Create a dataset array with index signature for each bucket
 
-	const { sortedData: sortedBuckets } = useSort(buckets, 'date');
+	const { sortedData: sortedBuckets } = useSort(buckets, { initialKey: 'date' });
 
 	const dataset = sortedBuckets.map((b) => ({
 		date: b.date,

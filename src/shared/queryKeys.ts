@@ -62,5 +62,8 @@ export const queryKeys = {
 
 		/** Visitor-side analytics for a single link */
 		visitors: (linkId: string) => ['links', linkId, 'visitors'] as const,
+
+		/** Visitor-side meta for access decision */
+		meta: (linkId: string) => queryKeys.links.access(linkId),
 	},
 } as const;

@@ -11,8 +11,7 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",
-		"typecheck": "tsc --noEmit",
-		"check": "npm run typecheck && npm run lint",
+		"check": "npx tsc --noEmit && npm run lint",
 		"lint:fix": "next lint --fix",
 		"prepare-env": "node scripts/prepare-env.js"
 	},

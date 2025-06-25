@@ -1,15 +1,26 @@
 'use client';
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { DialogProps } from '@mui/material';
 import { ModalType } from './ModalRegistry';
 import ModalContainer from '@/components/modals/ModalContainer';
 
-interface OpenModalConfig {
+export type ModalDialogProps = Partial<
+	DialogProps & {
+		/** Prevent closing via backdrop clicks (e.g. password gates) */
+		disableBackdropClick?: boolean;
+	}
+>;
+
+/* -------------------------------------------------------------------------- */
+/*  Context types                                                             */
+/* -------------------------------------------------------------------------- */
+export interface OpenModalConfig {
 	type: ModalType;
-	dialogProps?: Partial<DialogProps>;
+	dialogProps?: ModalDialogProps;
 	contentProps?: Record<string, unknown>;
 }
-interface CurrentModalState extends OpenModalConfig {}
+
+type CurrentModalState = OpenModalConfig;
 
 interface ModalContextValue {
 	currentModal: CurrentModalState | null;
@@ -17,27 +28,19 @@ interface ModalContextValue {
 	closeModal: () => void;
 }
 
+/* -------------------------------------------------------------------------- */
+/*  Provider                                                                  */
+/* -------------------------------------------------------------------------- */
 const ModalContext = createContext<ModalContextValue | undefined>(undefined);
 
 export function ModalProvider({ children }: { children: ReactNode }) {
 	const [currentModal, setCurrentModal] = useState<CurrentModalState | null>(null);
 
-	function openModal(config: OpenModalConfig) {
-		setCurrentModal(config);
-	}
-
-	function closeModal() {
-		setCurrentModal(null);
-	}
-
-	const value: ModalContextValue = {
-		currentModal,
-		openModal,
-		closeModal,
-	};
+	const openModal = useCallback((config: OpenModalConfig) => setCurrentModal(config), []);
+	const closeModal = useCallback(() => setCurrentModal(null), []);
 
 	return (
-		<ModalContext.Provider value={value}>
+		<ModalContext.Provider value={{ currentModal, openModal, closeModal }}>
 			{children}
 			<ModalContainer />
 		</ModalContext.Provider>

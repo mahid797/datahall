@@ -8,7 +8,10 @@ interface ShareLinkDialogProps {
 	linkUrl: string;
 	onClose: () => void;
 }
-
+/**
+ * @deprecated
+ * This component is deprecated and will be removed in future versions.
+ */
 export default function ShareLinkDialog({ linkUrl, onClose }: ShareLinkDialogProps) {
 	const [copied, setCopied] = useState(false);
 

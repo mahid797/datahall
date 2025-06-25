@@ -1,16 +1,16 @@
 'use client';
 import { useState } from 'react';
 
-import { Chip, DialogActions, DialogContent, DialogTitle, IconButton } from '@mui/material';
+import { Button, Chip, DialogActions, DialogContent, DialogTitle, IconButton } from '@mui/material';
 
-import { CheckIcon, CopyIcon, LinkIcon } from '@/icons';
+import { CheckIcon, CopyIcon, LinkIcon, XCloseIcon } from '@/icons';
 
-interface ShareableLinkModalProps {
+interface LinkCopyModalProps {
 	linkUrl: string;
 	closeModal: () => void;
 }
 
-export default function ShareableLinkModal({ linkUrl, closeModal }: ShareableLinkModalProps) {
+export default function LinkCopyModal({ linkUrl, closeModal }: LinkCopyModalProps) {
 	const [isLinkCopied, setIsLinkCopied] = useState(false);
 
 	function handleLinkCopy() {
@@ -24,6 +24,16 @@ export default function ShareableLinkModal({ linkUrl, closeModal }: ShareableLin
 	return (
 		<>
 			<DialogTitle variant='h2'>Shareable link</DialogTitle>
+			<IconButton
+				sx={(theme) => ({
+					position: 'absolute',
+					right: 8,
+					top: 8,
+				})}
+				onClick={closeModal}>
+				<XCloseIcon />
+			</IconButton>
+
 			<DialogContent
 				sx={{
 					display: 'flex',
@@ -55,10 +65,13 @@ export default function ShareableLinkModal({ linkUrl, closeModal }: ShareableLin
 					)}
 				</IconButton>
 			</DialogContent>
-			<DialogActions sx={{ mr: 8, mb: 4 }}>
-				{/* optional close button? */}
-				{/* <Button variant='text' onClick={closeModal}>Close</Button> */}
-			</DialogActions>
+			{/* <DialogActions sx={{ mr: 8, mb: 4 }}>
+				<Button
+					variant='text'
+					onClick={closeModal}>
+					Close
+				</Button>
+			</DialogActions> */}
 		</>
 	);
 }

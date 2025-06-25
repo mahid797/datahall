@@ -27,10 +27,11 @@ export * from './linkModels';
 export type {
 	CreateDocumentLinkPayload,
 	DocumentLink,
-	FileDisplayPayload,
+	PublicLinkFilePayload as FileDisplayPayload,
 	InviteRecipientsPayload,
 	LinkDetailRow,
 	LinkFormValues,
+	PublicLinkMetaResponse,
 	PublicLinkMeta,
 } from './linkModels';
 

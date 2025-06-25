@@ -18,6 +18,10 @@ const fetchDocumentDetails = async ({ queryKey }: QueryFunctionContext) => {
 	return data;
 };
 
+/**
+ * @deprecated
+ * This hook is deprecated and will be removed in future versions.
+ */
 const useDocumentAccessQuery = (linkId: string) =>
 	useQuery({
 		queryKey: queryKeys.links.access(linkId),

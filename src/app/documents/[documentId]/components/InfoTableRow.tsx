@@ -4,13 +4,13 @@ import { Box, Button, IconButton, TableCell, TableRow, Tooltip, Typography } fro
 
 import { CheckIcon, CopyIcon, TrashIcon } from '@/icons';
 
+import { useModalContext } from '@/providers/modal/ModalProvider';
+
 import { useToast } from '@/hooks';
-import useDeleteLinkMutation from '@/hooks/data/documentDetails/useDeleteLinkMutation';
+import { useDeleteLinkMutation } from '@/hooks/data';
+
 import { Contact, LinkDetailRow } from '@/shared/models';
 import { formatDateTime } from '@/shared/utils';
-
-import { useModalContext } from '@/providers/modal/ModalProvider';
-import LinkVisitorModal from './LinkVisitorModal';
 
 interface InfoTableRowProps {
 	variant?: 'linkTable' | 'visitorTable';
@@ -18,10 +18,11 @@ interface InfoTableRowProps {
 }
 
 function InfoTableRow({ documentDetail, variant }: InfoTableRowProps) {
-	const [linkVisitorOpen, setLinkVisitorOpen] = useState(false);
 	const [isLinkCopied, setIsLinkCopied] = useState(false);
 	const { openModal } = useModalContext();
 	const { showToast } = useToast();
+
+	const deleteLink = useDeleteLinkMutation();
 
 	const deleteLink = useDeleteLinkMutation();
 
@@ -31,12 +32,15 @@ function InfoTableRow({ documentDetail, variant }: InfoTableRowProps) {
 	const isVisitorDetail = (d: LinkDetailRow | Contact): d is Contact =>
 		(d as Contact).name !== undefined;
 
-	const handleOpenLinkVisitorModal = () => {
-		setLinkVisitorOpen(true);
-	};
-
-	const handleCloseLinkVisitorModal = () => {
-		setLinkVisitorOpen(false);
+	const handleOpenLinkVisitorModal = (documentDetail: LinkDetailRow) => {
+		openModal({
+			type: 'visitorLog',
+			contentProps: {
+				documentId: documentDetail.documentId,
+				linkId: documentDetail.linkId,
+				linkAlias: documentDetail.alias || documentDetail.createdLink,
+			},
+		});
 	};
 
 	const handleDelete = () => {
@@ -49,6 +53,7 @@ function InfoTableRow({ documentDetail, variant }: InfoTableRowProps) {
 				onConfirm: async () => {
 					try {
 						const link = documentDetail as LinkDetailRow;
+						await deleteLink.mutateAsync({ documentId: link.documentId, linkId: link.linkId });
 						await deleteLink.mutateAsync({ documentId: link.documentId, linkId: link.linkId });
 
 						showToast({ message: 'Link deleted successfully!', variant: 'success' });
@@ -126,21 +131,12 @@ function InfoTableRow({ documentDetail, variant }: InfoTableRowProps) {
 							<Button
 								variant='outlined'
 								size='small'
-								onClick={handleOpenLinkVisitorModal}>
+								onClick={() => handleOpenLinkVisitorModal(documentDetail)}>
 								View Log
 							</Button>
 						</Tooltip>
 					</TableCell>
 				</TableRow>
-
-				{/* Link Visitor Modal */}
-				<LinkVisitorModal
-					open={linkVisitorOpen}
-					documentId={documentDetail.documentId}
-					linkId={documentDetail.linkId}
-					linkAlias={documentDetail.alias || documentDetail.createdLink}
-					onClose={handleCloseLinkVisitorModal}
-				/>
 			</>
 		);
 	}

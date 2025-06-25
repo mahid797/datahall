@@ -1,9 +1,11 @@
+'use client';
 import {
 	Box,
 	CircularProgress,
-	Dialog,
+	DialogActions,
 	DialogContent,
 	DialogTitle,
+	IconButton,
 	Paper,
 	Table,
 	TableBody,
@@ -13,75 +15,66 @@ import {
 	TableRow,
 } from '@mui/material';
 
+import { XCloseIcon } from '@/icons';
+
 import { EmptyState, Paginator } from '@/components';
 
+import { usePaginatedTable, useResponsivePageSize } from '@/hooks';
 import { useLinkVisitorsQuery } from '@/hooks/data';
 
 import { LinkVisitor } from '@/shared/models';
 import { formatDateTime } from '@/shared/utils';
-import { usePaginatedTable, useResponsivePageSize } from '@/hooks';
 
-interface LinkVisitorModalProps {
-	open: boolean;
+interface VisitorLogModalProps {
 	documentId: string;
 	linkId: string;
 	linkAlias: string;
-	onClose: () => void;
+	closeModal: () => void; // injected by ModalContainer
 }
 
-/**
- * @deprecated
- * This component is deprecated and will be removed in future versions.
- */
-export default function LinkVisitorModal({
-	open,
+export default function VisitorLogModal({
 	documentId,
 	linkId,
 	linkAlias,
-	onClose,
-}: LinkVisitorModalProps) {
-	const { data, isPending } = useLinkVisitorsQuery(documentId, linkId, open);
+	closeModal,
+}: VisitorLogModalProps) {
+	/* fetch */
+	const { data, isPending } = useLinkVisitorsQuery(documentId, linkId, true);
 
+	/* paging */
 	const { pageData, page, totalPages, setPage, pageSize, setPageSize } =
 		usePaginatedTable<LinkVisitor>(data ?? [], { pageSize: 10 });
 
-	/* responsive pageSize inside modal */
 	useResponsivePageSize(setPageSize, { offsetHeight: 500 });
 
-	const formatVisitorMetaData = (metaData: string | null): string => {
-		if (!metaData) return 'N/A';
-
+	const formatMeta = (meta: string | null) => {
+		if (!meta) return 'N/A';
 		try {
-			const parsed = JSON.parse(metaData);
-			if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-				return Object.entries(parsed)
-					.map(([key, val]) => `${key}: ${val}`)
+			const obj = JSON.parse(meta);
+			if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+				return Object.entries(obj)
+					.map(([k, v]) => `${k}: ${v}`)
 					.join(', ');
 			}
-			return String(parsed);
-		} catch {
-			return metaData;
-		}
+		} catch {}
+		return meta;
 	};
+
+	/* UI */
 	return (
-		<Dialog
-			open={open}
-			onClose={onClose}
-			fullWidth
-			maxWidth='md'>
+		<>
 			<DialogTitle
 				variant='h2'
 				bgcolor='background.primary'
 				color='text.tertiary'>
 				Visitor Log&nbsp;–&nbsp;{linkAlias}
 			</DialogTitle>
+
 			<DialogContent>
 				<TableContainer
 					component={Paper}
 					sx={{ maxHeight: 500, mt: 11 }}>
-					<Table
-						aria-label='Info table'
-						stickyHeader>
+					<Table stickyHeader>
 						<TableHead>
 							<TableRow>
 								<TableCell sx={{ width: '27%', pl: '2.5rem' }}>NAME</TableCell>
@@ -90,12 +83,11 @@ export default function LinkVisitorModal({
 								<TableCell sx={{ width: '17%', textAlign: 'center' }}>METADATA</TableCell>
 							</TableRow>
 						</TableHead>
+
 						<TableBody>
 							{isPending && (
 								<TableRow>
-									<TableCell
-										colSpan={4}
-										sx={{ width: '100%' }}>
+									<TableCell colSpan={4}>
 										<Box
 											display='flex'
 											justifyContent='center'
@@ -106,40 +98,30 @@ export default function LinkVisitorModal({
 								</TableRow>
 							)}
 
-							{!isPending && pageData?.length === 0 ? (
+							{!isPending && pageData.length === 0 && (
 								<TableRow>
-									<TableCell
-										colSpan={4}
-										sx={{ width: '100%' }}>
+									<TableCell colSpan={4}>
 										<EmptyState message='No visitors have accessed this link yet.' />
 									</TableCell>
 								</TableRow>
-							) : (
-								pageData?.map((visitor: LinkVisitor) => (
-									<TableRow key={visitor.id}>
-										<TableCell
-											sx={{
-												width: '27%',
-												pl: '2.5rem',
-												py: { sm: '0.98rem', md: '1.1rem', lg: '1.3rem' },
-											}}>
-											{visitor.name ? visitor.name : 'N/A'}
-										</TableCell>
-										<TableCell sx={{ width: '33%', pl: '1.25rem' }}>
-											{visitor.email ? visitor.email : 'N/A'}
-										</TableCell>
-										<TableCell sx={{ width: '23%', textAlign: 'center' }}>
-											{formatDateTime(visitor.visitedAt, { includeTime: true })}
-										</TableCell>
-										<TableCell sx={{ width: '17%', textAlign: 'center' }}>
-											{formatVisitorMetaData(visitor.visitorMetaData)}
-										</TableCell>
-									</TableRow>
-								))
 							)}
+
+							{pageData.map((v) => (
+								<TableRow key={v.id}>
+									<TableCell sx={{ pl: '2.5rem' }}>{v.name || 'N/A'}</TableCell>
+									<TableCell sx={{ pl: '1.25rem' }}>{v.email || 'N/A'}</TableCell>
+									<TableCell sx={{ textAlign: 'center' }}>
+										{formatDateTime(v.visitedAt, { includeTime: true })}
+									</TableCell>
+									<TableCell sx={{ textAlign: 'center' }}>
+										{formatMeta(v.visitorMetaData)}
+									</TableCell>
+								</TableRow>
+							))}
 						</TableBody>
 					</Table>
 				</TableContainer>
+
 				{totalPages > 1 && (
 					<Paginator
 						nextPage={page}
@@ -151,6 +133,12 @@ export default function LinkVisitorModal({
 					/>
 				)}
 			</DialogContent>
-		</Dialog>
+
+			<DialogActions sx={{ pr: 6, pb: 4 }}>
+				<IconButton onClick={closeModal}>
+					<XCloseIcon />
+				</IconButton>
+			</DialogActions>
+		</>
 	);
 }

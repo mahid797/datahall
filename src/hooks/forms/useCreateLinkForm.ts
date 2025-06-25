@@ -18,7 +18,7 @@ export function useCreateLinkForm() {
 	const form = useFormWithSchema(DocumentLinkFormSchema, documentLinkDefaults, 'onChange');
 
 	/** Build an API-ready payload (Zod `.transform()` handles field pruning) */
-	const getPayload = () => DocumentLinkPayloadSchema.parse(form.getValues());
+	const getPayload = () => form.buildPayload(DocumentLinkPayloadSchema);
 
 	/** Reset *all* advanced options when user re-activates “Public link” */
 	const secureCache = useRef<Partial<DocumentLinkFormValues>>({});

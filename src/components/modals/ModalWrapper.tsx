@@ -25,6 +25,10 @@ import { TrashIcon } from '@/icons';
 import { parseFileSize } from '@/shared/utils';
 import { FileTypeConfig } from '@/shared/config/fileIcons';
 
+/**
+ * @deprecated
+ * This interface is deprecated and will be removed in future versions.
+ */
 interface ModalVariant {
 	color: 'primary' | 'error';
 	ContentComponent: FC<{
@@ -40,6 +44,10 @@ interface ModalVariant {
 	}>;
 }
 
+/**
+ * @deprecated
+ * This dictionary is deprecated and will be removed in future versions.
+ */
 const modalVariants: { [key in 'upload' | 'delete' | 'invite']: ModalVariant } = {
 	upload: {
 		color: 'primary',
@@ -76,6 +84,10 @@ interface ModalWrapperProps {
 	fileFormats?: string;
 }
 
+/**
+ * @deprecated
+ * This component is deprecated and will be removed in future versions.
+ */
 export default function ModalWrapper({
 	variant,
 	dialogContentVariant = 'body1',

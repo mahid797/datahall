@@ -3,21 +3,21 @@ import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
 
 import { useState } from 'react';
-import { Controller, useFormContext } from 'react-hook-form';
+import { Controller, useFormContext, useWatch } from 'react-hook-form';
 
 import { Box, Chip, IconButton, MenuItem, Select, Typography } from '@mui/material';
 import { MobileDateTimePicker } from '@mui/x-date-pickers';
 
 import { EyeIcon, EyeOffIcon } from '@/icons';
 
-import { CustomCheckbox, FormInput } from '@/components';
+import { FormCheckbox, FormInput } from '@/components';
 
 import { useCreateLinkForm } from '@/hooks/forms';
 
 import { visitorFieldsConfig } from '@/shared/config/visitorFieldsConfig';
 import { sortFields } from '@/shared/utils';
 
-export default function SharingOptionsAccordion() {
+export default function LinkSettingsAccordion() {
 	const {
 		control,
 		register,
@@ -29,20 +29,20 @@ export default function SharingOptionsAccordion() {
 
 	const [showPassword, setShowPassword] = useState(false);
 
-	const isPublic = watch('isPublic');
-	const askUserDetails = watch('requireUserDetails');
-	const needPassword = watch('requirePassword');
-	const enableExpiry = watch('expirationEnabled');
+	const isPublic = useWatch({ name: 'isPublic' });
+	const askUserDetails = useWatch({ name: 'requireUserDetails' });
+	const needPassword = useWatch({ name: 'requirePassword' });
+	const enableExpiry = useWatch({ name: 'expirationEnabled' });
 
 	return (
 		<Box
 			py={2}
 			display={'flex'}
 			flexDirection={'column'}>
-			<CustomCheckbox
-				disabled={isPublic}
-				{...register('requireUserDetails')}
+			<FormCheckbox
+				name='requireUserDetails'
 				label='Ask for the following to view and download the document'
+				disabledWhen={() => isPublic}
 			/>
 
 			<Box
@@ -65,7 +65,7 @@ export default function SharingOptionsAccordion() {
 								{...field}
 								onChange={(e) => updateVisitorFields(e.target.value as string[])}
 								renderValue={(selected) => {
-									const sortedSelected = sortFields(selected, visitorFieldsConfig);
+									const sortedSelected = sortFields(selected, [...visitorFieldsConfig]);
 									return (
 										<Box
 											display='flex'
@@ -96,10 +96,12 @@ export default function SharingOptionsAccordion() {
 					/>
 				</Box>
 			</Box>
-			<CustomCheckbox
+
+			<FormCheckbox
+				name='requirePassword'
 				label='Require a password to access'
-				disabled={isPublic}
-				{...register('requirePassword')}
+				disabledWhen={() => isPublic}
+				clearOnFalse={['password']}
 			/>
 
 			<Box
@@ -124,10 +126,12 @@ export default function SharingOptionsAccordion() {
 			</Box>
 
 			{/* Expiration */}
-			<CustomCheckbox
+
+			<FormCheckbox
+				name='expirationEnabled'
 				label='Expiration'
-				disabled={isPublic}
-				{...register('expirationEnabled')}
+				disabledWhen={() => isPublic}
+				clearOnFalse={['expirationTime']}
 			/>
 			<Typography
 				variant='body2'

@@ -6,23 +6,19 @@ import { FormProvider } from 'react-hook-form';
 import { Box, Button, Divider, Link, Typography } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 
-import { FormInput, LoadingButton, LoadingSpinner } from '@/components';
-
-import { useFormSubmission, useModal, useToast } from '@/hooks';
-import { useProfileQuery, useUpdateNameMutation } from '@/hooks/data';
-import { useProfileForm } from '@/hooks/forms';
-
-import PasswordFormModal from './PasswordFormModal';
-import AvatarActions from '@/components/common/AvatarCard';
 import { useModalContext } from '@/providers/modal/ModalProvider';
+
+import { useToast } from '@/hooks';
+import { useProfileQuery, useUpdateNameMutation } from '@/hooks/data';
+import { useFormSubmission, useProfileForm } from '@/hooks/forms';
+
+import { AvatarCard, FormInput, LoadingButton, LoadingSpinner } from '@/components';
 
 export default function ProfileForm() {
 	const { data, isLoading: fetchLoading, error } = useProfileQuery();
 	const updateName = useUpdateNameMutation();
 
 	const [isEditing, setIsEditing] = useState(false);
-
-	const passwordFormModal = useModal();
 
 	const { openModal } = useModalContext();
 	const { showToast } = useToast();
@@ -114,6 +110,10 @@ export default function ProfileForm() {
 				},
 			},
 		});
+	};
+
+	const handleChangePassword = () => {
+		openModal({ type: 'passwordChange' });
 	};
 
 	if (fetchLoading) {
@@ -253,7 +253,7 @@ export default function ProfileForm() {
 							</Typography>
 						</Grid>
 						<Grid size={6}>
-							<AvatarActions
+							<AvatarCard
 								src='https://picsum.photos/200/200'
 								initials='U'
 								size={64}
@@ -274,9 +274,8 @@ export default function ProfileForm() {
 							mt={10}>
 							<Button
 								variant='contained'
-								// fullWidth
 								size='medium'
-								onClick={passwordFormModal.openModal}
+								onClick={handleChangePassword}
 								disabled={!isEditing}>
 								Change password
 							</Button>
@@ -328,11 +327,6 @@ export default function ProfileForm() {
 					</Box>
 				</Box>
 			</FormProvider>
-			{/* Password form modal */}
-			<PasswordFormModal
-				open={passwordFormModal.isOpen}
-				toggleModal={passwordFormModal.closeModal}
-			/>
 		</>
 	);
 }

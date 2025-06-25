@@ -9,9 +9,9 @@ import AuthFormWrapper from '../components/AuthFormWrapper';
 
 import { KeyIcon } from '@/icons';
 
-import { useFormSubmission, useToast } from '@/hooks';
+import { useToast } from '@/hooks';
 import { useForgotPasswordMutation } from '@/hooks/data';
-import { useForgotPasswordForm } from '@/hooks/forms';
+import { useForgotPasswordForm, useFormSubmission } from '@/hooks/forms';
 
 export default function ForgotPassword() {
 	const router = useRouter();

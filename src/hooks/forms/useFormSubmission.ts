@@ -71,6 +71,7 @@
 import { FormEvent, useState } from 'react';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { useToast } from '@/hooks';
+import { ValidationAbortError } from './useFormWithSchema';
 
 interface UseFormSubmissionProps {
 	/** TanStack Query mutation; enables adapter mode when supplied. */
@@ -130,8 +131,11 @@ export const useFormSubmission = ({
 			}
 			onSuccess?.();
 		} catch (err: any) {
+			if (err instanceof ValidationAbortError) return;
+
 			const message =
 				err?.response?.data?.message || err?.message || 'An unexpected error occurred.';
+
 			if (!skipDefaultToast) {
 				toast.showToast({
 					message: `Error: ${errorMessage || message}`,

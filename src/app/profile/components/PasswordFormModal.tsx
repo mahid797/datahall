@@ -16,9 +16,8 @@ import Grid from '@mui/material/Grid2';
 
 import { FormInput, LoadingButton, PasswordValidation } from '@/components';
 
-import { useFormSubmission } from '@/hooks';
 import { useUpdatePasswordMutation } from '@/hooks/data';
-import { useChangePasswordForm } from '@/hooks/forms';
+import { useChangePasswordForm, useFormSubmission } from '@/hooks/forms';
 
 import { EyeIcon, EyeOffIcon, LockIcon } from '@/icons';
 
@@ -27,6 +26,10 @@ interface PasswordFormModalProps {
 	toggleModal: () => void;
 }
 
+/**
+ * @deprecated
+ * This component is deprecated and will be removed in future versions.
+ */
 export default function PasswordFormModal({ open, toggleModal }: PasswordFormModalProps) {
 	const form = useChangePasswordForm();
 

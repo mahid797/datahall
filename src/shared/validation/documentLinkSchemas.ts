@@ -13,34 +13,92 @@ const ContactEmail = z.object({
 	label: z.string().email('Invalid e-mail'),
 });
 
-export const DocumentLinkFormSchema = z.object({
-	alias: z
-		.string()
-		.trim()
-		.max(255, 'Max 255 characters') // alias is *optional*
-		.optional()
-		.default(''),
-	isPublic: z.boolean().default(false),
+export const DocumentLinkFormSchema = z
+	.object({
+		alias: z
+			.string()
+			.trim()
+			.max(255, 'Max 255 characters') // alias is *optional*
+			.optional()
+			.default(''),
 
-	/* visitor info */
-	requireUserDetails: z.boolean().default(false),
-	visitorFields: z.array(VisitorFieldEnum).default([]),
+		isPublic: z.boolean().default(false),
 
-	/* password-protect */
-	requirePassword: z.boolean().default(false),
-	password: z.string().min(5, 'Min. 5 characters').optional().or(z.literal('')),
+		/* visitor info */
+		requireUserDetails: z.boolean().default(false),
+		visitorFields: z.array(VisitorFieldEnum).default([]),
 
-	/* expiration */
-	expirationEnabled: z.boolean().default(false),
-	expirationTime: z.string().datetime().optional().or(z.literal('')),
+		/* password */
+		requirePassword: z.boolean().default(false),
+		password: z.string().optional().default(''),
 
-	/* e-mail sharing */
-	selectFromContact: z.boolean().default(false),
-	contactEmails: z.array(ContactEmail).default([]),
+		/* expiration */
+		expirationEnabled: z.boolean().default(false),
+		expirationTime: z.string().optional().default(''),
 
-	sendToOthers: z.boolean().default(false),
-	otherEmails: z.string().optional().or(z.literal('')),
-});
+		/* e-mail sharing */
+		selectFromContact: z.boolean().default(false),
+		contactEmails: z.array(ContactEmail).default([]),
+
+		sendToOthers: z.boolean().default(false),
+		otherEmails: z.string().optional().default(''),
+	})
+	/* ------------- conditional validation rules ------------- */
+	.superRefine((val, ctx) => {
+		/* password gate */
+		if (val.requirePassword && val.password.trim().length < 5) {
+			ctx.addIssue({
+				path: ['password'],
+				code: z.ZodIssueCode.too_small,
+				type: 'string',
+				minimum: 5,
+				inclusive: true,
+				message: 'Password must be at least 5 characters',
+			});
+		}
+
+		/* expiration gate */
+		if (val.expirationEnabled && !val.expirationTime) {
+			ctx.addIssue({
+				path: ['expirationTime'],
+				code: z.ZodIssueCode.custom,
+				message: 'Expiration date is required',
+			});
+		}
+
+		/* visitor-details gate */
+		if (val.requireUserDetails && val.visitorFields.length === 0) {
+			ctx.addIssue({
+				path: ['visitorFields'],
+				code: z.ZodIssueCode.too_small,
+				minimum: 1,
+				type: 'array',
+				inclusive: true,
+				message: 'Select at least one visitor field',
+			});
+		}
+
+		/* contact list gate */
+		if (val.selectFromContact && val.contactEmails.length === 0) {
+			ctx.addIssue({
+				path: ['contactEmails'],
+				code: z.ZodIssueCode.too_small,
+				minimum: 1,
+				type: 'array',
+				inclusive: true,
+				message: 'Choose at least one contact',
+			});
+		}
+
+		/* send-to-others gate */
+		if (val.sendToOthers && val.otherEmails.trim() === '') {
+			ctx.addIssue({
+				path: ['otherEmails'],
+				code: z.ZodIssueCode.custom,
+				message: 'E-mail list cannot be empty',
+			});
+		}
+	});
 
 /* -------------------------------------------------------------------------- */
 /*  Defaults Values                                                           */

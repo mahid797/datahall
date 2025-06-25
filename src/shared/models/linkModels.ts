@@ -54,13 +54,22 @@ export interface PublicLinkMeta {
 	signedUrl?: string; // only present when link is truly public
 }
 
-export interface FileDisplayPayload {
+export interface PublicLinkMetaResponse {
+	message: string;
+	data: {
+		isPasswordProtected: boolean;
+		visitorFields: string[];
+		signedUrl?: string; // present when link is 100 % public
+	};
+}
+
+export interface PublicLinkFilePayload {
 	signedUrl: string;
 	fileName: string;
 	size: number; // bytes
-	fileType: string; // MIME
+	fileType: string; // MIME type
 	documentId: string;
-	documentLinkId?: string;
+	documentLinkId?: string; // optional when not relevant
 }
 
 // =========== LINK PAYLOAD ===========
@@ -97,3 +106,6 @@ export interface LinkDetailRow {
 	lastActivity: string; // ISO date
 	linkViews: number; // aggregated analytics
 }
+
+/** Local state stages returned by `useLinkAccess` */
+export type LinkAccessState = 'loading' | 'gate' | 'file' | 'error';

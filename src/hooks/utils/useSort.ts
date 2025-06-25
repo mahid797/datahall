@@ -4,30 +4,33 @@ import { useCallback, useMemo, useState } from 'react';
 
 dayjs.extend(utc);
 
-type SortFunction<T> = (a: T, b: T, orderDirection: 'asc' | 'desc' | undefined) => number;
+export type SortFunction<T> = (a: T, b: T, orderDirection: 'asc' | 'desc' | undefined) => number;
+
+interface UseSortOptions<T> {
+	initialKey?: keyof T;
+	initialOrder?: 'asc' | 'desc' | undefined;
+	customSort?: SortFunction<T>;
+}
 
 /**
  * Lightweight, generic array sorter hook.
  */
 export function useSort<T>(
 	data: T[],
-	initialKey: keyof T | undefined = undefined,
-	customSort?: SortFunction<T>,
+	{ initialKey, initialOrder = 'desc', customSort }: UseSortOptions<T>,
 ) {
-	const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | undefined>(
-		initialKey ? 'asc' : undefined,
+	const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | undefined>(
+		initialKey ? initialOrder : undefined,
 	);
 	const [sortBy, setSortBy] = useState<keyof T | undefined>(initialKey);
 
 	// Memoised comparator function.
 	const comparator = useCallback(
 		(a: T, b: T) => {
-			if (!sortDirection || !sortBy) return 0;
+			if (!sortOrder || !sortBy) return 0;
 
 			// 1) If a custom sort function is provided, use it.
-			if (customSort) {
-				return customSort(a, b, sortDirection);
-			}
+			if (customSort) return customSort(a, b, sortOrder);
 
 			let aValue: any = a[sortBy];
 			let bValue: any = b[sortBy];
@@ -40,13 +43,12 @@ export function useSort<T>(
 			) {
 				const dateA = dayjs.utc(aValue).valueOf();
 				const dateB = dayjs.utc(bValue).valueOf();
-
-				return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+				return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
 			}
 
 			// 2) If both values are Date objects, compare by getTime().
 			if (aValue instanceof Date && bValue instanceof Date) {
-				return sortDirection === 'asc'
+				return sortOrder === 'asc'
 					? aValue.getTime() - bValue.getTime()
 					: bValue.getTime() - aValue.getTime();
 			}
@@ -63,35 +65,33 @@ export function useSort<T>(
 			bValue = normalise(bValue);
 
 			// 4) Default string/number comparison.
-			if (sortDirection === 'asc') {
-				return aValue < bValue ? -1 : 1;
-			} else if (sortDirection === 'desc') {
-				return aValue > bValue ? -1 : 1;
-			}
+			if (sortOrder === 'asc') return aValue < bValue ? -1 : 1;
+			if (sortOrder === 'desc') return aValue > bValue ? -1 : 1;
 			return 0;
 		},
-		[sortDirection, sortBy, customSort],
+		[sortOrder, sortBy, customSort],
 	);
 
-	// Sorted data memo.
 	const sortedData = useMemo(() => {
-		if (!sortDirection || !sortBy) return data;
+		if (!sortOrder || !sortBy) return data;
 		return [...data].sort(comparator);
-	}, [data, sortDirection, sortBy, comparator]);
+	}, [data, sortOrder, sortBy, comparator]);
 
-	// Toggle handler.
 	const toggleSort = (property: keyof T) => {
-		// Toggle direction or reset.
-
 		if (sortBy === property) {
-			setSortDirection(
-				sortDirection === 'asc' ? 'desc' : sortDirection === 'desc' ? undefined : 'asc',
-			);
+			setSortOrder(sortOrder === 'asc' ? 'desc' : sortOrder === 'desc' ? undefined : 'asc');
 		} else {
 			setSortBy(property);
-			setSortDirection('asc');
+			setSortOrder('asc');
 		}
 	};
 
-	return { sortedData, sortDirection, sortKey: sortBy, sortBy, toggleSort };
+	return {
+		sortedData,
+		sortDirection: sortOrder,
+		sortKey: sortBy,
+		setSortOrder,
+		setSortBy,
+		toggleSort,
+	};
 }

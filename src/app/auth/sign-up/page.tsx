@@ -7,9 +7,8 @@ import { FormProvider } from 'react-hook-form';
 import { BlueWaveLogo, FormInput, LoadingButton, NavLink, PasswordValidation } from '@/components';
 import AuthFormWrapper from '../components/AuthFormWrapper';
 
-import { useFormSubmission } from '@/hooks';
 import { useSignUpMutation } from '@/hooks/data';
-import { useSignUpForm } from '@/hooks/forms';
+import { useFormSubmission, useSignUpForm } from '@/hooks/forms';
 
 export default function SignUp() {
 	const router = useRouter();

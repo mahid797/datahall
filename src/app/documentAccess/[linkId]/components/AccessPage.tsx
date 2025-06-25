@@ -7,8 +7,8 @@ import AccessError from './AccessError';
 import FileDisplay from './FileDisplay';
 import VisitorInfoModal from './VisitorInfoModal';
 
-import { useFormSubmission } from '@/hooks';
 import { useCreateLinkVisitorMutation, useDocumentAccessQuery } from '@/hooks/data';
+import { useFormSubmission } from '@/hooks/forms';
 
 import { FileDisplayPayload } from '@/shared/models';
 
