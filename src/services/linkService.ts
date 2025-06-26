@@ -149,16 +149,24 @@ export const linkService = {
 	},
 
 	/**
-	 * Logs a new record in LinkVisitors for this link.
+	 * Logs a new record in LinkVisitors for this link
+	 * @returns the created row or `null` when skipped (public link).
 	 */
-	async logVisitor(linkId: string, firstName = '', lastName = '', email = '') {
+	async logVisitor(
+		linkId: string,
+		firstName = '',
+		lastName = '',
+		email = '',
+		visitorMetaData: Prisma.InputJsonValue = {},
+	) {
+		const link = await prisma.documentLink.findUnique({
+			where: { documentLinkId: linkId },
+			select: { isPublic: true },
+		});
+		if (!link || link.isPublic) return null; // skip logging for public links
+
 		return prisma.documentLinkVisitor.create({
-			data: {
-				documentLinkId: linkId,
-				firstName,
-				lastName,
-				email,
-			},
+			data: { documentLinkId: linkId, firstName, lastName, email, visitorMetaData },
 		});
 	},
 
@@ -188,6 +196,7 @@ export const linkService = {
 		fileName: string;
 		size: number;
 		fileType: string;
+		documentId: string;
 	}> {
 		const link = await prisma.documentLink.findUnique({
 			where: { documentLinkId: linkId },
@@ -218,6 +227,39 @@ export const linkService = {
 			fileName: link.document.fileName,
 			size: link.document.size,
 			fileType: link.document.fileType,
+			documentId: link.document.documentId,
 		};
+	},
+
+	/**
+	 * Lightweight meta fetch used by the public GET route.
+	 * – does *not* log analytics
+	 * – throws ServiceError if link invalid / expired
+	 */
+	async getLinkMeta(linkId: string) {
+		const link = await prisma.documentLink.findUnique({
+			where: { documentLinkId: linkId },
+			include: { document: true },
+		});
+		if (!link) throw new ServiceError('Link not found', 404);
+		if (link.expirationTime && new Date(link.expirationTime) <= new Date()) {
+			throw new ServiceError('Link is expired', 410);
+		}
+
+		const baseMeta = {
+			isPasswordProtected: !!link.password,
+			visitorFields: link.visitorFields as string[],
+		};
+
+		// Public + no gate ⇒ include signed URL & file meta for instant display
+		if (link.isPublic && baseMeta.visitorFields.length === 0) {
+			const { signedUrl, fileName, size, fileType, documentId } = await this.getSignedFileFromLink(
+				link.documentLinkId,
+			);
+
+			return { ...baseMeta, signedUrl, fileName, size, fileType, documentId };
+		}
+
+		return baseMeta;
 	},
 };

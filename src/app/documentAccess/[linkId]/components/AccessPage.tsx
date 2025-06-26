@@ -5,17 +5,21 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import AccessError from './AccessError';
 import FileDisplay from './FileDisplay';
-import VisitorInfoModal from './VisitorInfoModal';
 
 import { useCreateLinkVisitorMutation, useDocumentAccessQuery } from '@/hooks/data';
 import { useFormSubmission } from '@/hooks/forms';
 
-import { FileDisplayPayload } from '@/shared/models';
+import { useModalContext } from '@/providers/modal/ModalProvider';
+import { PublicLinkFilePayload } from '@/shared/models';
 
 interface Props {
 	linkId: string;
 }
 
+/**
+ * @deprecated
+ * This function is deprecated and will be removed in future versions.
+ */
 function AccessSkeleton() {
 	return (
 		<Stack
@@ -56,12 +60,18 @@ function AccessSkeleton() {
 	);
 }
 
+/**
+ * @deprecated
+ * This component is deprecated and will be removed in future versions.
+ */
 export default function AccessPage({ linkId }: Props) {
-	const [linkData, setLinkData] = useState<FileDisplayPayload>({} as FileDisplayPayload);
+	const [linkData, setLinkData] = useState<PublicLinkFilePayload>({} as PublicLinkFilePayload);
 	const [fetchLinkError, setFetchLinkError] = useState('');
 	const [hasInitialized, setHasInitialized] = useState(false); // This flag blocks the rendering of visitorInfoModal till the useEffect finishes to check whether a link url is truly public or not.
-	const autoRequestSent = useRef(false);
 
+	const gateOpenedRef = useRef(false);
+	const autoRequestSent = useRef(false);
+	const { openModal } = useModalContext();
 	const { error, data, isLoading } = useDocumentAccessQuery(linkId);
 	const linkInfo = useMemo(
 		() => ({
@@ -121,15 +131,30 @@ export default function AccessPage({ linkId }: Props) {
 				});
 			} else {
 				setHasInitialized(true);
+				/* ── gated link → open modal once ─────────────────────────── */
+				if (!isTrulyPublic && !gateOpenedRef.current) {
+					gateOpenedRef.current = true;
+					openModal({
+						type: 'documentAccess',
+						dialogProps: {
+							disableEscapeKeyDown: isPasswordProtected,
+							disableBackdropClick: isPasswordProtected,
+						},
+						contentProps: {
+							linkId,
+							passwordRequired: isPasswordProtected,
+							visitorFields,
+							onSubmitSuccess: handleVisitorModalSubmit,
+						},
+					});
+				}
 			}
 		}
 	}, [isLoading, hasInitialized, linkInfo, handleSubmit]);
 
-	const handleVisitorModalSubmit = async (file: FileDisplayPayload) => {
-		setLinkData(file);
-	};
+	const handleVisitorModalSubmit = (file: PublicLinkFilePayload) => setLinkData(file);
 
-	// ⏳ Still fetching or still waiting for useEffect decision logic
+	// ⏳  Still fetching or waiting for decision logic / modal submission
 	if (isLoading || !hasInitialized || isPending) return <AccessSkeleton />;
 
 	if (fetchLinkError) return <AccessError message={fetchLinkError} />;
@@ -147,14 +172,5 @@ export default function AccessPage({ linkId }: Props) {
 		);
 	}
 
-	return (
-		<Container>
-			<VisitorInfoModal
-				linkId={linkId}
-				visitorFields={linkInfo.visitorFields}
-				passwordRequired={linkInfo.isPasswordProtected}
-				onVisitorInfoModalSubmit={handleVisitorModalSubmit}
-			/>
-		</Container>
-	);
+	return <Container />;
 }

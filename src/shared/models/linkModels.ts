@@ -1,3 +1,4 @@
+import { VisitorFieldKey } from '../config/visitorFieldsConfig';
 // =========== LINK TYPE ===========
 
 export interface DocumentLink {
@@ -37,17 +38,6 @@ export interface LinkFormValues {
 	otherEmails?: string;
 }
 
-export interface CreateDocumentLinkPayload {
-	alias?: string;
-	isPublic: boolean;
-	expirationTime?: string;
-	password?: string;
-	visitorFields?: string[];
-	/* emailing */
-	contactEmails?: { label: string; id: number }[];
-	otherEmails?: string;
-}
-
 export interface PublicLinkMeta {
 	isPasswordProtected: boolean;
 	visitorFields: string[]; // required visitor inputs
@@ -58,8 +48,12 @@ export interface PublicLinkMetaResponse {
 	message: string;
 	data: {
 		isPasswordProtected: boolean;
-		visitorFields: string[];
-		signedUrl?: string; // present when link is 100 % public
+		visitorFields: VisitorFieldKey[];
+		signedUrl?: string;
+		fileName?: string;
+		size?: number;
+		fileType?: string;
+		documentId?: string;
 	};
 }
 
@@ -73,7 +67,6 @@ export interface PublicLinkFilePayload {
 }
 
 // =========== LINK PAYLOAD ===========
-
 export interface CreateDocumentLinkPayload {
 	documentId: string;
 	alias?: string; // Alias for the link

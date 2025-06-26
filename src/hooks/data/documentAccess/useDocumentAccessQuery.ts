@@ -3,6 +3,10 @@ import axios from 'axios';
 
 import { queryKeys } from '@/shared/queryKeys';
 
+/**
+ * @deprecated
+ * This interface is deprecated and will be removed in future versions.
+ */
 interface PublicLinkMeta {
 	data: {
 		isPasswordProtected: boolean;

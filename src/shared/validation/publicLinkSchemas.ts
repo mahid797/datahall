@@ -5,15 +5,18 @@ import { Prisma } from '@prisma/client';
 /* -------------------------------------------------------------------------- */
 /*  POST /public_links/[linkId]/access                                        */
 /* -------------------------------------------------------------------------- */
-export const PublicLinkAccessSchema = z.object({
-	firstName: z.string().trim().default(''),
-	lastName: z.string().trim().default(''),
-	email: z.preprocess(
-		(v) => (v === '' ? undefined : v),
-		z.string().email('Invalid email').optional(),
-	),
-	password: z.string().optional(),
-});
+export const PublicLinkAccessSchema = z
+	.object({
+		firstName: z.string().trim().optional(),
+		lastName: z.string().trim().optional(),
+		email: z.preprocess(
+			(v) => (v === '' ? undefined : v),
+			z.string().email('Invalid email').optional(),
+		),
+		password: z.string().optional(),
+	})
+	/* keep any additional visitor inputs exactly as sent (address, phone …) */
+	.passthrough();
 
 /* -------------------------------------------------------------------------- */
 /*  POST /public_links/[linkId]/analytics                                     */

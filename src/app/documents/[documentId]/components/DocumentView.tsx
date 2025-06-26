@@ -43,14 +43,14 @@ const ChartSkeleton = () => (
 		<Skeleton
 			animation='wave'
 			variant='rectangular'
-			height={350}
+			height={300}
 			width='100%'
 			sx={{ borderRadius: 2 }}
 		/>
 		<Skeleton
 			variant='text'
-			width={160}
-			height={12}
+			width={200}
+			height={62}
 			sx={{ mt: 2, mx: 'auto' }}
 		/>
 	</Box>

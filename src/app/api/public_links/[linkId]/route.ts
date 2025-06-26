@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { linkService, createErrorResponse } from '@/services';
+import { createErrorResponse, linkService } from '@/services';
 
 /**
  * GET /api/public_links/[linkId]
+ * Returns password / visitor-field requirements and,
+ * for truly-public links, an immediate signed URL + file meta.
  */
 export async function GET(req: NextRequest, props: { params: Promise<{ linkId: string }> }) {
 	try {
@@ -12,24 +14,9 @@ export async function GET(req: NextRequest, props: { params: Promise<{ linkId: s
 			return createErrorResponse('Link ID is required.', 400);
 		}
 
-		const link = await linkService.validateLinkAccess(linkId, undefined, {
-			skipPasswordCheck: true,
-		});
+		const meta = await linkService.getLinkMeta(linkId);
 
-		// If link is public, we see if it requires user details or password
-		const isPasswordProtected = !!link.password;
-		const visitorFields = link.visitorFields;
-
-		return NextResponse.json(
-			{
-				message: 'Link is valid',
-				data: {
-					isPasswordProtected,
-					visitorFields,
-				},
-			},
-			{ status: 200 },
-		);
+		return NextResponse.json({ message: 'Link is valid', data: meta }, { status: 200 });
 	} catch (error) {
 		return createErrorResponse('Server error while fetching link.', 500, error);
 	}
