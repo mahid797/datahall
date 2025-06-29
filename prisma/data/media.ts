@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 import axios from 'axios';
 import PDFDocument from 'pdfkit';
 
-import { deleteFile, listFiles, uploadFile } from '@/services';
+import { storageService } from '@/services';
 
 const bucketName = process.env.SUPABASE_STORAGE_BUCKET as string;
 
@@ -11,10 +11,10 @@ const bucketName = process.env.SUPABASE_STORAGE_BUCKET as string;
 /* ------------------------------------------------------------------ */
 export async function emptyStorageBucket(): Promise<void> {
 	try {
-		const paths = await listFiles();
+		const paths = await storageService.listFiles();
 		if (!paths.length) return;
 
-		await Promise.all(paths.map((p) => deleteFile(p)));
+		await Promise.all(paths.map((p) => storageService.deleteFile(p)));
 		console.log(`➤ cleared ${paths.length} objects from ${bucketName}`);
 	} catch (err) {
 		console.warn('⚠️  Could not empty storage bucket:', err);
@@ -115,7 +115,7 @@ export async function buildAndUploadMedia(
 	const create = faker.datatype.boolean(0.4) ? buildImage : () => buildPdf(baseTitle);
 	const { buffer, fileName, fileType } = await create();
 	const size = buffer.byteLength;
-	const filePath = await uploadFile(buffer, { fileName, userId, fileType });
+	const filePath = await storageService.uploadFile(buffer, { fileName, userId, fileType });
 
 	return { fileName, filePath, fileType, size };
 }

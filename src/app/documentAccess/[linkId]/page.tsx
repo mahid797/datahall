@@ -43,8 +43,8 @@ async function fetchPublicLinkMeta(linkId: string) {
 	}
 }
 
-export default async function LinkAccessPage({ params }: { params: { linkId: string } }) {
-	const { linkId } = params;
+export default async function LinkAccessPage({ params }: { params: Promise<{ linkId: string }> }) {
+	const { linkId } = await params;
 	const initialMeta = await fetchPublicLinkMeta(linkId);
 	return (
 		<Suspense fallback={<AccessSkeleton />}>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { authService, createErrorResponse, documentService, uploadFile } from '@/services';
+import { authService, createErrorResponse, documentService, storageService } from '@/services';
 import { buildLinkUrl } from '@/shared/utils';
 
 /**
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
 		const arrayBuffer = await file.arrayBuffer();
 		const fileBuffer = Buffer.from(arrayBuffer);
 
-		const uploadResult = await uploadFile(fileBuffer, {
+		const uploadResult = await storageService.uploadFile(fileBuffer, {
 			userId,
 			fileName: file.name,
 			fileType: file.type,

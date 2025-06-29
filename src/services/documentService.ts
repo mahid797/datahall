@@ -1,5 +1,5 @@
 import prisma from '@/lib/prisma';
-import { deleteFile } from '@/services';
+import { storageService } from '@/services';
 import { ServiceError } from './errorService';
 
 export const documentService = {
@@ -108,7 +108,7 @@ export const documentService = {
 		});
 
 		// Delete from storage
-		await deleteFile(deletedDoc.filePath);
+		await storageService.deleteFile(deletedDoc.filePath);
 
 		return deletedDoc;
 	},
