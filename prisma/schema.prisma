@@ -47,7 +47,7 @@ model User {
   lastName          String       @default("")
   email             String       @unique @db.VarChar(320)
   password          String?
-  avatarUrl         String?
+  avatarUrl         String? // Supabase path; e.g. "assets/{userId}/avatar/12345.png"
   createdAt         DateTime     @default(now()) @db.Timestamptz(6)
   role              UserRole     @default(USER)
   status            Status       @default(UNVERIFIED)
@@ -59,6 +59,7 @@ model User {
   passwordResetTokens PasswordResetToken[]
   documents           Document[]
   documentLinks       DocumentLink[]
+  accountSetting      AccountSetting?
 
   @@index([email])
 }
@@ -172,4 +173,24 @@ model DocumentAnalytics {
 enum AnalyticsEventType {
   VIEW
   DOWNLOAD
+}
+
+/**
+ * ---------------------------  Branding & Layout settings  ---------------------------
+ */
+model AccountSetting {
+  id               String  @id @default(cuid())
+  userId           String  @unique
+  logoUrl          String? // Supabase path; e.g. "assets/{userId}/logo/12345.png"
+  displayName      String? // Optional “John Doe”
+  primaryColor     String  @default("#3f51b5") // Hex; used when themePreset = NULL
+  themePreset      String? // "indigo" | "teal" | "crimson" | …
+  bgPreset         String  @default("white") // "white" | "softGrey" | "tinted"
+  showPersonalInfo Boolean @default(false) // Toggle avatar + name in header
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+
+  // relations
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
 }
