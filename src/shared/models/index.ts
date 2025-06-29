@@ -59,3 +59,6 @@ export type {
 	DocumentLinkStat,
 	PERIOD_OPTIONS,
 } from './analyticsModels';
+
+export * from './settingsModels';
+export type { AccountSetting, UpdateAccountSettingPayload } from './settingsModels';
