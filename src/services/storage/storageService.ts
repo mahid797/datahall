@@ -29,14 +29,14 @@ export interface StorageProvider {
 	 * @param metadata - Metadata for the upload
 	 * @returns A promise resolving to the public URL of the uploaded file
 	 */
-	upload(fileBuffer: Buffer, metadata: FileMetadata): Promise<UploadResult>;
+	upload(fileBuffer: Buffer, metadata: FileMetadata, bucket?: string): Promise<UploadResult>;
 
 	/**
 	 * Deletes a file from the storage provider.
 	 * @param filePath - The path of the file to delete
 	 * @returns A promise resolving when the file is deleted
 	 */
-	delete(filePath: string): Promise<void>;
+	delete(filePath: string, bucket?: string): Promise<void>;
 
 	/**
 	 * Lists file paths in the storage bucket.
@@ -44,7 +44,7 @@ export interface StorageProvider {
 	 * @param {string} [prefix] - The prefix to filter files by. Optional.
 	 * @returns {Promise<string[]>} - A promise resolving to an array of file paths.
 	 */
-	list(prefix?: string): Promise<string[]>;
+	list(prefix?: string, bucket?: string): Promise<string[]>;
 
 	/**
 	 * Generates a signed URL for a file.
@@ -52,26 +52,30 @@ export interface StorageProvider {
 	 * @param expiresIn - Expiration time in seconds for the signed URL
 	 * @returns A promise resolving to the signed URL
 	 */
-	generateSignedUrl(filePath: string, expiresIn: number): Promise<string>;
+	generateSignedUrl(filePath: string, expiresIn: number, bucket?: string): Promise<string>;
 }
 
 //TODO: Add a local storage provider, move the below to a separate file
 export class PlaceholderProvider implements StorageProvider {
-	async upload(fileBuffer: Buffer, metadata: FileMetadata): Promise<UploadResult> {
+	async upload(
+		fileBuffer: Buffer,
+		metadata: FileMetadata,
+		_bucket?: string,
+	): Promise<UploadResult> {
 		console.warn('PlaceholderProvider: Upload called.');
 		return { filePath: 'https://example.com/placeholder-url' }; // Placeholder URL
 	}
 
-	async delete(filePath: string): Promise<void> {
+	async delete(filePath: string, _bucket?: string): Promise<void> {
 		console.warn('PlaceholderProvider: Delete called.');
 	}
 
-	async list(): Promise<string[]> {
+	async list(prefix: string, _bucket?: string): Promise<string[]> {
 		console.warn('PlaceholderProvider: List called.');
 		return [];
 	}
 
-	async generateSignedUrl(filePath: string, expiresIn: number): Promise<string> {
+	async generateSignedUrl(filePath: string, expiresIn: number, _bucket?: string): Promise<string> {
 		console.warn('PlaceholderProvider: Generate signed URL called.');
 		return `https://example.com/signed-url?file=${filePath}&expires_in=${expiresIn}`;
 	}
@@ -105,9 +109,9 @@ export const storageService = {
 	 * @param {FileMetadata} metadata - Metadata for the file upload.
 	 * @returns {Promise<string>} - The public URL of the uploaded file.
 	 */
-	async uploadFile(fileBuffer: Buffer, metadata: FileMetadata): Promise<string> {
+	async uploadFile(fileBuffer: Buffer, metadata: FileMetadata, bucket?: string): Promise<string> {
 		try {
-			const result = await storageProvider.upload(fileBuffer, metadata);
+			const result = await storageProvider.upload(fileBuffer, metadata, bucket);
 			return result.filePath;
 		} catch (error) {
 			console.error('Error uploading file:', error);
@@ -121,8 +125,8 @@ export const storageService = {
 	 * @param {string} [prefix=''] - The prefix to filter files by. Defaults to an empty string.
 	 * @returns {Promise<string[]>} - A promise resolving to an array of file paths.
 	 */
-	async listFiles(prefix = ''): Promise<string[]> {
-		return storageProvider.list(prefix);
+	async listFiles(prefix = '', bucket?: string): Promise<string[]> {
+		return storageProvider.list(prefix, bucket);
 	},
 
 	/**
@@ -131,8 +135,8 @@ export const storageService = {
 	 * @param {number} [expiresIn=3600] - Expiration time in seconds
 	 * @returns {Promise<string>} - A promise resolving to the signed URL.
 	 */
-	async generateSignedUrl(filePath: string, expiresIn = 60 * 60): Promise<string> {
-		return storageProvider.generateSignedUrl(filePath, expiresIn);
+	async generateSignedUrl(filePath: string, expiresIn = 60 * 60, bucket?: string): Promise<string> {
+		return storageProvider.generateSignedUrl(filePath, expiresIn, bucket);
 	},
 
 	/**
@@ -140,9 +144,9 @@ export const storageService = {
 	 * @param {string} filePath - The path of the file to delete.
 	 * @returns {Promise<void>} - Resolves when the file is deleted.
 	 */
-	async deleteFile(filePath: string): Promise<void> {
+	async deleteFile(filePath: string, bucket?: string): Promise<void> {
 		try {
-			await storageProvider.delete(filePath);
+			await storageProvider.delete(filePath, bucket);
 		} catch (error) {
 			console.error('Error deleting file:', error);
 			throw new Error('File deletion failed.');
