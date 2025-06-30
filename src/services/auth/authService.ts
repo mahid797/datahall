@@ -2,7 +2,7 @@ import type { Session } from 'next-auth';
 import { getServerSession } from 'next-auth';
 
 import { authOptions } from '@/lib/authOptions';
-import { ServiceError } from '../errorService';
+import { ServiceError } from '@/services';
 
 import { Auth0Adapter } from './Auth0Adapter';
 import type { IAuth } from './IAuth';

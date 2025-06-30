@@ -1,6 +1,8 @@
 import { randomUUID } from 'crypto';
 import prisma from '../../lib/prisma';
 
+import { ServiceError } from '@/services';
+
 import { AuthProvider, UserRole, UserStatus } from '@/shared/enums';
 import type {
 	ChangeNameRequest,
@@ -16,7 +18,6 @@ import type {
 import type { IAuth } from './IAuth';
 import { getMgmtToken } from './auth0MgmtToken';
 import { mapAuth0Error } from './helpers';
-import { ServiceError } from '../errorService';
 
 export class Auth0Adapter implements IAuth {
 	async signUp(request: SignUpRequest): Promise<SignUpResponse> {

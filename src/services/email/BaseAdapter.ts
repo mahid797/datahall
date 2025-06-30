@@ -1,4 +1,4 @@
-import { TransactionalMail, buildVerificationMail, buildResetPasswordMail } from './emailUtils';
+import { TransactionalMail, buildResetPasswordMail, buildVerificationMail } from './emailUtils';
 
 export abstract class BaseAdapter {
 	/**

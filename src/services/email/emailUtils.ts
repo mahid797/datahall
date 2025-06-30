@@ -1,8 +1,8 @@
 import { render } from '@react-email/render';
 import { createElement, type FC, type ReactElement } from 'react';
 
-import * as VerificationTemplate from './templates/VerificationEmail';
 import * as ResetPasswordTemplate from './templates/ResetPasswordEmail';
+import * as VerificationTemplate from './templates/VerificationEmail';
 
 export interface TemplateModule<Props = unknown> {
 	default: FC<Props>;

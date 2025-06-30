@@ -1,11 +1,11 @@
-import { Html } from '@react-email/html';
+import { Button } from '@react-email/button';
 import { Container } from '@react-email/container';
 import { Heading } from '@react-email/heading';
-import { Text } from '@react-email/text';
-import { Button } from '@react-email/button';
+import { Hr } from '@react-email/hr';
+import { Html } from '@react-email/html';
 import { Img } from '@react-email/img';
 import { Section } from '@react-email/section';
-import { Hr } from '@react-email/hr';
+import { Text } from '@react-email/text';
 
 export const subject = 'Datahall | Reset your password';
 export const label = 'Reset Password Email';

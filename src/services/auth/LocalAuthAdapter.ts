@@ -2,6 +2,8 @@ import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
 
+import { emailService } from '@/services';
+
 import { AuthProvider, UserRole, UserStatus } from '@/shared/enums';
 import type {
 	ChangeNameRequest,
@@ -18,7 +20,6 @@ import type {
 	VerifyUserResponse,
 } from '@/shared/models';
 
-import { emailService } from '../email/emailService';
 import type { IAuth } from './IAuth';
 
 export class LocalAuthAdapter implements IAuth {

@@ -1,16 +1,17 @@
 import type {
+	ChangeNameRequest,
+	ChangeNameResponse,
+	ChangePasswordRequest,
+	ChangePasswordResponse,
+	ForgotPasswordRequest,
+	ForgotPasswordResponse,
+	ResetPasswordRequest,
+	ResetPasswordResponse,
 	SignUpRequest,
 	SignUpResponse,
-	ForgotPasswordResponse,
-	ResetPasswordResponse,
-	ChangePasswordResponse,
-	VerifyUserResponse,
-	ChangePasswordRequest,
-	ForgotPasswordRequest,
-	ResetPasswordRequest,
 	VerifyUserRequest,
+	VerifyUserResponse,
 } from '@/shared/models';
-import { ChangeNameRequest, ChangeNameResponse } from '@/shared/models/authModels';
 
 /**
  * @interface IAuth
