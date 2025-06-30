@@ -1,27 +1,28 @@
 import prisma from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
 
-import { ServiceError } from './errorService';
-import { buildLinkUrl } from '@/shared/utils';
+import { ServiceError } from '@/services';
+
 import { AnalyticsEventType } from '@/shared/enums';
 import type {
 	AnalyticsBucket,
 	AnalyticsEvent,
+	AnalyticsPeriod,
 	AnalyticsSummary,
 	DocumentLinkStat,
 } from '@/shared/models/analyticsModels';
-import type { AnalyticsPeriod } from '@/shared/models/analyticsModels';
+import { buildLinkUrl } from '@/shared/utils';
 
 /* -------------------------------------------------------------------------- */
-/*  Service (PUBLIC)                                               */
+/*  Service (PUBLIC)                                                          */
 /* -------------------------------------------------------------------------- */
 export const analyticsService = {
 	/**
-	 * Returns overall summary + per-link stats + time-series buckets.
-	 * @param documentId The document ID to fetch analytics for
-	 * @param period  'all' | '30d' | '7d'                        (default 'all')
-	 * @returns AnalyticsSummary
-	 * @throws ServiceError if the document does not exist or belongs to another user
+	 * Returns overall analytics summary, per-link statistics, and time-series buckets for a document.
+	 *
+	 * @param documentId - The document ID to fetch analytics for.
+	 * @param period - The analytics period ('all' | '30d' | '7d'). Defaults to 'all'.
+	 * @returns An AnalyticsSummary object containing totals, per-link stats, and time-series buckets.
+	 * @throws ServiceError if the document does not exist or belongs to another user.
 	 */
 	async getAnalyticsForDocument(
 		documentId: string,
@@ -43,10 +44,11 @@ export const analyticsService = {
 	},
 
 	/**
-	 * Returns analytics for a specific link within a document.
-	 * @param documentId The document ID to fetch analytics for
-	 * @param linkId The specific link ID to fetch analytics for
-	 * @returns Summary of views and downloads for the link
+	 * Returns analytics summary for a specific link within a document.
+	 *
+	 * @param documentId - The document ID to fetch analytics for.
+	 * @param linkId - The specific link ID to fetch analytics for.
+	 * @returns An object summarizing total views, downloads, and last access times for the link.
 	 */
 	async getAnalyticsForLink(documentId: string, linkId: string) {
 		const rows = await prisma.documentAnalytics.groupBy({
@@ -77,14 +79,14 @@ export const analyticsService = {
 
 	/**
 	 * Logs an analytics event for a document.
-	 * @param params The analytics event parameters
-	 * @returns The created analytics record
-	 * @throws ServiceError if logging fails
+	 *
+	 * @param params - The analytics event parameters.
+	 * @returns The created analytics record.
+	 * @throws ServiceError if logging fails.
 	 */
 	async logEventForAnalytics(params: AnalyticsEvent) {
 		try {
 			const analytics = await prisma.documentAnalytics.create({ data: params });
-
 			return analytics;
 		} catch (error) {
 			console.error('Error logging analytics event:', error);
@@ -99,9 +101,10 @@ export const analyticsService = {
 
 /**
  * Fetches total views, downloads, and last accessed timestamp for a document.
- * @param documentId The document ID to log analytics for
- * @returns An object containing total views, downloads, and last accessed timestamp
- * @throws ServiceError if the document does not exist or belongs to another user
+ *
+ * @param documentId - The document ID to log analytics for.
+ * @returns An object containing total views, downloads, and last accessed timestamp.
+ * @throws ServiceError if the document does not exist or belongs to another user.
  */
 async function getDocumentTotals(documentId: string) {
 	const rows = await prisma.documentAnalytics.groupBy({
@@ -132,11 +135,12 @@ async function getDocumentTotals(documentId: string) {
 
 /**
  * Fetches per-link statistics for a document, including last viewed/downloaded timestamps.
- * @param documentId The document ID to fetch link stats for
- * @returns An array of DocumentLinkStat objects containing link stats
+ *
+ * @param documentId - The document ID to fetch link stats for.
+ * @returns An array of DocumentLinkStat objects containing link stats.
  */
 async function getPerLinkStats(documentId: string): Promise<DocumentLinkStat[]> {
-	/* Aggregate per link */
+	// Aggregate per link
 	const perLinkAggregation = await prisma.documentAnalytics.groupBy({
 		by: ['documentLinkId', 'eventType'],
 		where: { documentId, NOT: { documentLinkId: null } },
@@ -160,7 +164,7 @@ async function getPerLinkStats(documentId: string): Promise<DocumentLinkStat[]> 
 		map.set(linkId, current);
 	});
 
-	/* Join with link metadata (alias) */
+	// Join with link metadata (alias)
 	const links = await prisma.documentLink.findMany({
 		where: { documentId },
 		select: { documentLinkId: true, alias: true },
@@ -182,9 +186,10 @@ async function getPerLinkStats(documentId: string): Promise<DocumentLinkStat[]> 
 
 /**
  * Fetches time-series buckets of views and downloads for a document.
- * @param documentId The document ID to fetch time-series data for
- * @param period 'all' | '30d' | '7d' (default 'all')
- * @returns An array of AnalyticsBucket objects containing date, views, and downloads
+ *
+ * @param documentId - The document ID to fetch time-series data for.
+ * @param period - The analytics period ('all' | '30d' | '7d'). Defaults to 'all'.
+ * @returns An array of AnalyticsBucket objects containing date, views, and downloads.
  */
 async function getTimeSeriesBuckets(
 	documentId: string,

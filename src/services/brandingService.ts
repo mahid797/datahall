@@ -53,8 +53,9 @@ function buildDefaultSettings() {
 export const brandingService = {
 	/**
 	 * Retrieves the account settings for a user, creating defaults if not present.
+	 *
 	 * @param userId - The user's unique identifier.
-	 * @returns The user's account settings.
+	 * @returns The user's account settings object.
 	 */
 	async getAccountSettings(userId: string) {
 		const existing = await prisma.accountSetting.findUnique({ where: { userId } });
@@ -69,11 +70,11 @@ export const brandingService = {
 	},
 
 	/**
-	 * Updates the account settings for a user.
-	 * Handles scalar fields and optional logo file upload.
+	 * Updates the account settings for a user, including scalar fields and optional logo file upload.
+	 *
 	 * @param userId - The user's unique identifier.
-	 * @param data - The update input payload.
-	 * @returns The updated account settings.
+	 * @param data - The update input payload containing branding fields and optional logo file.
+	 * @returns The updated account settings object.
 	 * @throws ServiceError if the theme preset is invalid or image type is not supported.
 	 */
 	async updateAccountSettings(userId: string, data: UpdateSettingsInput) {
@@ -127,8 +128,9 @@ export const brandingService = {
 	/**
 	 * Returns a signed, time-limited URL for the stored logo.
 	 * Resolves to `null` when no logo has been set.
+	 *
 	 * @param relativePath - The relative path to the logo file.
-	 * @returns The signed URL or null.
+	 * @returns The signed URL as a string, or null if no logo is set.
 	 */
 	async getSignedLogoUrl(relativePath: string | null) {
 		if (!relativePath) return null;
@@ -138,8 +140,9 @@ export const brandingService = {
 	/**
 	 * Converts an incoming multipart/form-data payload into an UpdateSettingsInput
 	 * object understood by the service. Designed for use by the API route.
+	 *
 	 * @param form - The multipart form data.
-	 * @returns The parsed update input.
+	 * @returns The parsed update input object.
 	 */
 	async buildUpdateInput(form: FormData): Promise<UpdateSettingsInput> {
 		const input: UpdateSettingsInput = {};

@@ -1,10 +1,12 @@
 import prisma from '@/lib/prisma';
-import { storageService } from '@/services';
-import { ServiceError } from './errorService';
+import { ServiceError, storageService } from '@/services';
 
 export const documentService = {
 	/**
-	 * Returns all documents (and relevant info) for the specified user.
+	 * Retrieves all documents for the specified user, including user info and associated links with their visitors.
+	 *
+	 * @param userId - The unique identifier of the user.
+	 * @returns An array of documents with user and link details.
 	 */
 	async getUserDocuments(userId: string) {
 		return prisma.document.findMany({
@@ -23,6 +25,14 @@ export const documentService = {
 
 	/**
 	 * Creates a new document record for the given user.
+	 *
+	 * @param params - The document creation parameters.
+	 * @param params.userId - The unique identifier of the user.
+	 * @param params.fileName - The name of the file.
+	 * @param params.filePath - The storage path of the file.
+	 * @param params.fileType - The MIME type of the file.
+	 * @param params.size - The size of the file in bytes.
+	 * @returns The created document record.
 	 */
 	async createDocument({
 		userId,
@@ -49,7 +59,11 @@ export const documentService = {
 	},
 
 	/**
-	 * Fetch a single document by ID, ensuring it belongs to the given user.
+	 * Fetches a single document by its ID, ensuring it belongs to the specified user.
+	 *
+	 * @param userId - The unique identifier of the user.
+	 * @param documentId - The unique identifier of the document.
+	 * @returns The document record if found and owned by the user, otherwise null.
 	 */
 	async getDocumentById(userId: string, documentId: string) {
 		return prisma.document.findFirst({
@@ -71,7 +85,12 @@ export const documentService = {
 	},
 
 	/**
-	 * Updates a document if owned by the user, returning the updated record.
+	 * Updates a document's file name if owned by the user, returning the updated record.
+	 *
+	 * @param userId - The unique identifier of the user.
+	 * @param documentId - The unique identifier of the document.
+	 * @param data - The update payload, containing an optional fileName.
+	 * @returns The updated document record if successful, otherwise null.
 	 */
 	async updateDocument(userId: string, documentId: string, data: { fileName?: string }) {
 		// Ensure the document is owned by user
@@ -92,6 +111,10 @@ export const documentService = {
 
 	/**
 	 * Deletes a document and its file from storage if the user owns it.
+	 *
+	 * @param userId - The unique identifier of the user.
+	 * @param documentId - The unique identifier of the document.
+	 * @returns The deleted document record if successful, otherwise null.
 	 */
 	async deleteDocument(userId: string, documentId: string) {
 		// Check ownership
@@ -115,6 +138,10 @@ export const documentService = {
 
 	/**
 	 * Retrieves all visitors who accessed any link under this document.
+	 *
+	 * @param userId - The unique identifier of the user.
+	 * @param documentId - The unique identifier of the document.
+	 * @returns An array of visitor records, or null if the document is not found or not owned by the user.
 	 */
 	async getDocumentVisitors(userId: string, documentId: string) {
 		// Ensure doc ownership
@@ -144,6 +171,7 @@ export const documentService = {
 	 * @param userId - The ID of the current user.
 	 * @param documentId - The document identifier.
 	 * @returns A promise that resolves if ownership is validated.
+	 * @throws ServiceError if the document is not found or access is denied.
 	 */
 	async verifyOwnership(userId: string, documentId: string): Promise<void> {
 		const document = await prisma.document.findFirst({
@@ -157,9 +185,12 @@ export const documentService = {
 	},
 
 	/**
-	 * Validates file type & size against env variables:
+	 * Validates the file type and size against environment variables:
 	 * - ALLOWED_FILE_TYPES (comma-separated, e.g. "pdf,jpg,png")
 	 * - MAX_FILE_SIZE_MB (e.g. "1" => 1 MB)
+	 *
+	 * @param file - The file object to validate.
+	 * @throws ServiceError if the file type is not allowed or the file is too large.
 	 */
 	validateUploadFile(file: File) {
 		// 1) Validate MIME type based on ALLOWED_FILE_TYPES
